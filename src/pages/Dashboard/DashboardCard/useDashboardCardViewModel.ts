@@ -1,0 +1,5 @@
+
+export const useDashboardCardViewModel = () => {
+
+  return {  }
+}
