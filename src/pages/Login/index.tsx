@@ -1,13 +1,36 @@
-import { Navigate } from 'react-router-dom'
+import { ActionFunctionArgs, Navigate } from 'react-router-dom'
 import { useLoginViewModel } from './useLoginViewModel'
+import { LoginType } from './consts';
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData()
+  const { email, password } = Object.fromEntries(formData) as LoginType
+
+  console.log("email", email);
+  console.log("password", password);
+
+  try {
+    const registeredUser = await register(email, password);
+    console.log("registeredUser", registeredUser);
+    // setTimeout(() => navigate("/dashboard"), 500);
+    return redirect('/dashboard')
+  } catch (err) {
+    console.log("error", err);
+    return null
+  }
+
+  // return redirect('/dashboard')
+};
 
 export const Login = () => {
-  const { user, setEmail, setPassword, handleLogin } = useLoginViewModel()
+  const auth = useContext(AuthContext)
   
-  if (user) {
+  if (auth.user) {
     return <Navigate to="/dashboard" replace />
   }
 
+  const { user, setEmail, setPassword, handleLogin } = useLoginViewModel(auth)
+  
   return (
     <div>
       <h1>This is the login page</h1>

@@ -1,14 +1,13 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, ActionFunctionArgs, redirect } from "react-router-dom";
 import { AuthContext } from "../../contexts/auth/AuthContext";
+import { AuthContextType } from '../../@types/auth';
+import { RegisterType } from './consts';
 
-export const useRegisterViewModel = () => {
-  const { user, register, loginWithGoogle } = useContext(AuthContext);
+export const useRegisterViewModel = ({ user, register, loginWithGoogle }: AuthContextType) => {
+  // const { user, register, loginWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
+  
   const handleRegister = async (e) => {
     e.preventDefault();
 

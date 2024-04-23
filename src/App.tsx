@@ -1,40 +1,42 @@
 import './App.css'
-import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route, Navigate } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route, Navigate, Outlet } from 'react-router-dom'
 import { DefaultLayout } from './components/DefaultLayout'
 import { Home } from './pages/Home'
-import { Register } from './pages/Register'
-import { Login } from './pages/Login'
+import { Register, action as registerAction } from './pages/Register'
+import { Login, action as loginAction } from './pages/Login'
 import { NotFound } from './pages/NotFound'
 import { AuthProvider } from './providers/AuthProvider'
 import { Dashboard } from './pages/Dashboard'
-import { FC, ReactNode, useContext } from 'react'
-import { AuthContext } from './contexts/auth/AuthContext'
 import { DashboardCard } from './pages/Dashboard/DashboardCard'
 import { DashboardLayout } from './pages/Dashboard/components/DashboardLayout'
+import { useContext } from 'react'
+import { AuthContext } from './contexts/auth/AuthContext'
 
-const RequireAuth: FC<{ children: ReactNode }> | null = ({ children }) => {
+const Protected = () => {
   const { user } = useContext(AuthContext)
-  
+
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" />
   }
 
-  return children
+  return <Outlet />
 }
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<DefaultLayout />}>
-      <Route index element={<Home />} />
-      <Route path="register" element={<Register />} />
-      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} action={registerAction} />
+      <Route path="login" element={<Login />} action={loginAction} />
+      <Route path="about" element={<Login />} />
 
-      <Route
-        path="dashboard"
-        element={<RequireAuth><DashboardLayout /></RequireAuth>}
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="card" element={<DashboardCard />} />
+      <Route element={<Protected />}>
+        <Route index element={<Home />} />
+        // All other routes that you want to protect will go inside here
+
+        <Route path="dashboard" element={<DashboardLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="card" element={<DashboardCard />} />
+        </Route>
       </Route>
       
       <Route path="*" element={<NotFound />} />

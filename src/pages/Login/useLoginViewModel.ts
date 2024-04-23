@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { ActionFunctionArgs, Navigate, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../contexts/auth/AuthContext";
+import { LoginType } from './consts';
+import { AuthContextType } from '../../@types/auth';
 
 export const useLoginViewModel = () => {
   const { user, login } = useContext(AuthContext);
