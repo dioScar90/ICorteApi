@@ -1,56 +1,29 @@
-import { useContext, useEffect, useState } from "react";
-import { useNavigate, ActionFunctionArgs, redirect } from "react-router-dom";
-import { AuthContext } from "../../contexts/auth/AuthContext";
-import { AuthContextType } from '../../@types/auth';
-import { RegisterType } from './consts';
+import { useEffect, useState } from "react";
+import { useNavigate, useActionData } from "react-router-dom";
+import { useAuth } from '../../providers/AuthProvider';
 
-export const useRegisterViewModel = ({ user, register, loginWithGoogle }: AuthContextType) => {
-  // const { user, register, loginWithGoogle } = useContext(AuthContext);
-  const navigate = useNavigate();
+export const useRegisterViewModel = () => {
+  const { user, isLoading, register, loginWithGoogle } = useAuth()
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const errors = useActionData()
+  const navigate = useNavigate()
   
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    console.log("email", email);
-    console.log("password", password);
-
-    try {
-      const registeredUser = await register(email, password);
-      console.log("registeredUser", registeredUser);
-      setTimeout(() => navigate("/dashboard"), 500);
-    } catch (err) {
-      console.log("error", err);
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true })
     }
-  };
-
-  const handleRegisterWithGoogle = async (e) => {
-    e.preventDefault();
-
-    console.log("email", email);
-    console.log("password", password);
-
-    try {
-      const registeredUser = await loginWithGoogle();
-      console.log("registeredUser", registeredUser);
-      setTimeout(() => navigate("/dashboard"), 500);
-    } catch (err) {
-      console.log("error", err);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (user) {
-  //     navigate('/dashboard')
-  //   }
-  // }, [])
+  }, [user, navigate])
 
   return {
     user,
-    navigate,
+    isLoading,
+    email,
     setEmail,
+    password,
     setPassword,
-    handleRegister,
-    handleRegisterWithGoogle,
-    user,
+    register,
+    loginWithGoogle,
+    errors,
   };
 };

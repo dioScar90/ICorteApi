@@ -1,26 +1,31 @@
-import './App.css'
-import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route, Navigate, Outlet } from 'react-router-dom'
-import { DefaultLayout } from './components/DefaultLayout'
-import { Home } from './pages/Home'
-import { Register, action as registerAction } from './pages/Register'
-import { Login, action as loginAction } from './pages/Login'
-import { NotFound } from './pages/NotFound'
-import { AuthProvider } from './providers/AuthProvider'
-import { Dashboard } from './pages/Dashboard'
-import { DashboardCard } from './pages/Dashboard/DashboardCard'
-import { DashboardLayout } from './pages/Dashboard/components/DashboardLayout'
-import { useContext } from 'react'
-import { AuthContext } from './contexts/auth/AuthContext'
+import "./App.css";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+import { DefaultLayout } from "./components/DefaultLayout";
+import { Home } from "./pages/Home";
+import { Register, action as registerAction } from "./pages/Register";
+import { Login, action as loginAction } from "./pages/Login";
+import { NotFound } from "./pages/NotFound";
+import { AuthProvider, useAuth } from "./providers/AuthProvider";
+import { Dashboard } from "./pages/Dashboard";
+import { DashboardCard } from "./pages/Dashboard/DashboardCard";
+import { DashboardLayout } from "./pages/Dashboard/components/DashboardLayout";
 
 const Protected = () => {
-  const { user } = useContext(AuthContext)
+  const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" />;
   }
 
-  return <Outlet />
-}
+  return <Outlet />;
+};
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -32,24 +37,23 @@ const router = createBrowserRouter(
       <Route element={<Protected />}>
         <Route index element={<Home />} />
         // All other routes that you want to protect will go inside here
-
         <Route path="dashboard" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="card" element={<DashboardCard />} />
         </Route>
       </Route>
-      
+
       <Route path="*" element={<NotFound />} />
     </Route>
   )
-)
+);
 
 const App = () => {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;

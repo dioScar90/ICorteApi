@@ -1,51 +1,58 @@
-import { ActionFunctionArgs, Form, Navigate, redirect } from 'react-router-dom'
+import { ActionFunctionArgs, Form, redirect } from 'react-router-dom'
 import { useRegisterViewModel } from './useRegisterViewModel'
-import { useContext } from 'react';
-import { AuthContext } from '../../contexts/auth/AuthContext';
 import { RegisterType, schema } from './consts';
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { register } = useContext(AuthContext)
   const formData = await request.formData()
-  const { email, password } = Object.fromEntries(formData) as RegisterType
+  const type = formData.get('type')
+  const email = formData.get('email')
+  const password = formData.get('password')
 
-  console.log("email", email);
-  console.log("password", password);
+  if (type === 'google') {
+    // do loginWithGoogle
+    return
+  }
+  
+  const errors = {}
+  
+  console.log('email', email)
+  console.log('password', password)
+
+  await schema.parseAsync({ email, password })
+
+  if (Object.keys(errors).length) {
+    return errors
+  }
 
   try {
     const registeredUser = await register(email, password);
-    console.log("registeredUser", registeredUser);
-    // setTimeout(() => navigate("/dashboard"), 500);
+    console.log('registeredUser', registeredUser);
+    // setTimeout(() => navigate('/dashboard'), 500);
     return redirect('/dashboard')
   } catch (err) {
-    console.log("error", err);
+    console.log('error', err);
     return null
   }
 };
 
 export const Register = () => {
-  const auth = useContext(AuthContext)
-  
-  if (auth.user) {
-    return <Navigate to="/dashboard" replace />
-  }
-
-  const { user, handleRegister, handleRegisterWithGoogle } = useRegisterViewModel(auth!)
-  
+  const { email, password } = useRegisterViewModel()
   
   return (
     <div>
       <div>
         <h1>This is the register page</h1>
         <Form method="post">
-          <input type="email" name="email" placeholder="Email" />
-          <input type="password" name="password" placeholder="Password" />
+          <input type="email" name="email" placeholder="Email" value={email} />
+          <input type="password" name="password" placeholder="Password" value={password} />
+          <input type="hidden" name="type" value="usual" />
           <button type="submit">Sign Up</button>
         </Form>
       </div>
       <div>
         <h3>Register with Google</h3>
         <Form method="post">
+          <input type="hidden" name="type" value="google" />
           <button type="submit">Sign Up With Google</button>
         </Form>
       </div>

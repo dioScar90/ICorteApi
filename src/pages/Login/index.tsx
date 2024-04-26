@@ -1,6 +1,7 @@
 import { ActionFunctionArgs, Navigate } from 'react-router-dom'
 import { useLoginViewModel } from './useLoginViewModel'
 import { LoginType } from './consts';
+import { useAuth } from '../../providers/AuthProvider';
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData()
@@ -23,7 +24,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export const Login = () => {
-  const auth = useContext(AuthContext)
+  const auth = useAuth()
   
   if (auth.user) {
     return <Navigate to="/dashboard" replace />
