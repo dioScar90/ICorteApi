@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { Loader2 } from 'lucide-react'
+import { Spinner } from '../../Spinner'
 
 const getBtnVariant = (variant) => ({
   normal: 'bg-slate-900 text-white hover:bg-slate-800',
@@ -36,7 +36,7 @@ export const Button = ({ children, isLoading, variant, size, type, className, ..
       type={type ?? 'button'}
       disabled={!!isLoading}
     >
-      {!!isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {!!isLoading && <Spinner />}
       {children}
     </button>
   )
