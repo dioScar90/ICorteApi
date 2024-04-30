@@ -42,12 +42,6 @@ export const AuthProvider: FC<IAuthProviderProps> = ({ children }) => {
     try {
       const provider = new GoogleAuthProvider()
       await linkWithPopup(auth.currentUser, provider)
-
-      // const credential = GoogleAuthProvider.credentialFromResult(result)
-      // const linkedUser = result.user
-
-      // console.log("credential", credential)
-      // setUser({ ...linkedUser })
     } catch (err) {
       console.log(err)
     }
