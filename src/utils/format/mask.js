@@ -1,6 +1,6 @@
 import { isOnlyZeros } from '../is/onlyZeros'
 
-function getOnlyNumbers(str: string | number, maxLength: number) {
+function getOnlyNumbers(str, maxLength) {
   return String(str)
     .replace(/\D/g, '')
     .replace(/^0+/g, '')
@@ -9,7 +9,7 @@ function getOnlyNumbers(str: string | number, maxLength: number) {
 }
 
 // 123.456.789-09
-function cpf(value: string | number) {
+function cpf(value) {
   const numbers = getOnlyNumbers(value, 11)
 
   if (isOnlyZeros(numbers)) {
@@ -20,7 +20,7 @@ function cpf(value: string | number) {
 }
 
 // 12.345.678/0001-09
-function cnpj(value: string | number) {
+function cnpj(value) {
   const numbers = getOnlyNumbers(value, 14)
 
   if (isOnlyZeros(numbers)) {
@@ -31,7 +31,7 @@ function cnpj(value: string | number) {
 }
 
 // 123.45678.90-9
-function pis(value: string | number) {
+function pis(value) {
   const numbers = getOnlyNumbers(value, 11)
 
   if (isOnlyZeros(numbers)) {
@@ -42,7 +42,7 @@ function pis(value: string | number) {
 }
 
 // 19100-000
-function cep(value: string | number) {
+function cep(value) {
   const numbers = getOnlyNumbers(value, 11)
 
   if (isOnlyZeros(numbers)) {
@@ -53,7 +53,7 @@ function cep(value: string | number) {
 }
 
 // (18) 91234-5678
-function phone(value: string | number) {
+function phone(value) {
   return String(value)
   .replace(/\D/g, '')
   .replace(/(\d{2})(\d)/, '($1) $2')
@@ -61,37 +61,29 @@ function phone(value: string | number) {
   .replace(/(-\d{4})(\d+?)/, '$1')
 }
 
-enum Type {
-  PHONE,
-  CPF,
-  CNPJ,
-  PIS,
-  CEP,
-}
-
-function format(type: Type, value: unknown) {
+function format(type, value) {
   if (!value || (typeof value !== 'string' && typeof value !== 'number')) {
     return ''
   }
   
   switch (type) {
-    case Type.PHONE:
+    case 'PHONE':
       return phone(value)
-    case Type.CPF:
+    case 'CPF':
       return cpf(value)
-    case Type.CNPJ:
+    case 'CNPJ':
       return cnpj(value)
-    case Type.PIS:
+    case 'PIS':
       return pis(value)
-    case Type.CEP:
+    case 'CEP':
       return cep(value)
     default:
       return ''
   }
 }
 
-export const formatCpf       = (value: unknown) => format(Type.PHONE, value)
-export const formatCnpj      = (value: unknown) => format(Type.CPF, value)
-export const formatPis       = (value: unknown) => format(Type.CNPJ, value)
-export const formatCellPhone = (value: unknown) => format(Type.PIS, value)
-export const formatCep       = (value: unknown) => format(Type.CEP, value)
+export const formatCpf       = (value) => format('PHONE', value)
+export const formatCnpj      = (value) => format('CPF', value)
+export const formatPis       = (value) => format('CNPJ', value)
+export const formatCellPhone = (value) => format('PIS', value)
+export const formatCep       = (value) => format('CEP', value)

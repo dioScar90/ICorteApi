@@ -1,11 +1,10 @@
-import { ActionFunctionArgs, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useLoginViewModel } from './useLoginViewModel'
-import { LoginType } from './consts';
 import { useAuth } from '../../providers/AuthProvider';
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }) => {
   const formData = await request.formData()
-  const { email, password } = Object.fromEntries(formData) as LoginType
+  const { email, password } = Object.fromEntries(formData)
 
   console.log("email", email);
   console.log("password", password);

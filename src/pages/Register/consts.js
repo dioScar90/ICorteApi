@@ -13,5 +13,3 @@ const googleLogin = z.object({
 })
 
 export const schema = usualLogin.or(googleLogin)
-
-export type RegisterType = z.infer<typeof schema>

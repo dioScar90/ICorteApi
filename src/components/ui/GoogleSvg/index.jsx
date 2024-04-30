@@ -1,8 +1,5 @@
-import { FC } from 'react'
 
-interface GoogleSvgProps {}
-
-export const GoogleSvg: FC<GoogleSvgProps> = () => {
+export const GoogleSvg = () => {
   return (
     <svg
       className="mr-2 h-4 w-4"

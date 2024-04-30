@@ -1,8 +1,8 @@
-import { ActionFunctionArgs, Form, redirect } from 'react-router-dom'
+import { Form, redirect } from 'react-router-dom'
 import { useRegisterViewModel } from './useRegisterViewModel'
-import { RegisterType, schema } from './consts';
+import { schema } from './consts';
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }) => {
   const formData = await request.formData()
   const type = formData.get('type')
   const email = formData.get('email')

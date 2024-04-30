@@ -36,7 +36,6 @@ const router = createBrowserRouter(
 
       <Route element={<Protected />}>
         <Route index element={<Home />} />
-        // All other routes that you want to protect will go inside here
         <Route path="dashboard" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="card" element={<DashboardCard />} />

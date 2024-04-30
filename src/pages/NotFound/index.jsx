@@ -1,9 +1,6 @@
-import { FC } from 'react'
 import { useNotFoundViewModel } from './useNotFoundViewModel'
 
-interface NotFoundProps {}
-
-export const NotFound: FC<NotFoundProps> = () => {
+export const NotFound = () => {
   const vv = useNotFoundViewModel()
 
   return (

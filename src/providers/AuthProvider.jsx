@@ -1,5 +1,5 @@
+import PropTypes from 'prop-types'
 import {
-  User,
   createUserWithEmailAndPassword,
   linkWithPopup,
   onAuthStateChanged,
@@ -10,22 +10,18 @@ import {
   updatePassword,
 } from 'firebase/auth'
 import { AuthContext } from '../contexts/auth/AuthContext'
-import { FC, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { auth } from '../firebase/firebase'
 
-interface IAuthProviderProps {
-  children: ReactNode
-}
-
-export const AuthProvider: FC<IAuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
   
-  const register = useCallback(async (email: string, password: string) => {
+  const register = useCallback(async (email, password) => {
     return await createUserWithEmailAndPassword(auth, email, password)
   }, [])
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email, password) => {
     return await signInWithEmailAndPassword(auth, email, password)
   }, [])
 
@@ -52,12 +48,12 @@ export const AuthProvider: FC<IAuthProviderProps> = ({ children }) => {
     auth.signOut()
   }, [])
 
-  const resetPassword = useCallback((email: string) => {
+  const resetPassword = useCallback((email) => {
     return sendPasswordResetEmail(auth, email)
   }, [])
 
-  const changePassword = useCallback((password: string) => {
-    return updatePassword(auth.currentUser!, password)
+  const changePassword = useCallback((password) => {
+    return updatePassword(auth.currentUser, password)
   }, [])
   
   useEffect(() => {
@@ -93,6 +89,6 @@ export const AuthProvider: FC<IAuthProviderProps> = ({ children }) => {
   )
 }
 
-export const useAuth = () => {
-  return useContext(AuthContext)
+AuthProvider.propTypes = {
+  children: PropTypes.node
 }

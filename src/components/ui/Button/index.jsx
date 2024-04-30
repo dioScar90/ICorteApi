@@ -1,18 +1,18 @@
+import PropTypes from 'prop-types'
 import { Loader2 } from 'lucide-react'
-import { ButtonHTMLAttributes, FC } from 'react'
 
-const getBtnVariant = (variant: string) => ({
+const getBtnVariant = (variant) => ({
   normal: 'bg-slate-900 text-white hover:bg-slate-800',
   ghost: 'bg-transparent hover:text-slate-900 hover:bg-slate-200',
 })[variant]
 
-const getBtnSize = (size: string) => ({
+const getBtnSize = (size) => ({
   sm: 'h-9 px-2',
   md: 'h-10 py-2 px-4',
   lg: 'h-11 px-8',
 })[size]
 
-const getBtnClassName = (variant?: string, size?: string, className?: string) => {
+const getBtnClassName = (variant, size, className) => {
   const classVariant = getBtnVariant(variant ?? 'normal')
   const classSize = getBtnSize(size ?? 'md')
   const others = className ?? ''
@@ -26,15 +26,7 @@ const getBtnClassName = (variant?: string, size?: string, className?: string) =>
   return btnClassName.replace(/\s+/g, ' ').trim()
 }
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  isLoading?: boolean
-  variant?: 'normal' | 'ghost'
-  size?: 'md' | 'sm' | 'lg'
-  type?: 'button' | 'submit' | 'reset'
-  className?: string
-}
-
-export const Button: FC<ButtonProps> = ({ children, isLoading, variant, size, type, className, ...props }) => {
+export const Button = ({ children, isLoading, variant, size, type, className, ...props }) => {
   const btnClassName = getBtnClassName(variant, size, className)
 
   return (
@@ -48,4 +40,28 @@ export const Button: FC<ButtonProps> = ({ children, isLoading, variant, size, ty
       {children}
     </button>
   )
+}
+
+getBtnVariant.propTypes = {
+  variant: PropTypes.oneOf(['normal', 'ghost']),
+}
+
+getBtnSize.propTypes = {
+  size: PropTypes.oneOf(['md', 'sm', 'lg']),
+}
+
+getBtnClassName.propTypes = {
+  variant: PropTypes.oneOf(['normal', 'ghost']),
+  size: PropTypes.oneOf(['md', 'sm', 'lg']),
+  className: PropTypes.string,
+}
+
+Button.propTypes = {
+  children: PropTypes.node,
+  isLoading: PropTypes.bool,
+  variant: PropTypes.oneOf(['normal', 'ghost']),
+  size: PropTypes.oneOf(['md', 'sm', 'lg']),
+  type: PropTypes.oneOf(['button', 'submit', 'reset']),
+  className: PropTypes.string,
+  props: PropTypes.objectOf(PropTypes.any),
 }
