@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useActionData } from "react-router-dom";
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '../../hooks/auth';
 
 export const useRegisterViewModel = () => {
   const { user, isLoading, register, loginWithGoogle } = useAuth()
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const errors = useActionData()
   const navigate = useNavigate()
   
@@ -25,5 +25,5 @@ export const useRegisterViewModel = () => {
     register,
     loginWithGoogle,
     errors,
-  };
-};
+  }
+}

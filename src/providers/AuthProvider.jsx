@@ -15,6 +15,7 @@ import { auth } from '../firebase/firebase'
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  // const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   
   const register = useCallback(async (email, password) => {
@@ -63,27 +64,27 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null)
       }
-
+      
+      // setIsAuthenticated(!!user)
       setIsLoading(false);
     });
 
     return () => unsubscribe()
   }, [])
-
-  const values = {
-    user,
-    isLoading,
-    register,
-    login,
-    loginWithGoogle,
-    logout,
-    linkWithGoogle,
-    resetPassword,
-    changePassword,
-  };
-
+  
   return (
-    <AuthContext.Provider value={values}>
+    <AuthContext.Provider value={{
+      user,
+      // isAuthenticated,
+      isLoading,
+      register,
+      login,
+      loginWithGoogle,
+      logout,
+      linkWithGoogle,
+      resetPassword,
+      changePassword,
+    }}>
       {!isLoading && children}
     </AuthContext.Provider>
   )
