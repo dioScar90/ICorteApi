@@ -66,6 +66,8 @@ fi
         - 'src/' directory YES
         - App Router YES
         - import alias NO
+- Com **Vite**:
+    - `npm create vite@latest client-app -- --template react-ts`
 - Instalando SASS (usar com arquivos SCSS):
     - `npm i sass`
 - Instalando Material-UI e Material-Icons:
