@@ -1,6 +1,13 @@
-namespace BarberAppApi.Dtos;
+namespace ICorteApi.Dtos;
 
-public record BarberDto(
+public record BarberDtoResponse(
+    int Id,
     string Name,
-    AddressDto Address
+    AddressDtoResponse Address
+);
+
+public record BarberDtoRequest(
+    int? Id,
+    string Name,
+    AddressDtoRequest Address
 );

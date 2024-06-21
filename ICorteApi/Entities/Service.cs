@@ -1,8 +1,8 @@
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Service : BaseEntity
 {
-    public int Id { get; set; }
+    public override int Id { get; set; }
     public string ServiceName { get; set; }
     public string Description { get; set; }
     public decimal Price { get; set; }

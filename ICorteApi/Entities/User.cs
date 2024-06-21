@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
-using BarberAppApi.Enums;
-using BarberAppApi.Validators;
+using ICorteApi.Enums;
+using ICorteApi.Validators;
 
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
-public class User
+public class User : BaseEntity
 {
-    public int Id { get; set; }
+    public override int Id { get; set; }
     public string Username { get; set; }
     // private Email _email;
     // public string Email
@@ -23,7 +23,7 @@ public class User
     
     // Navigation Properties
     public Barber Barber { get; set; }
-    public Client Client { get; set; }
+    // public Client Client { get; set; }
 }
 
 /*

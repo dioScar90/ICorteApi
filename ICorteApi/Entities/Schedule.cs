@@ -1,8 +1,8 @@
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Schedule : BaseEntity
 {
-    public int Id { get; set; }
+    public override int Id { get; set; }
     public int BarberId { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
     public TimeSpan StartTime { get; set; }

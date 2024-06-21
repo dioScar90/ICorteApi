@@ -1,6 +1,6 @@
 using System.Net.Mail;
 
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Email(string email)
 {

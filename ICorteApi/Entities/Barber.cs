@@ -1,17 +1,17 @@
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Barber : BaseEntity
 {
-    public int Id { get; set; }
+    public override int Id { get; set; }
     public string Name { get; set; }
     public Address Address { get; set; }
     public int UserId { get; set; }
 
     // Navigation Properties
-    public User User { get; set; }
-    public ICollection<Appointment> Appointments { get; set; } = [];
-    public ICollection<Schedule> Schedules { get; set; } = [];
-    public ICollection<Conversation> Conversations { get; set; } = [];
+    public virtual User User { get; set; }
+    // public virtual ICollection<Appointment> Appointments { get; set; } = [];
+    // public virtual ICollection<Schedule> Schedules { get; set; } = [];
+    // public virtual ICollection<Conversation> Conversations { get; set; } = [];
 }
 
 /*

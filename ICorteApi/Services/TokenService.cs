@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using BarberAppApi.Entities;
+using ICorteApi.Entities;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BarberAppApi.Services;
+namespace ICorteApi.Services;
 
 public static class TokenService
 {

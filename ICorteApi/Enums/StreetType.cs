@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace BarberAppApi.Enums;
+namespace ICorteApi.Enums;
 
 public enum StreetType
 {

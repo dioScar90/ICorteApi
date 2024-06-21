@@ -1,7 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 
-namespace BarberAppApi.Settings;
+namespace ICorteApi.Settings;
 
 public static class CultureConfiguration
 {

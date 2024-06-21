@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace BarberAppApi.Settings;
+namespace ICorteApi.Settings;
 
 public static class Settings
 {

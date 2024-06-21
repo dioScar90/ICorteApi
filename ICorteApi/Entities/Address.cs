@@ -1,11 +1,11 @@
-using BarberAppApi.Enums;
+using ICorteApi.Enums;
 
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Address : BaseEntity
 {
-    public int Id { get; set; }
-    public int ClientId { get; set; }
+    public override int Id { get; set; }
+    public int BarberId { get; set; }
     public StreetType StreetType { get; set; }
     public string Street { get; set; }
     public string Number { get; set; }

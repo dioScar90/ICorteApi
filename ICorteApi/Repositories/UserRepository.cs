@@ -1,7 +1,7 @@
-using BarberAppApi.Entities;
-using BarberAppApi.Enums;
+using ICorteApi.Entities;
+using ICorteApi.Enums;
 
-namespace BarberAppApi.Repositories;
+namespace ICorteApi.Repositories;
 
 public static class UserRepository
 {

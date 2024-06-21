@@ -1,4 +1,4 @@
-namespace BarberAppApi.Dtos;
+namespace ICorteApi.Dtos;
 
 public record AppointmentDto(
     DateTime AppointmentDate,

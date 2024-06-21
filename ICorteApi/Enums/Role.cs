@@ -1,4 +1,4 @@
-namespace BarberAppApi.Enums;
+namespace ICorteApi.Enums;
 
 public enum Role
 {

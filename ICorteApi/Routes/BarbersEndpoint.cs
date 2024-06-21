@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BarberAppApi.Context;
+using ICorteApi.Context;
 using Microsoft.AspNetCore.Http.HttpResults;
-using BarberAppApi.Entities;
-using BarberAppApi.Dtos;
+using ICorteApi.Entities;
+using ICorteApi.Dtos;
 
-namespace BarberAppApi.Routes;
+namespace ICorteApi.Routes;
 
 public static class BarbersEndpoint
 {
@@ -20,7 +20,7 @@ public static class BarbersEndpoint
         group.MapDelete("{id}", DeleteBarber);
     }
 
-    public static async Task<Results<Ok<Barber>, NotFound<string>>> GetBarber(int id, BarberShopContext context)
+    public static async Task<Results<Ok<Barber>, NotFound<string>>> GetBarber(int id, ICorteContext context)
     {
         var barber = await context.Barbers
             .SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
@@ -31,7 +31,7 @@ public static class BarbersEndpoint
         return TypedResults.Ok(barber);
     }
     
-    public static async Task<Results<Created, BadRequest<string>>> CreateBarber([FromBody] BarberDto dto, BarberShopContext context)
+    public static async Task<Results<Created, BadRequest<string>>> CreateBarber([FromBody] BarberDto dto, ICorteContext context)
     {
         try
         {
@@ -67,7 +67,7 @@ public static class BarbersEndpoint
     public static async Task<Results<Ok<string>, NotFound, BadRequest<string>>> UpdateBarber(
         int id,
         [FromBody] BarberDto dto,
-        BarberShopContext context)
+        ICorteContext context)
     {
         try
         {
@@ -100,7 +100,7 @@ public static class BarbersEndpoint
         }
     }
     
-    public static async Task<Results<NoContent, NotFound, BadRequest<string>>> DeleteBarber(int id, BarberShopContext context)
+    public static async Task<Results<NoContent, NotFound, BadRequest<string>>> DeleteBarber(int id, ICorteContext context)
     {
         try
         {

@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using BarberAppApi.Enums;
-using BarberAppApi.Validators;
+using ICorteApi.Enums;
+using ICorteApi.Validators;
 
-namespace BarberAppApi.Dtos;
+namespace ICorteApi.Dtos;
 
 public record UserDto(
     string Username,

@@ -1,9 +1,9 @@
-using BarberAppApi.Context;
-using BarberAppApi.Dtos;
-using BarberAppApi.Repositories;
-using BarberAppApi.Services;
+using ICorteApi.Context;
+using ICorteApi.Dtos;
+using ICorteApi.Repositories;
+using ICorteApi.Services;
 
-namespace BarberAppApi.Routes;
+namespace ICorteApi.Routes;
 
 public static class AuthenticationEndpoints
 {
@@ -18,7 +18,7 @@ public static class AuthenticationEndpoints
         // group.MapPost("", CreateProduct);
     }
 
-    public static async Task<IResult> Login(UserLoginDto login, BarberShopContext context)
+    public static async Task<IResult> Login(UserLoginDto login, ICorteContext context)
     {
         var user = await UserRepository.Get(login.Username, login.Password);
 
@@ -31,7 +31,7 @@ public static class AuthenticationEndpoints
         return Results.Ok(new { token, user = new { username = user.Username, role = user.Role, rolestring = user.Role.ToString() } });
     }
     
-// app.MapPost("/register", async (User user, BarberShopContext context) =>
+// app.MapPost("/register", async (User user, ICorteContext context) =>
 // {
 //     user.PasswordHash = user.PasswordHash; // You should hash the password
 //     context.Users.Add(user);

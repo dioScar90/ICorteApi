@@ -1,8 +1,8 @@
-namespace BarberAppApi.Entities;
+namespace ICorteApi.Entities;
 
 public class Appointment : BaseEntity
 {
-    public int Id { get; set; }
+    public override int Id { get; set; }
     public int BarberId { get; set; }
     public int ClientId { get; set; }
     public int? PaymentId { get; set; }
