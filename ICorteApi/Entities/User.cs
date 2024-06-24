@@ -1,17 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using ICorteApi.Enums;
 using ICorteApi.Validators;
+using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Entities;
 
 public class User : BaseUser
 {
-    public string Name { get; set; }
-    [EmailValidator]
-    public string Email { get; set; }
-    public string PasswordHash { get; set; }
-    public string PhoneNumber { get; set; }
-    public DateTime? LastVisitDate { get; set; }
+    // [PersonalData]
+    public string FirstName { get; set; }
+    // [PersonalData]
+    public string LastName { get; set; }
+    // [EmailValidator]
+    // public string Email { get; set; }
+    // public string PasswordHash { get; set; }
+    // public string PhoneNumber { get; set; }
+    // public DateTime? LastVisitDate { get; set; }
+    // [PersonalData]
     public UserRole Role { get; set; }
     
     public IEnumerable<Appointment> Appointments { get; set; }

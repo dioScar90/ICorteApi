@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using ICorteApi.Entities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Context;
 
 // public class ICorteContext(DbContextOptions<ICorteContext> options) : DbContext(options)
-public class ICorteContext(DbContextOptions<ICorteContext> options) : IdentityDbContext<User, IdentityRole<int>, int>(options)
+public class ICorteContext(DbContextOptions<ICorteContext> options) : IdentityDbContext<User, Role, int>(options)
 {
     // public DbSet<User> Users { get; set; }
     public DbSet<Address> Addresses { get; set; }

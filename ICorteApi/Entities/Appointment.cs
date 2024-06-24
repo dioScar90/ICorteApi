@@ -2,16 +2,12 @@ namespace ICorteApi.Entities;
 
 public class Appointment : BaseEntity
 {
-    public int? PaymentId { get; set; }
     public DateTime AppointmentDate { get; set; }
-    public int BarberId { get; set; }
+    public int ScheduleId { get; set; }
+    public Schedule Schedule { get; set; }
     public int ClientId { get; set; }
-
-    // Navigation Properties
-    public User Barber { get; set; }
     public User Client { get; set; }
-    public Payment? Payment { get; set; }
-    public ICollection<Service> Services { get; set; } = [];
+    public ICollection<Service> Services { get; set; }
 }
 
 /*

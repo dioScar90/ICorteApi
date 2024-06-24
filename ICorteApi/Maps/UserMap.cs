@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public class UserMap() : BaseMap<User>("users")
+public class UserMap : BaseMap<User>
 {
     public override void Configure(EntityTypeBuilder<User> builder)
     {

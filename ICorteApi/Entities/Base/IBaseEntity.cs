@@ -5,4 +5,9 @@ using System.Threading.Tasks;
 
 namespace ICorteApi.Entities;
 
-public interface IBaseEntity { }
+public interface IBaseEntity {
+    int Id { get; set; }
+    DateTime CreatedAt { get; set; }
+    DateTime? UpdatedAt { get; set; }
+    bool IsActive { get; set; }
+}

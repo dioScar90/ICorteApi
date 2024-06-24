@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public class AddressMap() : BaseMap<Address>("addresses")
+public class AddressMap : BaseMap<Address>
 {
     public override void Configure(EntityTypeBuilder<Address> builder)
     {
         base.Configure(builder);
 
-        // builder.HasOne(a => a.Barber)
-        //     .WithMany()
-        //     .HasForeignKey(a => a.BarberId);
+        builder.HasOne(a => a.User)
+            .WithMany(p => p.Addresses)
+            .HasForeignKey(a => a.UserId);
 
         // builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");

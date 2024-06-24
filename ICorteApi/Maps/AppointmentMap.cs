@@ -4,22 +4,22 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public class BarberMap() : BaseMap<Barber>("barbers")
+public class AppointmentMap : BaseMap<Appointment>
 {
-    public override void Configure(EntityTypeBuilder<Barber> builder)
+    public override void Configure(EntityTypeBuilder<Appointment> builder)
     {
         base.Configure(builder);
 
-        // builder
-        //     .HasOne(b => b.Address)
-        //     .WithMany()
-        //     .HasForeignKey(b => b.AddressId)
-        //     .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(a => a.Client)
+            .WithMany(u => u.Appointments)
+            .HasForeignKey(a => a.ClientId);
 
-        // builder.Property(x => x.Name).HasColumnType("varchar(100)").IsRequired();
+        builder.HasOne(a => a.Schedule)
+            .WithMany(u => u.Appointments)
+            .HasForeignKey(a => a.ScheduleId);
+
+        // builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");
-
-        // builder.HasOne(x => x.Address).WithOne(a => a.Barber);
 
         // builder.HasMany(x => x.Especialidades)
         //     .WithMany(x => x.Profissionais)

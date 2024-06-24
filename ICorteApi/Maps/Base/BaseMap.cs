@@ -6,15 +6,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public partial class BaseMap<TEntity>(string tableName) : IEntityTypeConfiguration<TEntity> where TEntity : BaseEntity
+public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseEntity
 {
-    private readonly string _tableName = tableName;
-    
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
-        if (!string.IsNullOrEmpty(_tableName))
-            builder.ToTable(_tableName);
-            
+        string? currentTableName = builder.Metadata.GetTableName();
+
+        if (!string.IsNullOrEmpty(currentTableName))
+        {
+            string newTableName = CamelCaseToSnakeCase(currentTableName);
+            builder.ToTable(newTableName);
+        }
+
         foreach (var prop in typeof(TEntity).GetProperties())
         {
             if (IsPrimitiveType(prop.PropertyType))
@@ -24,7 +27,7 @@ public partial class BaseMap<TEntity>(string tableName) : IEntityTypeConfigurati
             }
         }
 
-        builder.Property(x => x.Id).ValueGeneratedOnAdd();
+        // builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.CreatedAt).HasDefaultValue(DateTime.UtcNow);
         builder.Property(x => x.IsActive).HasDefaultValue(true);
     }

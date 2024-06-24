@@ -18,7 +18,7 @@ public static class Mapper
     }
 
     public static TEntity? CreateEntity<TEntity>(this IDtoRequest dto)
-        where TEntity : BaseEntity
+        where TEntity : class, IBaseEntity
     {
         if (dto is UserDtoRequest userDto)
             return MapDtoToUser(userDto) as TEntity;
@@ -32,7 +32,8 @@ public static class Mapper
     private static UserDtoResponse MapUserToDto(User user) =>
         new(
             user.Id,
-            user.Name,
+            user.FirstName,
+            user.LastName,
             user.Email,
             user.PhoneNumber,
             user.Role,
@@ -42,7 +43,8 @@ public static class Mapper
     private static User MapDtoToUser(UserDtoRequest userDto) =>
         new()
         {
-            Name = userDto.Name,
+            FirstName = userDto.FirstName,
+            LastName = userDto.LastName,
             Email = userDto.Email,
             PhoneNumber = userDto.PhoneNumber,
             Role = userDto.Role,

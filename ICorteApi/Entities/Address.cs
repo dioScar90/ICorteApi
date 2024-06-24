@@ -13,9 +13,8 @@ public class Address : BaseEntity
     public string PostalCode { get; set; }
     public string Country { get; set; } = "Brasil";
     public AddressType AddressType { get; set; }
-    public int UserId { get; set; }
     
-    // Navigation Properties
+    public int UserId { get; set; }
     public User User { get; set; }
 }
 

@@ -4,9 +4,8 @@ public class Report : BaseEntity
 {
     public string Title { get; set; }
     public string Content { get; set; }
+    
     public int UserId { get; set; }
-
-    // Navigation:
     public User User { get; set; }
 }
 

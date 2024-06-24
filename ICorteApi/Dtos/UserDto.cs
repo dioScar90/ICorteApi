@@ -7,7 +7,8 @@ namespace ICorteApi.Dtos;
 
 public record UserDtoResponse(
     int Id,
-    string Name,
+    string FirstName,
+    string LastName,
     string Email,
     string PhoneNumber,
     UserRole Role,
@@ -16,10 +17,17 @@ public record UserDtoResponse(
 
 public record UserDtoRequest(
     int? Id,
-    string Name,
+    string FirstName,
+    string LastName,
     string Email,
     string Password,
     string PhoneNumber,
     UserRole Role,
+    IEnumerable<AddressDtoRequest> Addresses
+) : IDtoRequest;
+
+public record UserLoginDtoRequest(
+    string Email,
+    string Password,
     IEnumerable<AddressDtoRequest> Addresses
 ) : IDtoRequest;

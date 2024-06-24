@@ -7,10 +7,11 @@ public class Service : BaseEntity
     public ServiceType ServiceType { get; set; }
     public string? Description { get; set; }
     public decimal Price { get; set; }
-    public int BarberId { get; set; }
 
-    // Navigation Properties
+    public int BarberId { get; set; }
     public User Barber { get; set; }
+
+    public IEnumerable<Appointment> Appointments { get; set; }
 }
 
 /*

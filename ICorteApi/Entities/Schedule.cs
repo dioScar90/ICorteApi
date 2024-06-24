@@ -2,13 +2,14 @@ namespace ICorteApi.Entities;
 
 public class Schedule : BaseEntity
 {
-    public int BarberId { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
 
-    // Navigation Properties
+    public int BarberId { get; set; }
     public User Barber { get; set; }
+
+    public IEnumerable<Appointment> Appointments { get; set; }
 }
 
 /*
