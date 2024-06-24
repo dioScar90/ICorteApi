@@ -2,9 +2,12 @@ namespace ICorteApi.Entities;
 
 public class Report : BaseEntity
 {
-    public override int Id { get; set; }
-    public int Title { get; set; }
+    public string Title { get; set; }
     public string Content { get; set; }
+    public int UserId { get; set; }
+
+    // Navigation:
+    public User User { get; set; }
 }
 
 /*

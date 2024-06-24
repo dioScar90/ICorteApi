@@ -10,7 +10,13 @@ public class BarberMap() : BaseMap<Barber>("barbers")
     {
         base.Configure(builder);
 
-        builder.Property(x => x.Name).HasColumnType("varchar(100)").IsRequired();
+        // builder
+        //     .HasOne(b => b.Address)
+        //     .WithMany()
+        //     .HasForeignKey(b => b.AddressId)
+        //     .OnDelete(DeleteBehavior.Cascade);
+
+        // builder.Property(x => x.Name).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");
 
         // builder.HasOne(x => x.Address).WithOne(a => a.Barber);

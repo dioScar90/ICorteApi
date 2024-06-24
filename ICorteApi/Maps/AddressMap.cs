@@ -10,7 +10,11 @@ public class AddressMap() : BaseMap<Address>("addresses")
     {
         base.Configure(builder);
 
-        builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
+        // builder.HasOne(a => a.Barber)
+        //     .WithMany()
+        //     .HasForeignKey(a => a.BarberId);
+
+        // builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");
 
         // builder.HasMany(x => x.Especialidades)

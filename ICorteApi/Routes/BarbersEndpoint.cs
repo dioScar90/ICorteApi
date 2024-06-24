@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using ICorteApi.Context;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ICorteApi.Entities;
+using ICorteApi.Repositories;
 using ICorteApi.Dtos;
+using ICorteApi.Extensions;
 
 namespace ICorteApi.Routes;
 
@@ -14,48 +16,52 @@ public static class BarbersEndpoint
         const string INDEX = "";
         var group = app.MapGroup("barber");
 
+        group.MapGet(INDEX, GetAllBarbers);
         group.MapGet("{id}", GetBarber);
         group.MapPost(INDEX, CreateBarber);
         group.MapPut("{id}", UpdateBarber);
         group.MapDelete("{id}", DeleteBarber);
     }
 
-    public static async Task<Results<Ok<Barber>, NotFound<string>>> GetBarber(int id, ICorteContext context)
+    public static async Task<IResult> GetBarber(int id, ICorteContext context)
     {
         var barber = await context.Barbers
+            .Include(b => b.Address)
             .SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
 
         if (barber is null)
-            TypedResults.NotFound("Não encontrado");
+            return Results.NotFound();
 
-        return TypedResults.Ok(barber);
+        var dto = BarberToDtoResponse(barber);
+        return Results.Ok(dto);
+    }
+
+    public static async Task<Results<Ok<List<BarberDtoResponse>>, NotFound<string>>> GetAllBarbers(int page, int perPage, ICorteContext context)
+    {
+        var barbers = new BarberRepository(context)
+            .GetAll(page, perPage);
+
+        if (!barbers.Any())
+            TypedResults.NotFound();
+
+        var dtos = await barbers
+            .Select(b => BarberToDtoResponse(b))
+            .ToListAsync();
+            
+        return TypedResults.Ok(dtos);
     }
     
-    public static async Task<Results<Created, BadRequest<string>>> CreateBarber([FromBody] BarberDto dto, ICorteContext context)
+    public static async Task<IResult> CreateBarber(BarberDtoRequest dto, ICorteContext context)
     {
         try
         {
-            Barber newBarber = new()
-            {
-                Name = dto.Name,
-                Address = new()
-                {
-                    StreetType = dto.Address.StreetType,
-                    Street = dto.Address.Street,
-                    Number = dto.Address.Number,
-                    Complement = dto.Address.Complement,
-                    Neighborhood = dto.Address.Neighborhood,
-                    City = dto.Address.City,
-                    State = dto.Address.State,
-                    PostalCode = dto.Address.PostalCode,
-                    Country = dto.Address.Country,
-                }
-            };
+            var newBarber = dto.CreateEntity<Barber>();
 
-            await context.Barbers.AddAsync(newBarber);
+            await context.Barbers.AddAsync(newBarber!);
+
             var id = await context.SaveChangesAsync();
 
-            return TypedResults.Created("Sua mãe é minha");
+            return Results.Created($"/barber/{id}", new { Message = "Barbeiro criado com sucesso" });
         }
         catch (Exception ex)
         {
@@ -66,7 +72,7 @@ public static class BarbersEndpoint
     
     public static async Task<Results<Ok<string>, NotFound, BadRequest<string>>> UpdateBarber(
         int id,
-        [FromBody] BarberDto dto,
+        [FromBody] BarberDtoRequest dto,
         ICorteContext context)
     {
         try
@@ -119,4 +125,22 @@ public static class BarbersEndpoint
             return TypedResults.BadRequest(ex.Message);
         }
     }
+
+    private static BarberDtoResponse BarberToDtoResponse(Barber barber) =>
+        new(
+            barber.Id,
+            barber.Name,
+            new(
+                barber.Address.Id,
+                barber.Address.StreetType,
+                barber.Address.Street,
+                barber.Address.Number,
+                barber.Address.Complement,
+                barber.Address.Neighborhood,
+                barber.Address.City,
+                barber.Address.State,
+                barber.Address.PostalCode,
+                barber.Address.Country
+            )
+        );
 }

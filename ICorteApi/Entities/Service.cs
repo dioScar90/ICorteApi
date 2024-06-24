@@ -1,15 +1,16 @@
+using ICorteApi.Enums;
+
 namespace ICorteApi.Entities;
 
 public class Service : BaseEntity
 {
-    public override int Id { get; set; }
-    public string ServiceName { get; set; }
-    public string Description { get; set; }
+    public ServiceType ServiceType { get; set; }
+    public string? Description { get; set; }
     public decimal Price { get; set; }
-    public TimeSpan Duration { get; set; }
+    public int BarberId { get; set; }
 
     // Navigation Properties
-    public ICollection<Appointment> Appointments { get; set; } = [];
+    public User Barber { get; set; }
 }
 
 /*

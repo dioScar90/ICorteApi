@@ -1,47 +1,49 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ICorteApi.Context;
 using ICorteApi.Dtos;
 using ICorteApi.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Repositories;
 
-public class BarberRepository : IBaseRepository<Barber, BarberDtoRequest, BarberDtoResponse, ICorteContext>
+public class BarberRepository(ICorteContext context) : BaseRepository(context), IBaseRepository
 {
-    public Task<BarberDtoResponse> Create(BarberDtoRequest entity, ICorteContext context)
+    private readonly ICorteContext _context = context;
+    public IQueryable<Barber> GetAll(int page, int perPage)
     {
-        throw new NotImplementedException();
+        page = page < 1 ? 1 : page;
+        perPage = perPage < 1 ? 25 : perPage;
+
+        return _context.Barbers
+            .Where(b => b.IsActive)
+            .Skip((page - 1) * perPage)
+            .Take(perPage);
+
+        // return await _context.Barbers
+        //     .Where(b => b.IsActive)
+        //     // .Select(b => new BarberDtoResponse(
+        //     //     b.Id,
+        //     //     b.Name,
+        //     //     new AddressDtoResponse(
+        //     //         b.Address.Id,
+        //     //         b.Address.StreetType,
+        //     //         b.Address.Street,
+        //     //         b.Address.Number,
+        //     //         b.Address.Complement,
+        //     //         b.Address.Neighborhood,
+        //     //         b.Address.City,
+        //     //         b.Address.State,
+        //     //         b.Address.PostalCode,
+        //     //         b.Address.Country
+        //     //     )
+        //     // ))
+        //     .Skip((page - 1) * perPage)
+        //     .Take(perPage);
+        //     // .ToListAsync();
     }
 
-    public Task<BarberDtoResponse> Delete(BarberDtoRequest entity, ICorteContext context)
+    public async Task<Barber?> GetById(int id)
     {
-        throw new NotImplementedException();
-    }
-
-    public Task Delete(int id, ICorteContext context)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<BarberDtoResponse>> GetAll(int offset, int limit, bool desc, ICorteContext context)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<BarberDtoResponse> GetById(int id, ICorteContext context)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> SaveChangesAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<BarberDtoResponse> Update(BarberDtoRequest entity, ICorteContext context)
-    {
-        throw new NotImplementedException();
+        return await _context.Barbers
+            .SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
     }
 }

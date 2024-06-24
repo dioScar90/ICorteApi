@@ -2,12 +2,10 @@ namespace ICorteApi.Entities;
 
 public class Message : BaseEntity
 {
-    public override int Id { get; set; }
-    public int ConversationId { get; set; }
-    public int SenderId { get; set; }
     public string Content { get; set; }
     public DateTime Timestamp { get; set; }
-    public bool IsReal { get; set; }
+    public int SenderId { get; set; }
+    public int ConversationId { get; set; }
 
     // Navigation Properties
     public Conversation Conversation { get; set; }

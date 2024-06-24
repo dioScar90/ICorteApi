@@ -4,26 +4,22 @@ using ICorteApi.Validators;
 
 namespace ICorteApi.Entities;
 
-public class User : BaseEntity
+public class User : BaseUser
 {
-    public override int Id { get; set; }
-    public string Username { get; set; }
-    // private Email _email;
-    // public string Email
-    // {
-    //     get => _email.ToString();
-    //     set => _email = new Email(value);
-    // }
-    // [EmailAddress(ErrorMessage = "Formato de email inválido")]
+    public string Name { get; set; }
     [EmailValidator]
     public string Email { get; set; }
-    public string Phone { get; set; }
-    public Role Role { get; set; }
-    public string Password { get; set; }
+    public string PasswordHash { get; set; }
+    public string PhoneNumber { get; set; }
+    public DateTime? LastVisitDate { get; set; }
+    public UserRole Role { get; set; }
     
-    // Navigation Properties
-    public Barber Barber { get; set; }
-    // public Client Client { get; set; }
+    public IEnumerable<Appointment> Appointments { get; set; }
+    public IEnumerable<Conversation> Conversations { get; set; }
+    public IEnumerable<Schedule> Schedules { get; set; }
+    public IEnumerable<Service> Services { get; set; }
+    public IEnumerable<Report> Reports { get; set; }
+    public IEnumerable<Address> Addresses { get; set; }
 }
 
 /*

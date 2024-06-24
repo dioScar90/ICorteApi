@@ -1,86 +1,80 @@
 using Microsoft.EntityFrameworkCore;
 using ICorteApi.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ICorteApi.Context;
 
-public class ICorteContext(DbContextOptions<ICorteContext> options) : DbContext(options)
+// public class ICorteContext(DbContextOptions<ICorteContext> options) : DbContext(options)
+public class ICorteContext(DbContextOptions<ICorteContext> options) : IdentityDbContext<User, IdentityRole<int>, int>(options)
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<Barber> Barbers { get; set; }
-    // public DbSet<Client> Clients { get; set; }
+    // public DbSet<User> Users { get; set; }
     public DbSet<Address> Addresses { get; set; }
-    // public DbSet<Appointment> Appointments { get; set; }
-    // public DbSet<Payment> Payments { get; set; }
-    // public DbSet<Report> Reports { get; set; }
-    // public DbSet<Schedule> Schedules { get; set; }
-    // public DbSet<Service> Services { get; set; }
-    // public DbSet<Message> Messages { get; set; }
-    // public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Appointment> Appointments { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    public DbSet<Schedule> Schedules { get; set; }
+    public DbSet<Service> Services { get; set; }
+    public DbSet<Report> Reports { get; set; }
     
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //     => optionsBuilder.UseSqlite($"DataSource = Required{GetType().Name}.db");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
+        // // User and Address
         // modelBuilder.Entity<User>()
-        //     .HasOne(u => u.Barber)
-        //     .WithOne(b => b.User)
-        //     .HasForeignKey<Barber>(b => b.UserId);
+        //     .HasOne(u => u.Address)
+        //     .WithOne(a => a.User)
+        //     .HasForeignKey<Address>(a => a.UserId);
 
-        // modelBuilder.Entity<User>()
-        //     .HasOne(u => u.Client)
-        //     .WithOne(c => c.User)
-        //     .HasForeignKey<Client>(c => c.UserId);
-
+        // // User and Appointments
         // modelBuilder.Entity<Appointment>()
         //     .HasOne(a => a.Barber)
-        //     .WithMany(b => b.Appointments)
-        //     .HasForeignKey(a => a.BarberId);
+        //     .WithMany(u => u.Appointments)
+        //     .HasForeignKey(a => a.BarberId)
+        //     .OnDelete(DeleteBehavior.Restrict);
 
         // modelBuilder.Entity<Appointment>()
         //     .HasOne(a => a.Client)
-        //     .WithMany(c => c.Appointments)
-        //     .HasForeignKey(a => a.ClientId);
+        //     .WithMany(u => u.Appointments)
+        //     .HasForeignKey(a => a.ClientId)
+        //     .OnDelete(DeleteBehavior.Restrict);
 
-        // modelBuilder.Entity<Appointment>()
-        //     .HasOne(a => a.Payment)
-        //     .WithOne(p => p.Appointment)
-        //     .HasForeignKey<Payment>(p => p.AppointmentId);
+        // // User and Messages
+        // modelBuilder.Entity<Message>()
+        //     .HasOne(m => m.Sender)
+        //     .WithMany(u => u.Messages)
+        //     .HasForeignKey(m => m.SenderId);
 
-        // modelBuilder.Entity<Appointment>()
-        //     .HasMany(a => a.Services)
-        //     .WithMany(s => s.Appointments)
-        //     .UsingEntity(j => j.ToTable("AppointmentServices"));
-
-        // modelBuilder.Entity<Barber>()
-        //     .HasMany(b => b.Schedules)
-        //     .WithOne(s => s.Barber)
-        //     .HasForeignKey(s => s.BarberId);
-
-        // modelBuilder.Entity<Barber>()
-        //     .HasOne(b => b.Address)
-        //     .WithOne(b => b.Barber)
-        //     .HasForeignKey<Address>(a => a.ClientId);
-
+        // // Conversation and Messages
         // modelBuilder.Entity<Conversation>()
         //     .HasMany(c => c.Messages)
         //     .WithOne(m => m.Conversation)
         //     .HasForeignKey(m => m.ConversationId);
-        
-        // modelBuilder.Entity<Conversation>()
-        //     .HasOne(c => c.Client)
-        //     .WithMany()
-        //     .HasForeignKey(c => c.ClientId)
-        //     .OnDelete(DeleteBehavior.Restrict);
 
+        // // Conversation and Users
         // modelBuilder.Entity<Conversation>()
-        //     .HasOne(c => c.Barber)
-        //     .WithMany()
-        //     .HasForeignKey(c => c.BarberId)
-        //     .OnDelete(DeleteBehavior.Restrict);
+        //     .HasMany(c => c.Participants)
+        //     .WithMany(u => u.Conversations);
+
+        // // User and Schedules
+        // modelBuilder.Entity<Schedule>()
+        //     .HasOne(s => s.Barber)
+        //     .WithMany(u => u.Schedules)
+        //     .HasForeignKey(s => s.BarberId);
+
+        // // User and Services
+        // modelBuilder.Entity<Service>()
+        //     .HasOne(s => s.Barber)
+        //     .WithMany(u => u.Services)
+        //     .HasForeignKey(s => s.BarberId);
+
+        // // User and Reports
+        // modelBuilder.Entity<Report>()
+        //     .HasOne(r => r.User)
+        //     .WithMany(u => u.Reports)
+        //     .HasForeignKey(r => r.UserId);
 
         // base.OnModelCreating(modelBuilder);
     }

@@ -7,7 +7,8 @@ namespace ICorteApi.Repositories;
 
 public interface IBaseRepository
 {
-    void Create<T, K>(T entity, K context) where T : BaseEntity where K : ICorteContext;
-    void Update<T, K>(T entity, K context) where T : BaseEntity where K : ICorteContext;
-    void Delete<T, K>(T entity, K context) where T : BaseEntity where K : ICorteContext;
+    void Create<T>(T entity) where T : BaseEntity;
+    void Update<T>(T entity) where T : BaseEntity;
+    void Delete<T>(T entity) where T : BaseEntity;
+    Task<bool> SaveChangesAsync();
 }

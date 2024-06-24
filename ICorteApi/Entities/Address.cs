@@ -4,9 +4,6 @@ namespace ICorteApi.Entities;
 
 public class Address : BaseEntity
 {
-    public override int Id { get; set; }
-    public int BarberId { get; set; }
-    public StreetType StreetType { get; set; }
     public string Street { get; set; }
     public string Number { get; set; }
     public string? Complement { get; set; }
@@ -15,9 +12,11 @@ public class Address : BaseEntity
     public State State { get; set; }
     public string PostalCode { get; set; }
     public string Country { get; set; } = "Brasil";
+    public AddressType AddressType { get; set; }
+    public int UserId { get; set; }
     
     // Navigation Properties
-    public Barber Barber { get; set; }
+    public User User { get; set; }
 }
 
 /*

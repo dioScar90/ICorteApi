@@ -10,7 +10,7 @@ public class UserMap() : BaseMap<User>("users")
     {
         base.Configure(builder);
 
-        builder.Property(x => x.Username).HasColumnType("varchar(20)").IsRequired();
+        // builder.Property(x => x.Username).HasColumnType("varchar(20)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");
 
         // builder.HasMany(x => x.Especialidades)

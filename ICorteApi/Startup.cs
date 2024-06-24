@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ICorteApi.Routes;
+using ICorteApi.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi;
 
@@ -21,6 +23,8 @@ public class Startup(IConfiguration configuration)
                 assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
             );
         });
+
+        services.AddScoped<ICorteContext>();
 
         services.AddEndpointsApiExplorer();
 
@@ -48,6 +52,18 @@ public class Startup(IConfiguration configuration)
                 Array.Empty<string>()
             }});
         });
+
+        services.AddIdentity<User, IdentityRole<int>>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
+        })
+        .AddEntityFrameworkStores<ICorteContext>()
+        .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
         {
@@ -84,9 +100,13 @@ public class Startup(IConfiguration configuration)
 
         app.DefineCultureLocalization("pt-BR");
 
+        app.UseRouting();
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapAuthenticationEndpoints();
+            endpoints.MapBarbersEndpoint();
+            endpoints.MapUsersEndpoint();
             endpoints.MapGet("/", () => "Hello World!");
         });
     }

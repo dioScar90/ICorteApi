@@ -1,10 +1,10 @@
+using ICorteApi.Entities;
 using ICorteApi.Enums;
 
 namespace ICorteApi.Dtos;
 
 public record AddressDtoResponse(
     int Id,
-    StreetType StreetType,
     string Street,
     string Number,
     string? Complement,
@@ -17,7 +17,6 @@ public record AddressDtoResponse(
 
 public record AddressDtoRequest(
     int? Id,
-    StreetType StreetType,
     string Street,
     string Number,
     string? Complement,

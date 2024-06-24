@@ -4,40 +4,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Repositories;
 
-public abstract class BaseRepository : IBaseRepository
+public abstract class BaseRepository(ICorteContext context) : IBaseRepository
 {
-    public async void Create<T, K>(T entity, K context)
-        where T : BaseEntity
-        where K : DbContext
+    private readonly ICorteContext _context = context;
+    public async void Create<T>(T entity) where T : BaseEntity
     {
-        context.AddAsync(entity);
+        context.Add(entity);
     }
 
-    public void Delete<T, K>(T entity, K context)
-        where T : BaseEntity
-        where K : DbContext
+    public async void Delete<T>(T entity) where T : BaseEntity
     {
-        throw new NotImplementedException();
+        context.Remove(entity);
     }
-
-    public Task<IEnumerable<T>> GetAll<T, K>(int offset, int limit, bool desc, K context)
-        where T : BaseEntity
-        where K : DbContext
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<T> GetById<T, K>(int id, K context)
-        where T : BaseEntity
-        where K : DbContext
-    {
-        return await context.Get
-    }
-
-    public void Update<T, K>(T entity, K context)
-        where T : BaseEntity
-        where K : DbContext
+    
+    public void Update<T>(T entity) where T : BaseEntity
     {
         context.Update(entity);
     }
+    
+    public async Task<bool> SaveChangesAsync() =>
+        await _context.SaveChangesAsync() > 0;
 }
