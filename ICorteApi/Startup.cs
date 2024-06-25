@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using System.Text;
 using ICorteApi.Routes;
+using ICorteApi.Enums;
 
 namespace ICorteApi;
 
@@ -19,7 +20,7 @@ public class Startup(IConfiguration configuration)
 
     public void ConfigureServices(IServiceCollection services)
     {
-        // var connectionString = Configuration.GetConnectionString("SqliteConnection");
+        var connectionString = Configuration.GetConnectionString("SqliteConnection");
 
         services.AddDbContext<ICorteContext>(options =>
         {
@@ -27,11 +28,11 @@ public class Startup(IConfiguration configuration)
             //     connectionString,
             //     assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
             // );
-            // options.UseSqlite(
-            //     connectionString,
-            //     assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
-            // );
-            options.UseInMemoryDatabase("AppDb");
+            options.UseSqlite(
+                connectionString,
+                assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
+            );
+            // options.UseInMemoryDatabase("AppDb");
         });
 
         services.AddScoped<ICorteContext>();
@@ -96,7 +97,14 @@ public class Startup(IConfiguration configuration)
             };
         });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            foreach (string roleName in Enum.GetNames(typeof(UserRole)))
+            {
+                string policyName = "Require" + roleName + "Role";
+                options.AddPolicy(policyName, policy => policy.RequireRole(roleName));
+            }
+        });
 
         services.AddEndpointsApiExplorer();
         services.AddIdentityApiEndpoints<User>(options =>
@@ -165,8 +173,8 @@ public class Startup(IConfiguration configuration)
         
         app.UseEndpoints(endpoints =>
         {
-            // endpoints.MapIdentityApi<User>();
-            endpoints.MapUsersEndpoint();
+            endpoints.MapIdentityApi<User>();
+            // endpoints.MapUsersEndpoint();
             endpoints.MapAddressesEndpoint();
             // endpoints.MapUsersEndpoint();
             endpoints.MapGet("/", () => "Hello World!");

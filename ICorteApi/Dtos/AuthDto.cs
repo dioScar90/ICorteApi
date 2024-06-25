@@ -10,24 +10,26 @@ public record UserDtoResponse(
     string FirstName,
     string LastName,
     string Email,
-    string PhoneNumber,
-    UserRole Role,
-    IEnumerable<AddressDtoResponse> Addresses
+    UserRole[] Role,
+    PersonDtoRequest? PersonDto
 ) : IDtoResponse;
 
 public record UserDtoRequest(
     int? Id,
-    string FirstName,
-    string LastName,
+    string Email,
+    string Password,
+    UserRole Role,
+    PersonDtoRequest? PersonDto
+) : IDtoRequest;
+
+public record RegisterDtoRequest(
     string Email,
     string Password,
     string PhoneNumber,
-    UserRole Role,
-    IEnumerable<AddressDtoRequest> Addresses
+    PersonDtoRequest Person
 ) : IDtoRequest;
 
-public record UserLoginDtoRequest(
+public record LoginDtoRequest(
     string Email,
-    string Password,
-    IEnumerable<AddressDtoRequest> Addresses
+    string Password
 ) : IDtoRequest;

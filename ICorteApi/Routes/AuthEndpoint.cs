@@ -18,101 +18,83 @@ public static class AuthEndpoint
 {
     public static void MapUsersEndpoint(this IEndpointRouteBuilder app)
     {
-        // var group = app.MapGroup("auth").MapIdentityApi<User>();
-        // var group = app.MapGroup("auth");
         var group = app.MapGroup("auth").RequireAuthorization();
 
         group.MapPost("register", CreateUser).AllowAnonymous();
+        group.MapPost("login", Login);
+        group.MapPost("forgotPassword", Logout);
+        group.MapPut("resetPassword", ChangePassword);
         group.MapGet("me", GetUser);
         group.MapPut("update", UpdateUser);
-        group.MapPut("resetpassword", ChangePassword);
         group.MapPost("logout", Logout);
         group.MapDelete("delete", DeleteUser);
     }
-
-    // app.MapPost("/auth/login", async (UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration, LoginDto dto) =>
-    public static async Task<IResult> Login(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration, UserLoginDtoRequest dto)
-    {
-        var user = await userManager.FindByNameAsync(dto.Email);
-
-        if (user is null || !await userManager.CheckPasswordAsync(user, dto.Password))
-            return Results.Unauthorized();
-
-        var claims = new Claim[]
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(ClaimTypes.NameIdentifier, user.Id)
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"],
-            audience: configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
-            signingCredentials: creds);
-
-        return Results.Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token) });
-    }
     
-    public static async Task<IResult> CreateUser(UserDtoRequest dto, ICorteContext context, HttpContext httpContext, UserManager<User> userManager)
+    public static async Task<IResult> CreateUser(
+        RegisterDtoRequest dto,
+        ICorteContext context,
+        UserManager<User> userManager)
     {
+        using var transaction = await context.Database.BeginTransactionAsync();
+
         try
         {
-            if (!httpContext.User.IsAuthorized(UserRole.Admin))
-                return Results.Forbid();
-            
             var newUser = dto.CreateEntity<User>()!;
 
             newUser.UserName = newUser.Email;
             newUser.EmailConfirmed = true;
-            string password = dto.Password; // Fazer um hash cabuloso aqui.
 
-            var userOperation = await userManager.CreateAsync(newUser, password);
-            // await context.Users.AddAsync(newUser!);
+            var userOperation = await userManager.CreateAsync(newUser, dto.Password);
 
             if (!userOperation.Succeeded)
                 return Results.BadRequest();
             
-            var roleOperation = await userManager.AddToRoleAsync(newUser, newUser.Role.ToString());
+            var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
 
             if (!roleOperation.Succeeded)
                 return Results.BadRequest();
             
             var id = await context.SaveChangesAsync();
 
+            await transaction.CommitAsync();
             return Results.Created($"/user/{id}", new { Message = "Usuário criado com sucesso" });
         }
         catch (Exception ex)
         {
-            return TypedResults.BadRequest(ex.Message);
+            await transaction.RollbackAsync();
+            return Results.BadRequest(ex.Message);
         }
     }
-
-    // app.MapGet("/auth/me", async (UserManager<User> userManager, HttpContext httpContext) =>
-    public static async Task<IResult> GetUser(UserManager<User> userManager, HttpContext httpContext)
+    
+    public static async Task<IResult> Login(SignInManager<User> signInManager, LoginDtoRequest dto)
     {
-        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await userManager.FindByIdAsync(userId);
+        var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+
+        if (!result.Succeeded)
+            return Results.Unauthorized();
+        
+        return Results.Ok("Login successful");
+    }
+    
+    public static async Task<IResult> GetUser(UserManager<User> userManager, ClaimsPrincipal userPrincipal)
+    {
+        var user = await userManager.GetUserAsync(userPrincipal);
 
         if (user is null)
-            return Results.NotFound();
-
+            return Results.Unauthorized();
+        
+        var roles = await userManager.GetRolesAsync(user);
         var userDtoResponse = user.CreateDto<UserDtoResponse>();
 
-        // var userDto = new UserDto
-        // {
-        //     UserName = user.UserName,
-        //     Email = user.Email,
-        //     FullName = user.FullName
-        // };
-
+        // var roles = rolesAsString
+        //     .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
+        //     .Where(role => role.HasValue)
+        //     .Select(role => role.Value)
+        //     .ToArray();
+        
         return Results.Ok(userDtoResponse);
     }
-
+    
     // app.MapPut("/auth/update", async (UserManager<User> userManager, HttpContext httpContext, UpdateUserDto dto) =>
     public static async Task<IResult> UpdateUser(UserManager<User> userManager, HttpContext httpContext, UserDtoRequest dto)
     {
@@ -163,14 +145,14 @@ public static class AuthEndpoint
     {
         try
         {
-            if (empty is not null)
-            {
-                // 'empty' must be passed and also must be empty, like => {}
-                await signInManager.SignOutAsync();
-                return Results.Ok();
-            }
-
-            return Results.Unauthorized();
+            // 'empty' must be passed and also must be empty, like => {}
+            // It was written on documentation. I don't know why.
+            // It's unnecessary, perhaps.
+            if (empty is not {})
+                return Results.Unauthorized();
+                
+            await signInManager.SignOutAsync();
+            return Results.Ok();
         }
         catch (Exception ex)
         {
