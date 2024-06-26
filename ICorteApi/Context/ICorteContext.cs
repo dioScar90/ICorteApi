@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Context;
 
-public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
+public class ICorteContext(DbContextOptions<ICorteContext> options)
+    : IdentityDbContext<User, IdentityRole<int>, int>(options)
 {
     public DbSet<Person> People { get; set; }
     public DbSet<BarberShop> BarberShops { get; set; }
@@ -18,10 +19,10 @@ public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<AppointmentService> AppointmentServices { get; set; }
     // public DbSet<Report> Reports { get; set; }
 
-    public ICorteContext(DbContextOptions<ICorteContext> options) : base(options)
-    {
+    // public ICorteContext(DbContextOptions<ICorteContext> options) : base(options)
+    // {
 
-    }
+    // }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

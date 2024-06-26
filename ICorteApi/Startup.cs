@@ -39,12 +39,12 @@ public class Startup(IConfiguration configuration)
 
         services.AddScoped<ICorteContext>();
 
-        // // Seed dos papéis
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        //     await RoleSeeder.SeedRoles(roleManager);
-        // }
+        services.AddAuthorization();
+        
+        // After .NET 8 we can use:
+        services.AddIdentityApiEndpoints<User>()
+            .AddEntityFrameworkStores<ICorteContext>()
+            .AddDefaultTokenProviders();
         
         services.AddIdentity<User, IdentityRole<int>>(options =>
         {
@@ -103,9 +103,9 @@ public class Startup(IConfiguration configuration)
         // });
 
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie();
+            // .AddCookie();
+            .AddIdentityCookies();
         
-        services.AddAuthorization();
 
         services.AddEndpointsApiExplorer();
         
