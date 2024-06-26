@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Entities;
 
-public class BaseUser : IdentityUser<int>, IBaseEntity
+public class BaseUser : IdentityUser<int>, IBaseEntity, IBaseTableEntity
 {
     // public int Id { get; set;}
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -5,22 +5,22 @@ using ICorteApi.Validators;
 
 namespace ICorteApi.Dtos;
 
-public record UserDtoResponse(
-    int Id,
-    string FirstName,
-    string LastName,
-    string Email,
-    UserRole[] Role,
-    PersonDtoResponse? PersonDto = null
-) : IDtoResponse;
-
 public record UserDtoRequest(
-    int? Id,
     string Email,
     string Password,
     UserRole Role,
     PersonDtoRequest? PersonDto
 ) : IDtoRequest;
+
+public record UserDtoResponse(
+    int Id,
+    // string FirstName,
+    // string LastName,
+    string Email,
+    // UserRole[] Roles,
+    string[] Roles,
+    PersonDtoResponse? PersonDto = null
+) : IDtoResponse;
 
 public record UserDtoRegisterRequest(
     string Email,

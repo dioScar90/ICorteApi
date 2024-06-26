@@ -111,7 +111,7 @@ public class Startup(IConfiguration configuration)
         
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Barber API", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -161,9 +161,9 @@ public class Startup(IConfiguration configuration)
         app.UseEndpoints(endpoints =>
         {
             // endpoints.MapIdentityApi<User>();
-            endpoints.MapUsersEndpoint();
-            endpoints.MapAddressesEndpoint();
-            // endpoints.MapUsersEndpoint();
+            endpoints.MapAuthEndpoint();
+            endpoints.MapPersonEndpoint();
+            endpoints.MapAddressEndpoint();
             endpoints.MapGet("/", () => "Hello World!");
         });
     }

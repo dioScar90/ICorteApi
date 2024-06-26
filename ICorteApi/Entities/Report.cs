@@ -10,7 +10,7 @@ public class Report : BaseEntity
     public Person Person { get; set; }
 
     public int BarberId { get; set; }
-    public Barber Barber { get; set; }
+    public BarberShop BarberShop { get; set; }
 }
 
 /*

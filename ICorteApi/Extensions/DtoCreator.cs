@@ -16,6 +16,9 @@ public static class DtoCreator
         if (entity is Person person)
             return MapPersonToDto(person) as TDtoResponse;
 
+        if (entity is BarberShop barberShop)
+            return MapBarberShopToDto(barberShop) as TDtoResponse;
+
         if (entity is Address address)
             return MapAddressToDto(address) as TDtoResponse;
         
@@ -32,12 +35,10 @@ public static class DtoCreator
     private static UserDtoResponse MapUserToDto(User user) =>
         new(
             user.Id,
-            user.Person.FirstName,
-            user.Person.LastName,
             user.Email,
             [],
             // user.Person is null ? default : user.Person.CreateDto<PersonDtoResponse>()
-            user?.Person?.CreateDto<PersonDtoResponse>()
+            user.Person?.CreateDto<PersonDtoResponse>()
         );
     
     private static PersonDtoResponse MapPersonToDto(Person person) =>
@@ -45,8 +46,24 @@ public static class DtoCreator
             person.Id,
             person.FirstName,
             person.LastName,
+            person.LastVisitDate,
             []
             // person.Addresses?.Select(a => a.CreateDto<AddressDtoResponse>()).ToArray()
+        );
+
+    private static BarberShopDtoResponse MapBarberShopToDto(BarberShop barberShop) =>
+        new(
+            barberShop.Name,
+            barberShop.Description,
+            barberShop.PhoneNumber,
+            barberShop.ComercialNumber,
+            barberShop.ComercialEmail,
+            barberShop.OpeningHours,
+            barberShop.ClosingHours,
+            barberShop.DaysOpen,
+            barberShop.Rating,
+            barberShop.Address?.CreateDto<AddressDtoResponse>(),
+            barberShop.Barbers?.Select(b => b.CreateDto<PersonDtoResponse>()).ToArray()
         );
         
     private static AddressDtoResponse MapAddressToDto(Address address) =>

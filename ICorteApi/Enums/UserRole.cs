@@ -4,7 +4,7 @@ public enum UserRole
 {
     Guest,
     Client,
-    Barber,
+    BarberShop,
     Manager,
     Admin,
 }

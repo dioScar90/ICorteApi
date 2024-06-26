@@ -7,5 +7,5 @@ namespace ICorteApi.Entities;
 
 public class User : BaseUser
 {
-    public Person Person { get; set; }
+    public Person? Person { get; set; }
 }

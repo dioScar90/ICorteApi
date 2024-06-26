@@ -7,9 +7,9 @@ using ICorteApi.Extensions;
 
 namespace ICorteApi.Routes;
 
-public static class AddressesEndpoint
+public static class AddressEndpoint
 {
-    public static void MapAddressesEndpoint(this IEndpointRouteBuilder app)
+    public static void MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
         const string INDEX = "";
         var group = app.MapGroup("address");
@@ -23,25 +23,25 @@ public static class AddressesEndpoint
     
     public static async Task<IResult> GetAddress(int id, ICorteContext context)
     {
-        var appointment = await context.Addresses
-            .SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+        var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
 
-        if (appointment is null)
+        if (address is null)
             return Results.NotFound("Agendamento não encontrado");
 
-        return Results.Ok(appointment);
+        var addressDto = address.CreateDto<AddressDtoResponse>();
+        return Results.Ok(addressDto);
     }
     
     public static async Task<IResult> CreateAddress(AddressDtoRequest dto, ICorteContext context)
     {
         try
         {
-            Address newAddress = dto.CreateEntity<Address>()!;
+            var newAddress = dto.CreateEntity<Address>()!;
             
             await context.Addresses.AddAsync(newAddress);
-            int id = await context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
-            return Results.Created($"/address/{id}", new { Message = "Endereço criado com sucesso" });
+            return Results.Created($"/address/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
         }
         catch (Exception ex)
         {
@@ -53,9 +53,6 @@ public static class AddressesEndpoint
     {
         try
         {
-            if (id != dto.Id)
-                return Results.BadRequest();
-
             var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
 
             if (address is null)
@@ -72,8 +69,8 @@ public static class AddressesEndpoint
             
             address.UpdatedAt = DateTime.UtcNow;
 
-            id = await context.SaveChangesAsync();
-            return Results.Created($"/address/{id}", new { Message = "Endereço atualizado com sucesso" });
+            await context.SaveChangesAsync();
+            return Results.Created($"/address/{address.Id}", new { Message = "Endereço atualizado com sucesso" });
         }
         catch (Exception ex)
         {
@@ -93,8 +90,8 @@ public static class AddressesEndpoint
             address.UpdatedAt = DateTime.UtcNow;
             address.IsActive = false;
 
-            id = await context.SaveChangesAsync();
-            return Results.Created($"/address/{id}", new { Message = "Endereço removido com sucesso" });
+            await context.SaveChangesAsync();
+            return Results.Created($"/address/{address.Id}", new { Message = "Endereço removido com sucesso" });
         }
         catch (Exception ex)
         {

@@ -9,7 +9,7 @@ public class Message : BaseEntity
     public Conversation Conversation { get; set; }
 
     public int SenderId { get; set; }
-    public User Sender { get; set; }
+    public Person Sender { get; set; }
 }
 
 /*

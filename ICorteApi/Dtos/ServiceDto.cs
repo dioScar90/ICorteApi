@@ -1,8 +1,16 @@
 namespace ICorteApi.Dtos;
 
-public record ServiceDto(
-    string ServiceName,
+public record ServiceDtoRequest(
+    string Title,
     string Description,
     decimal Price,
     TimeSpan Duration
-);
+) : IDtoRequest;
+
+public record ServiceDtoResponse(
+    int Id,
+    string Title,
+    string Description,
+    decimal Price,
+    TimeSpan Duration
+) : IDtoResponse;

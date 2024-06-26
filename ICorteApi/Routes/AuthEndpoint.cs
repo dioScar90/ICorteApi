@@ -16,7 +16,7 @@ namespace ICorteApi.Routes;
 
 public static class AuthEndpoint
 {
-    public static void MapUsersEndpoint(this IEndpointRouteBuilder app)
+    public static void MapAuthEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("auth").RequireAuthorization();
 
@@ -74,7 +74,7 @@ public static class AuthEndpoint
             await transaction.CommitAsync();
 
             await signInManager.SignInAsync(newUser, isPersistent: false);
-            return Results.Created($"/person/{newUser.Person.Id}", new { Message = "Usuário criado com sucesso" });
+            return Results.Created($"/person/{newUser.Person!.Id}", new { Message = "Usuário criado com sucesso" });
         }
         catch (Exception ex)
         {
@@ -86,9 +86,6 @@ public static class AuthEndpoint
     public static async Task<IResult> GetUser(ClaimsPrincipal user, UserManager<User> userManager)
     {
         var currentUser = await userManager.GetUserAsync(user);
-        Console.WriteLine("***User***\n\n");
-        Console.WriteLine(currentUser);
-        Console.WriteLine("\n\n***User***");
 
         if (currentUser is null)
             return Results.Unauthorized();

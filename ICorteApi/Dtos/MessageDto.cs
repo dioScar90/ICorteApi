@@ -1,7 +1,13 @@
 namespace ICorteApi.Dtos;
 
-public record MessageDto(
+public record MessageDtoRequest(
+    string Content,
+    DateTime Timestamp
+) : IDtoRequest;
+
+public record MessageDtoResponse(
+    int Id,
     string Content,
     DateTime Timestamp,
-    bool IsReal
-);
+    PersonDtoResponse Sender
+) : IDtoResponse;

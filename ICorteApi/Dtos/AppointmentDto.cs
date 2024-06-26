@@ -1,6 +1,11 @@
 namespace ICorteApi.Dtos;
 
-public record AppointmentDto(
+public record AppointmentDtoRequest(
     DateTime AppointmentDate,
-    string ServicesRequested
-);
+    AppointmentServicesDtoRequest[]? AppointmentServices
+) : IDtoRequest;
+
+public record AppointmentDtoResponse(
+    DateTime AppointmentDate,
+    AppointmentServicesDtoResponse[]? AppointmentServices
+) : IDtoResponse;

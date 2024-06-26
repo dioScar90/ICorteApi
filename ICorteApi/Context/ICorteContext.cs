@@ -8,13 +8,14 @@ namespace ICorteApi.Context;
 public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public DbSet<Person> People { get; set; }
-    public DbSet<Barber> Barbers { get; set; }
+    public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
     // public DbSet<Conversation> Conversations { get; set; }
     // public DbSet<Message> Messages { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
-    // public DbSet<Service> Services { get; set; }
+    public DbSet<Service> Services { get; set; }
+    public DbSet<AppointmentService> AppointmentServices { get; set; }
     // public DbSet<Report> Reports { get; set; }
 
     public ICorteContext(DbContextOptions<ICorteContext> options) : base(options)
@@ -35,7 +36,7 @@ public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
 
         // // User and Appointments
         // modelBuilder.Entity<Appointment>()
-        //     .HasOne(a => a.Barber)
+        //     .HasOne(a => a.BarberShop)
         //     .WithMany(u => u.Appointments)
         //     .HasForeignKey(a => a.BarberId)
         //     .OnDelete(DeleteBehavior.Restrict);
@@ -65,13 +66,13 @@ public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
 
         // // User and Schedules
         // modelBuilder.Entity<Schedule>()
-        //     .HasOne(s => s.Barber)
+        //     .HasOne(s => s.BarberShop)
         //     .WithMany(u => u.Schedules)
         //     .HasForeignKey(s => s.BarberId);
 
         // // User and Services
         // modelBuilder.Entity<Service>()
-        //     .HasOne(s => s.Barber)
+        //     .HasOne(s => s.BarberShop)
         //     .WithMany(u => u.Services)
         //     .HasForeignKey(s => s.BarberId);
 

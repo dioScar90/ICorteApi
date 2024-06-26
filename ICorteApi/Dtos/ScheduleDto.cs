@@ -1,7 +1,16 @@
 namespace ICorteApi.Dtos;
 
-public record ScheduleDto(
+public record ScheduleDtoRequest(
     DayOfWeek DayOfWeek,
     TimeSpan StartTime,
-    TimeSpan EndTime
-);
+    TimeSpan EndTime,
+    bool IsAvailable
+) : IDtoRequest;
+
+public record ScheduleDtoResponse(
+    int Id,
+    DayOfWeek DayOfWeek,
+    TimeSpan StartTime,
+    TimeSpan EndTime,
+    bool IsAvailable
+) : IDtoResponse;

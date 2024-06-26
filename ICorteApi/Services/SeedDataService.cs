@@ -14,7 +14,7 @@ public class SeedDataService
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // string[] userRolesAsArray = { "Admin", "Barber", "Client" };
+        // string[] userRolesAsArray = { "Admin", "BarberShop", "Client" };
         string[] userRolesAsArray = Enum.GetNames(typeof(UserRole));
         IdentityResult roleResult;
 

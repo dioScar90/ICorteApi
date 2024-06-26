@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseEntity
+public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
@@ -28,8 +28,8 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
         }
 
         // builder.Property(x => x.Id).ValueGeneratedOnAdd();
-        builder.Property(x => x.CreatedAt).HasDefaultValue(DateTime.UtcNow);
-        builder.Property(x => x.IsActive).HasDefaultValue(true);
+        // builder.Property(x => x.CreatedAt).HasDefaultValue(DateTime.UtcNow);
+        // builder.Property(x => x.IsActive).HasDefaultValue(true);
     }
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]

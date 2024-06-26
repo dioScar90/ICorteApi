@@ -5,9 +5,10 @@ public class Schedule : BaseEntity
     public DayOfWeek DayOfWeek { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
+    public bool IsAvailable { get; set; } // Indica se o horário está disponível
 
     public int BarberId { get; set; }
-    public Barber Barber { get; set; }
+    public BarberShop BarberShop { get; set; }
 
     public Appointment Appointment { get; set; }
 }
@@ -25,5 +26,5 @@ EndTime (TimeSpan)
 CreatedAt (DateTime)
 UpdatedAt (DateTime)
 IsActive (bool)
-Navigation Properties: Barber
+Navigation Properties: BarberShop
 */

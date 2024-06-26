@@ -4,28 +4,12 @@ namespace ICorteApi.Entities;
 
 public class Service : BaseEntity
 {
-    public ServiceType ServiceType { get; set; }
+    public string Title { get; set; }
     public string? Description { get; set; }
     public decimal Price { get; set; }
 
-    public int BarberId { get; set; }
-    public User Barber { get; set; }
+    public int BarberShopId { get; set; }
+    public User BarberShop { get; set; }
 
-    public IEnumerable<Appointment> Appointments { get; set; }
+    public IEnumerable<AppointmentService> AppointmentServices { get; set; }
 }
-
-/*
-CHAT GPT
-
-Service: Representa os serviços oferecidos.
-
-Id (int)
-ServiceName (string)
-Description (string)
-Price (decimal)
-Duration (TimeSpan)
-CreatedAt (DateTime)
-UpdatedAt (DateTime)
-IsActive (bool)
-Navigation Properties: List<Appointment>
-*/
