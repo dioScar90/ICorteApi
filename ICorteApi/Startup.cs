@@ -12,6 +12,7 @@ using System.Text;
 using ICorteApi.Routes;
 using ICorteApi.Enums;
 using ICorteApi.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ICorteApi;
 
@@ -72,33 +73,37 @@ public class Startup(IConfiguration configuration)
         {
             // Cookie settings
             options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-
-            options.LoginPath = "/Identity/Account/Login";
-            options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            options.LoginPath = "/auth/login";
+            options.LogoutPath = "/auth/logout";
+            options.AccessDeniedPath = "/auth/access-denied";
             options.SlidingExpiration = true;
         });
 
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = false;
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = Configuration["Jwt:Issuer"],
-                ValidAudience = Configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!))
-            };
-        });
+        // services.AddAuthentication(options =>
+        // {
+        //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        //     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        // })
+        // .AddJwtBearer(options =>
+        // {
+        //     options.RequireHttpsMetadata = false;
+        //     options.SaveToken = true;
+        //     options.TokenValidationParameters = new TokenValidationParameters
+        //     {
+        //         ValidateIssuer = true,
+        //         ValidateAudience = true,
+        //         ValidateLifetime = true,
+        //         ValidateIssuerSigningKey = true,
+        //         ValidIssuer = Configuration["Jwt:Issuer"],
+        //         ValidAudience = Configuration["Jwt:Audience"],
+        //         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!))
+        //     };
+        // });
+
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie();
         
         services.AddAuthorization();
 

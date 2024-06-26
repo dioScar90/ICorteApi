@@ -36,7 +36,8 @@ public static class DtoCreator
             user.Person.LastName,
             user.Email,
             [],
-            user.Person.CreateDto<PersonDtoResponse>()
+            // user.Person is null ? default : user.Person.CreateDto<PersonDtoResponse>()
+            user?.Person?.CreateDto<PersonDtoResponse>()
         );
     
     private static PersonDtoResponse MapPersonToDto(Person person) =>

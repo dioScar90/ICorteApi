@@ -11,7 +11,7 @@ public record UserDtoResponse(
     string LastName,
     string Email,
     UserRole[] Role,
-    PersonDtoResponse? PersonDto
+    PersonDtoResponse? PersonDto = null
 ) : IDtoResponse;
 
 public record UserDtoRequest(

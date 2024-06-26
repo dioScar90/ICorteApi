@@ -40,14 +40,17 @@ public static class AuthEndpoint
         if (!result.Succeeded)
             return Results.Unauthorized();
         
-        return Results.Ok("Login successful");
+        return Results.Ok("Login bem-sucedido");
     }
     
     public static async Task<IResult> CreateUser(
         UserDtoRegisterRequest dto,
         ICorteContext context,
-        UserManager<User> userManager)
+        UserManager<User> userManager,
+        SignInManager<User> signInManager)
     {
+        // Maybe it isn't necessary. Do a future confirmation, because this is
+        // the only reason why context is here.
         using var transaction = await context.Database.BeginTransactionAsync();
 
         try
@@ -60,17 +63,18 @@ public static class AuthEndpoint
             var userOperation = await userManager.CreateAsync(newUser, dto.Password);
 
             if (!userOperation.Succeeded)
-                return Results.BadRequest();
+                throw new Exception();
             
             var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
 
             if (!roleOperation.Succeeded)
-                return Results.BadRequest();
+                throw new Exception();
             
-            var id = await context.SaveChangesAsync();
-
+            await context.SaveChangesAsync();
             await transaction.CommitAsync();
-            return Results.Created($"/user/{id}", new { Message = "Usuário criado com sucesso" });
+
+            await signInManager.SignInAsync(newUser, isPersistent: false);
+            return Results.Created($"/person/{newUser.Person.Id}", new { Message = "Usuário criado com sucesso" });
         }
         catch (Exception ex)
         {
@@ -79,15 +83,18 @@ public static class AuthEndpoint
         }
     }
     
-    public static async Task<IResult> GetUser(UserManager<User> userManager, ClaimsPrincipal userPrincipal)
+    public static async Task<IResult> GetUser(ClaimsPrincipal user, UserManager<User> userManager)
     {
-        var user = await userManager.GetUserAsync(userPrincipal);
+        var currentUser = await userManager.GetUserAsync(user);
+        Console.WriteLine("***User***\n\n");
+        Console.WriteLine(currentUser);
+        Console.WriteLine("\n\n***User***");
 
-        if (user is null)
+        if (currentUser is null)
             return Results.Unauthorized();
         
-        var roles = await userManager.GetRolesAsync(user);
-        var userDtoResponse = user.CreateDto<UserDtoResponse>();
+        var roles = await userManager.GetRolesAsync(currentUser);
+        var userDtoResponse = currentUser.CreateDto<UserDtoResponse>();
 
         // var roles = rolesAsString
         //     .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
@@ -96,6 +103,7 @@ public static class AuthEndpoint
         //     .ToArray();
         
         return Results.Ok(userDtoResponse);
+        // return Results.Ok(currentUser);
     }
 
     public static async Task<IResult> UpdateProfile(
