@@ -20,18 +20,31 @@ public static class AuthEndpoint
     {
         var group = app.MapGroup("auth").RequireAuthorization();
 
+        group.MapPost("login", Login).AllowAnonymous();
         group.MapPost("register", CreateUser).AllowAnonymous();
-        group.MapPost("login", Login);
-        group.MapPost("forgotPassword", Logout);
-        group.MapPut("resetPassword", ChangePassword);
+
+        group.MapPost("forgotPassword", ForgotPassword);
+        group.MapPut("resetPassword", ResetPassword);
+        group.MapPut("changePassword", ChangePassword);
+        group.MapPut("confirmEmail", ConfirmEmail);
         group.MapGet("me", GetUser);
-        group.MapPut("update", UpdateUser);
+        group.MapPut("update", UpdateProfile);
         group.MapPost("logout", Logout);
         group.MapDelete("delete", DeleteUser);
     }
+
+    public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
+    {
+        var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+
+        if (!result.Succeeded)
+            return Results.Unauthorized();
+        
+        return Results.Ok("Login successful");
+    }
     
     public static async Task<IResult> CreateUser(
-        RegisterDtoRequest dto,
+        UserDtoRegisterRequest dto,
         ICorteContext context,
         UserManager<User> userManager)
     {
@@ -66,16 +79,6 @@ public static class AuthEndpoint
         }
     }
     
-    public static async Task<IResult> Login(SignInManager<User> signInManager, LoginDtoRequest dto)
-    {
-        var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
-
-        if (!result.Succeeded)
-            return Results.Unauthorized();
-        
-        return Results.Ok("Login successful");
-    }
-    
     public static async Task<IResult> GetUser(UserManager<User> userManager, ClaimsPrincipal userPrincipal)
     {
         var user = await userManager.GetUserAsync(userPrincipal);
@@ -94,51 +97,27 @@ public static class AuthEndpoint
         
         return Results.Ok(userDtoResponse);
     }
-    
-    // app.MapPut("/auth/update", async (UserManager<User> userManager, HttpContext httpContext, UpdateUserDto dto) =>
-    public static async Task<IResult> UpdateUser(UserManager<User> userManager, HttpContext httpContext, UserDtoRequest dto)
+
+    public static async Task<IResult> UpdateProfile(
+        UserManager<User> userManager, ClaimsPrincipal user, UserDtoUpdateProfileRequest request)
     {
-        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await userManager.FindByIdAsync(userId);
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userToUpdate = await userManager.FindByIdAsync(userId);
 
-        if (user is null)
-            return Results.NotFound();
+        if (userToUpdate is null)
+            return Results.NotFound(new { Message = "Usuário não encontrado." });
 
-        // user.FullName = dto.FullName;
-        // user.Email = dto.Email;
+        // Atualize os campos do usuário
+        userToUpdate.Person.FirstName = request.FirstName;
+        userToUpdate.Person.LastName = request.LastName;
+        // Atualize outros campos conforme necessário
 
+        var result = await userManager.UpdateAsync(userToUpdate);
+
+        if (!result.Succeeded)
+            return Results.BadRequest(new { Message = "Erro ao atualizar perfil." });
         
-        user.FirstName = dto.FirstName;
-        user.LastName = dto.LastName;
-        user.Email = dto.Email;
-        user.PhoneNumber = dto.PhoneNumber;
-
-        // user.Password = dto.Password;
-
-        var result = await userManager.UpdateAsync(user);
-
-        if (!result.Succeeded)
-            return Results.BadRequest(result.Errors);
-
-        return Results.Ok(new { Message = "Usuário atualizado com sucesso" });
-    }
-
-    // app.MapPost("/auth/resetpassword", async (UserManager<User> userManager, ResetPasswordDto dto) =>
-    public static async Task<IResult> ChangePassword(UserManager<User> userManager, UserDtoRequest dto)
-    {
-        var user = await userManager.FindByEmailAsync(dto.Email);
-
-        if (user is null)
-            return Results.NotFound();
-
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
-        var result = await userManager.ResetPasswordAsync(user, token, dto.Password);
-
-        if (!result.Succeeded)
-            return Results.BadRequest(result.Errors);
-
-        var oie = new { Message = "Senha alterada com sucesso" };
-        return Results.Ok(oie);
+        return Results.Ok(new { Message = "Perfil atualizado com sucesso." });
     }
 
     public static async Task<IResult> Logout(SignInManager<User> signInManager, [FromBody] object empty)
@@ -159,8 +138,77 @@ public static class AuthEndpoint
             return TypedResults.BadRequest(ex.Message);
         }
     }
+    
+    public static async Task<IResult> ForgotPassword(UserManager<User> userManager, UserDtoForgotPasswordRequest request)
+    {
+        var user = await userManager.FindByEmailAsync(request.Email);
+        string DEFAULT_MESSAGE = "Se o email existir, um link de redefinição de senha será enviado.";
 
-    // app.MapDelete("/auth/delete", async (UserManager<User> userManager, HttpContext httpContext) =>
+        if (user is null) // Não revelar que o usuário não existe ou não está confirmado
+            return Results.Ok(new { Message = DEFAULT_MESSAGE });
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var resetLink = $"https://yourapp.com/resetPassword?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
+
+        // Envie o link por email. Aqui você pode usar um serviço de email para enviar o link.
+        Console.WriteLine($"Reset link: {resetLink}"); // Substitua isso pelo serviço de email.
+
+        return Results.Ok(new { Message = DEFAULT_MESSAGE });
+    }
+
+    public static async Task<IResult> ResetPassword(UserManager<User> userManager, UserDtoResetPasswordRequest request)
+    {
+        if (request.NewPassword != request.ConfirmNewPassword)
+            return Results.BadRequest(new { Message = "As senhas não coincidem." });
+
+        var user = await userManager.FindByEmailAsync(request.Email);
+
+        if (user is null) // Não revelar que o usuário não existe
+            return Results.BadRequest(new { Message = "Token inválido." });
+
+        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+
+        if (!result.Succeeded)
+            return Results.BadRequest(new { Message = "Token inválido ou a senha não atende aos requisitos de segurança." });
+        
+        return Results.Ok(new { Message = "Senha redefinida com sucesso." });
+    }
+    
+    public static async Task<IResult> ChangePassword(
+        UserManager<User> userManager, ClaimsPrincipal user, UserDtoChangePasswordRequest request)
+    {
+        if (request.NewPassword != request.ConfirmNewPassword)
+            return Results.BadRequest(new { Message = "As senhas não coincidem." });
+
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userToUpdate = await userManager.FindByIdAsync(userId);
+
+        if (userToUpdate is null)
+            return Results.NotFound(new { Message = "Usuário não encontrado." });
+
+        var result = await userManager.ChangePasswordAsync(userToUpdate, request.CurrentPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+            return Results.BadRequest(new { Message = "Erro ao alterar senha." });
+        
+        return Results.Ok(new { Message = "Senha alterada com sucesso." });
+    }
+
+    public static async Task<IResult> ConfirmEmail(UserManager<User> userManager, UserDtoConfirmEmailRequest request)
+    {
+        var user = await userManager.FindByEmailAsync(request.Email);
+
+        if (user is null)
+            return Results.BadRequest(new { Message = "Token inválido." });
+
+        var result = await userManager.ConfirmEmailAsync(user, request.Token);
+
+        if (!result.Succeeded)
+            return Results.BadRequest(new { Message = "Erro ao confirmar email." });
+        
+        return Results.Ok(new { Message = "Email confirmado com sucesso." });
+    }
+    
     public static async Task<IResult> DeleteUser(UserManager<User> userManager, HttpContext httpContext)
     {
         var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);

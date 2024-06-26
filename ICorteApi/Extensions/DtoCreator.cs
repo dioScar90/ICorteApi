@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ICorteApi.Dtos;
 using ICorteApi.Entities;
+using ICorteApi.Enums;
 
 namespace ICorteApi.Extensions;
 
@@ -20,6 +21,13 @@ public static class DtoCreator
         
         return null;
     }
+
+    private static UserRole[] GetRolesAsEnumArray(string[] roles) =>
+        roles
+            .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
+            .Where(role => role.HasValue)
+            .Select(role => role.Value)
+            .ToArray();
     
     private static UserDtoResponse MapUserToDto(User user) =>
         new(
@@ -28,7 +36,7 @@ public static class DtoCreator
             user.Person.LastName,
             user.Email,
             [],
-            user.Person.Addresses?.Select(a => a.CreateDto<AddressDtoResponse>()).ToArray()
+            user.Person.CreateDto<PersonDtoResponse>()
         );
     
     private static PersonDtoResponse MapPersonToDto(Person person) =>
@@ -36,8 +44,8 @@ public static class DtoCreator
             person.Id,
             person.FirstName,
             person.LastName,
-            person.Role,
-            person.Addresses?.Select(a => a.CreateDto<AddressDtoResponse>()).ToArray()
+            []
+            // person.Addresses?.Select(a => a.CreateDto<AddressDtoResponse>()).ToArray()
         );
         
     private static AddressDtoResponse MapAddressToDto(Address address) =>

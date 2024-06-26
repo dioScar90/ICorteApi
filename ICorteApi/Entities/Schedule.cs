@@ -7,9 +7,9 @@ public class Schedule : BaseEntity
     public TimeSpan EndTime { get; set; }
 
     public int BarberId { get; set; }
-    public User Barber { get; set; }
+    public Barber Barber { get; set; }
 
-    public IEnumerable<Appointment> Appointments { get; set; }
+    public Appointment Appointment { get; set; }
 }
 
 /*

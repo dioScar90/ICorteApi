@@ -8,7 +8,7 @@ public static class EntityCreator
     public static TEntity? CreateEntity<TEntity>(this IDtoRequest dto)
         where TEntity : class, IBaseEntity
     {
-        if (dto is RegisterDtoRequest registerDto)
+        if (dto is UserDtoRegisterRequest registerDto)
             return MapDtoToUser(registerDto) as TEntity;
 
         if (dto is PersonDtoRequest personDto)
@@ -20,7 +20,7 @@ public static class EntityCreator
         return null;
     }
     
-    private static User MapDtoToUser(RegisterDtoRequest userDto) =>
+    private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
         new()
         {
             UserName = userDto.Email,
@@ -34,7 +34,7 @@ public static class EntityCreator
         {
             FirstName = personDto.FirstName,
             LastName = personDto.LastName,
-            Addresses = personDto.Addresses?.Select(a => a.CreateEntity<Address>()).ToList(),
+            // Addresses = personDto.Addresses?.Select(a => a.CreateEntity<Address>()).ToList(),
         };
         
     private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>

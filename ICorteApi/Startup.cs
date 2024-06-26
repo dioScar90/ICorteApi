@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Routing;
 using System.Text;
 using ICorteApi.Routes;
 using ICorteApi.Enums;
+using ICorteApi.Services;
 
 namespace ICorteApi;
 
@@ -36,29 +37,36 @@ public class Startup(IConfiguration configuration)
         });
 
         services.AddScoped<ICorteContext>();
-        
-        // services.AddIdentity<User, Role>(options =>
+
+        // // Seed dos papéis
+        // using (var scope = app.Services.CreateScope())
         // {
-        //     // Password settings.
-        //     options.Password.RequireDigit = true;
-        //     options.Password.RequireLowercase = true;
-        //     options.Password.RequireNonAlphanumeric = true;
-        //     options.Password.RequireUppercase = true;
-        //     options.Password.RequiredLength = 6;
-        //     options.Password.RequiredUniqueChars = 1;
+        //     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        //     await RoleSeeder.SeedRoles(roleManager);
+        // }
+        
+        services.AddIdentity<User, IdentityRole<int>>(options =>
+        {
+            // Password settings.
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
 
-        //     // Lockout settings.
-        //     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-        //     options.Lockout.MaxFailedAccessAttempts = 5;
-        //     options.Lockout.AllowedForNewUsers = true;
+            // Lockout settings.
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
 
-        //     // User settings.
-        //     options.User.AllowedUserNameCharacters =
-        //     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-        //     options.User.RequireUniqueEmail = false;
-        // })
-        // .AddEntityFrameworkStores<ICorteContext>()
-        // .AddDefaultTokenProviders();
+            // User settings.
+            options.User.AllowedUserNameCharacters =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = false;
+        })
+        .AddEntityFrameworkStores<ICorteContext>()
+        .AddDefaultTokenProviders();
 
         services.ConfigureApplicationCookie(options =>
         {
@@ -82,11 +90,6 @@ public class Startup(IConfiguration configuration)
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                // ValidateIssuerSigningKey = true,
-                // IssuerSigningKey = new SymmetricSecurityKey(Settings.Settings.GetEncodingKey()),
-                // ValidateIssuer = false,
-                // ValidateAudience = false,
-                
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
@@ -96,42 +99,14 @@ public class Startup(IConfiguration configuration)
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!))
             };
         });
-
-        services.AddAuthorization(options =>
-        {
-            foreach (string roleName in Enum.GetNames(typeof(UserRole)))
-            {
-                string policyName = "Require" + roleName + "Role";
-                options.AddPolicy(policyName, policy => policy.RequireRole(roleName));
-            }
-        });
+        
+        services.AddAuthorization();
 
         services.AddEndpointsApiExplorer();
-        services.AddIdentityApiEndpoints<User>(options =>
-        {
-            // Password settings.
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireNonAlphanumeric = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequiredLength = 6;
-            options.Password.RequiredUniqueChars = 1;
-
-            // Lockout settings.
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.AllowedForNewUsers = true;
-
-            // User settings.
-            options.User.AllowedUserNameCharacters =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            options.User.RequireUniqueEmail = false;
-        })
-            .AddEntityFrameworkStores<ICorteContext>();
-
+        
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Barber API", Version = "v1" });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -155,7 +130,7 @@ public class Startup(IConfiguration configuration)
         });
     }
 
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())
         {
@@ -166,6 +141,13 @@ public class Startup(IConfiguration configuration)
 
         app.DefineCultureLocalization("pt-BR");
 
+        // Seed dos papéis
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+            RoleSeeder.SeedRoles(roleManager).Wait();
+        }
+
         app.UseRouting();
 
         app.UseAuthentication();
@@ -173,8 +155,8 @@ public class Startup(IConfiguration configuration)
         
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapIdentityApi<User>();
-            // endpoints.MapUsersEndpoint();
+            // endpoints.MapIdentityApi<User>();
+            endpoints.MapUsersEndpoint();
             endpoints.MapAddressesEndpoint();
             // endpoints.MapUsersEndpoint();
             endpoints.MapGet("/", () => "Hello World!");

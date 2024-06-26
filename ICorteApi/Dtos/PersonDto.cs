@@ -9,13 +9,13 @@ public record PersonDtoResponse(
     int Id,
     string FirstName,
     string LastName,
-    UserRole[] Roles,
-    AddressDtoResponse[] Addresses
+    UserRole[] Roles
+    // AddressDtoResponse[] Addresses
 ) : IDtoResponse;
 
 public record PersonDtoRequest(
     int? Id,
     string FirstName,
-    string LastName,
-    AddressDtoRequest[] Addresses
+    string LastName
+    // AddressDtoRequest[] Addresses
 ) : IDtoRequest;

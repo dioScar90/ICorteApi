@@ -4,15 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public class PersonMap : BaseMap<Person>
+public class BarberMap : BaseMap<Barber>
 {
-    public override void Configure(EntityTypeBuilder<Person> builder)
+    public override void Configure(EntityTypeBuilder<Barber> builder)
     {
         base.Configure(builder);
-
-        // builder.HasOne(p => p.User)
-        //     .WithOne()
-        //     .HasForeignKey<Person>(p => p.UserId);
+        
+        // builder.HasOne(b => b.Address);
 
         // builder.Property(x => x.Username).HasColumnType("varchar(20)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");

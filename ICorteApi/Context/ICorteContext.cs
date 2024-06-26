@@ -5,17 +5,22 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Context;
 
-// public class ICorteContext(DbContextOptions<ICorteContext> options) : DbContext(options)
-public class ICorteContext(DbContextOptions<ICorteContext> options) : IdentityDbContext<User, Role, int>(options)
+public class ICorteContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
-    // public DbSet<User> Users { get; set; }
+    public DbSet<Person> People { get; set; }
+    public DbSet<Barber> Barbers { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
-    public DbSet<Conversation> Conversations { get; set; }
-    public DbSet<Message> Messages { get; set; }
+    // public DbSet<Conversation> Conversations { get; set; }
+    // public DbSet<Message> Messages { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
-    public DbSet<Service> Services { get; set; }
-    public DbSet<Report> Reports { get; set; }
+    // public DbSet<Service> Services { get; set; }
+    // public DbSet<Report> Reports { get; set; }
+
+    public ICorteContext(DbContextOptions<ICorteContext> options) : base(options)
+    {
+
+    }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

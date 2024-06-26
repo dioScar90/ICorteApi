@@ -1,10 +1,9 @@
 namespace ICorteApi.Entities;
 
-public class BarberShop : BaseEntity
+public class Barber : BaseEntity
 {
     public string Name { get; set; }
     public string? Description { get; set; }
-    public string Address { get; set; }
     public string PhoneNumber { get; set; }
     public string ComercialNumber { get; set; }
     public string ComercialEmail { get; set; }
@@ -15,6 +14,11 @@ public class BarberShop : BaseEntity
     // public string SocialMediaLinks { get; set; }
     public string ServicesOffered { get; set; }
     public double Rating { get; set; }
+
+    public int PersonId { get; set; }
+    public Person Person { get; set; }
+
+    public Address Address { get; set; }
 
     public IEnumerable<Schedule> Schedules { get; set; } = [];
 }

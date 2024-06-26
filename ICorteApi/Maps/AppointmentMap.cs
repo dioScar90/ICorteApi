@@ -10,13 +10,13 @@ public class AppointmentMap : BaseMap<Appointment>
     {
         base.Configure(builder);
 
-        builder.HasOne(a => a.Client)
-            .WithMany(u => u.Appointments)
-            .HasForeignKey(a => a.ClientId);
+        // builder.HasOne(a => a.Person)
+        //     .WithMany()
+        //     .HasForeignKey(a => a.PersonId);
 
-        builder.HasOne(a => a.Schedule)
-            .WithMany(u => u.Appointments)
-            .HasForeignKey(a => a.ScheduleId);
+        // builder.HasOne(a => a.Schedule)
+        //     .WithMany()
+        //     .HasForeignKey(a => a.ScheduleId);
 
         // builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");

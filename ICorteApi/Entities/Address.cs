@@ -14,8 +14,8 @@ public class Address : BaseEntity
     public string Country { get; set; } = "Brasil";
     public AddressType AddressType { get; set; }
     
-    public int UserId { get; set; }
-    public User User { get; set; }
+    public int BarberId { get; set; }
+    public Barber Barber { get; set; }
 }
 
 /*

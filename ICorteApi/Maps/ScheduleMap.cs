@@ -4,17 +4,17 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Maps;
 
-public class PersonMap : BaseMap<Person>
+public class ScheduleMap : BaseMap<Schedule>
 {
-    public override void Configure(EntityTypeBuilder<Person> builder)
+    public override void Configure(EntityTypeBuilder<Schedule> builder)
     {
         base.Configure(builder);
 
-        // builder.HasOne(p => p.User)
-        //     .WithOne()
-        //     .HasForeignKey<Person>(p => p.UserId);
+        // builder.HasOne(a => a.Barber)
+        //     .WithMany()
+        //     .HasForeignKey(a => a.BarberId);
 
-        // builder.Property(x => x.Username).HasColumnType("varchar(20)").IsRequired();
+        // builder.Property(x => x.Street).HasColumnType("varchar(100)").IsRequired();
         // builder.Property(x => x.Ativo).HasColumnName("ativo");
 
         // builder.HasMany(x => x.Especialidades)
