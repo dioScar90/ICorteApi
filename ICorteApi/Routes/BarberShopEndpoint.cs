@@ -26,7 +26,7 @@ public static class BarberShopEndpoint
     {
         var barberShop = await context.BarberShops
             .Include(b => b.Address)
-            .SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
+            .SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
 
         if (barberShop is null)
             return Results.NotFound();
@@ -71,7 +71,7 @@ public static class BarberShopEndpoint
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
+            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
 
             if (barberShop is null)
                 return Results.NotFound();
@@ -112,13 +112,13 @@ public static class BarberShopEndpoint
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsActive && b.Id == id);
+            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
 
             if (barberShop is null)
                 return Results.NotFound();
 
             barberShop.UpdatedAt = DateTime.UtcNow;
-            barberShop.IsActive = false;
+            barberShop.IsDeleted = true;
 
             await context.SaveChangesAsync();
             return Results.NoContent();

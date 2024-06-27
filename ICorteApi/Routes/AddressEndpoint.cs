@@ -23,7 +23,7 @@ public static class AddressEndpoint
     
     public static async Task<IResult> GetAddress(int id, ICorteContext context)
     {
-        var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+        var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
 
         if (address is null)
             return Results.NotFound("Agendamento não encontrado");
@@ -53,7 +53,7 @@ public static class AddressEndpoint
     {
         try
         {
-            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
 
             if (address is null)
                 return Results.NotFound();
@@ -82,13 +82,13 @@ public static class AddressEndpoint
     {
         try
         {
-            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
 
             if (address is null)
                 return Results.NotFound();
             
             address.UpdatedAt = DateTime.UtcNow;
-            address.IsActive = false;
+            address.IsDeleted = true;
 
             await context.SaveChangesAsync();
             return Results.Created($"/address/{address.Id}", new { Message = "Endereço removido com sucesso" });

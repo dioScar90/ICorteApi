@@ -15,8 +15,5 @@ public class Appointment : BaseEntity
     public int ClientId { get; set; }
     public Person Client { get; set; }
     
-    public int BarberId { get; set; }
-    public Person Barber { get; set; } // Quem vai realizar o serviço
-    
     public IEnumerable<AppointmentService> AppointmentServices { get; set; }
 }

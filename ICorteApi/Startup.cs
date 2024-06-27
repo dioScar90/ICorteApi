@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-// using ICorteApi.Routes;
 using ICorteApi.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
@@ -36,19 +35,15 @@ public class Startup(IConfiguration configuration)
             );
             // options.UseInMemoryDatabase("AppDb");
         });
-
+        
         services.AddScoped<ICorteContext>();
-
+        
         services.AddAuthorization();
         
-        // After .NET 8 we can use:
-        services.AddIdentityApiEndpoints<User>()
-            .AddEntityFrameworkStores<ICorteContext>()
-            .AddDefaultTokenProviders();
-        
-        services.AddIdentity<User, IdentityRole<int>>(options =>
+        // After .NET 8 we can use AddIdentityApiEndpoints<TUser> and AddRoles<TRole>,
+        // which is specific for web api applications, instead of AddIdentity<TUser, TRole>.
+        services.AddIdentityApiEndpoints<User>(options =>
         {
-            // Password settings.
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = true;
@@ -56,22 +51,20 @@ public class Startup(IConfiguration configuration)
             options.Password.RequiredLength = 6;
             options.Password.RequiredUniqueChars = 1;
 
-            // Lockout settings.
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
 
-            // User settings.
             options.User.AllowedUserNameCharacters =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             options.User.RequireUniqueEmail = false;
         })
+        .AddRoles<IdentityRole<int>>()
         .AddEntityFrameworkStores<ICorteContext>()
         .AddDefaultTokenProviders();
-
+        
         services.ConfigureApplicationCookie(options =>
         {
-            // Cookie settings
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
@@ -102,9 +95,9 @@ public class Startup(IConfiguration configuration)
         //     };
         // });
 
-        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            // .AddCookie();
-            .AddIdentityCookies();
+        // services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        //     // .AddCookie();
+        //     .AddIdentityCookies();
         
 
         services.AddEndpointsApiExplorer();
@@ -150,21 +143,14 @@ public class Startup(IConfiguration configuration)
         using (var scope = app.ApplicationServices.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
-            RoleSeeder.SeedRoles(roleManager).Wait();
+            await RoleSeeder.SeedRoles(roleManager);
         }
 
         app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();
-        
-        app.UseEndpoints(endpoints =>
-        {
-            // endpoints.MapIdentityApi<User>();
-            endpoints.MapAuthEndpoint();
-            endpoints.MapPersonEndpoint();
-            endpoints.MapAddressEndpoint();
-            endpoints.MapGet("/", () => "Hello World!");
-        });
+
+        app.MapMyEndpoints();
     }
 }

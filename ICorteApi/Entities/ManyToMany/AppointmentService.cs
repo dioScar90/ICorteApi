@@ -1,6 +1,6 @@
 namespace ICorteApi.Entities;
 
-public class AppointmentService : BaseEntity
+public class AppointmentService : IBaseTableEntity
 {
     public int AppointmentId { get; set; }
     public Appointment Appointment { get; set; }

@@ -11,7 +11,7 @@ public class ServiceMap : BaseMap<Service>
         base.Configure(builder);
 
         builder.HasOne(s => s.BarberShop)
-            .WithMany()
+            .WithMany(b => b.Services)
             .HasForeignKey(s => s.BarberShopId);
     }
 }

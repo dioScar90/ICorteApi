@@ -9,7 +9,7 @@ public class Service : BaseEntity
     public decimal Price { get; set; }
 
     public int BarberShopId { get; set; }
-    public User BarberShop { get; set; }
+    public BarberShop BarberShop { get; set; }
 
     public IEnumerable<AppointmentService> AppointmentServices { get; set; }
 }

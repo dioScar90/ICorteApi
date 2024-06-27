@@ -17,6 +17,6 @@ public class Person : BaseEntity
     public IEnumerable<Appointment> Appointments { get; set; } = [];
     // public IEnumerable<Conversation> Conversations { get; set; } = [];
     // public IEnumerable<Service> Services { get; set; } = [];
-    // public IEnumerable<Report> Reports { get; set; } = [];
+    public IEnumerable<Report> Reports { get; set; } = [];
     // public IEnumerable<Address> Addresses { get; set; } = [];
 }

@@ -26,11 +26,22 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
                 builder.Property(prop.Name).HasColumnName(column_name);
             }
         }
+        
+        if (TEntityImplementsIBaseEntity())
+        {
+            // var idProperty = builder.Property(nameof(IBaseEntity.Id));
+            // var createdAtProperty = builder.Property(nameof(IBaseEntity.CreatedAt));
+            // var isDeletedProperty = builder.Property(nameof(IBaseEntity.IsDeleted));
+            
+            // idProperty.ValueGeneratedOnAdd();
+            // createdAtProperty.HasDefaultValue(DateTime.UtcNow);
+            // isDeletedProperty.HasDefaultValue(true);
 
-        // builder.Property(x => x.Id).ValueGeneratedOnAdd();
-        // builder.Property(x => x.CreatedAt).HasDefaultValue(DateTime.UtcNow);
-        // builder.Property(x => x.IsActive).HasDefaultValue(true);
+            builder.HasQueryFilter(x => !((IBaseEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
+        }
     }
+
+    private static bool TEntityImplementsIBaseEntity() => typeof(IBaseEntity).IsAssignableFrom(typeof(TEntity));
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();

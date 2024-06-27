@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Services;
 
-public class SeedDataService
+public static class SeedDataService
 {
     public static async Task Initialize(IServiceProvider serviceProvider, UserManager<User> userManager)
     {

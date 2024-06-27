@@ -24,7 +24,7 @@ public static class AppointmentEndpoint
     public static async Task<IResult> GetAppointment(int id, ICorteContext context)
     {
         var appointment = await context.Appointments
-            .SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+            .SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
 
         if (appointment is null)
             return Results.NotFound("Agendamento não encontrado");
@@ -54,7 +54,7 @@ public static class AppointmentEndpoint
     {
         try
         {
-            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
 
             if (appointment is null)
                 return Results.NotFound();
@@ -75,13 +75,13 @@ public static class AppointmentEndpoint
     {
         try
         {
-            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.IsActive && a.Id == id);
+            var appointment = await context.Appointments.SingleOrDefaultAsync(a => !a.IsDeleted && a.Id == id);
 
             if (appointment is null)
                 return Results.NotFound();
             
             appointment.UpdatedAt = DateTime.UtcNow;
-            appointment.IsActive = false;
+            appointment.IsDeleted = true;
 
             await context.SaveChangesAsync();
             return Results.NoContent();
