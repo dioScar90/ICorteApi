@@ -1,39 +1,31 @@
 # iCorte
 
-## Etapas comuns:
+This is my personal repository about my TCC (Final Paper) project. It is a barbershop scheduling web app.
+- Backend: **ASP.NET Core**, with Minimal API.
+- Frontend: **React**, with React Router or Remix (I don't know...).
+- Database: **PostgreSQL**, with Entity Framework ORM.
 
-### Criar ASP.NET Core Web API:
+## Some .NET common steps:
+
+### Create the ASP.NET Core Minimal API project:
 
 - `dotnet new web -n ICorteApi`
 
-### Instalar Entity Framework:
-
-- `dotnet tool install --global dotnet-ef` ou `dotnet tool update --global dotnet-ef`
-  - `dotnet add package Microsoft.EntityFrameworkCore.Sqlite` ou
-  - `dotnet add package Microsoft.EntityFrameworkCore.SqlServer` ou
-  - `dotnet add package Pomelo.EntityFrameworkCore.MySql`
+### Some packages to be installed:
+- `dotnet tool install --global dotnet-ef` or `dotnet tool update --global dotnet-ef`
+- `dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL` or
 - `dotnet add package Microsoft.EntityFrameworkCore.Design`
 - `dotnet add package Microsoft.EntityFrameworkCore.Tools`
-
 - `dotnet add package Microsoft.AspNetCore.Authentication`
-- `dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer`
-
+- `dotnet add package Microsoft.AspNetCore.Identity`
+- `dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore`
 - `dotnet add package Swashbuckle.AspNetCore`
 
-### Instalar AutoMapper:
-
-- `dotnet add package AutoMapper`
-- `dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection`
-  <!-- - `dotnet add package Microsoft.AspNetCore.Session` -->
-  <!-- - `dotnet add package Microsoft.Extensions.DependencyInjection` -->
-
-### Realizar Migrations:
-
-- `dotnet ef migrations add InitialCreate`
+### Migrations:
+- `dotnet ef migrations add {{Message}}`
 - `dotnet ef database update`
 
-## For _dotnet-alias.sh_
-
+### For _dotnet-alias.sh_ (Linux only):
 - Create in this root directory a file named _dotnet-alias.sh_ and write this code inside it:
 
 ```
@@ -60,47 +52,31 @@ else
 fi
 ```
 
-- Change `CURRENT_DIRECTORY` variable to this current path. For example: `/c/xampp/htdocs/icorte`.
+- Change `CURRENT_DIRECTORY` variable to this current path. For example: `/c/xampp/htdocs/icorte` (if using Bash terminals on Windows) or `/home/user/icorte` (my use case, once I use Linux through WSL).
 - `chmod +x dotnet-alias.sh`.
-- Create an `alias` in your `.bashrc`, `.zshrc`, etc. file like this: `alias dotnet="{{your_current_directory}}"` (replace for your current directory itself, of course).
+- Create an `alias` in your `.bashrc` or `.zshrc` etc. file like this: `alias dotnet="{{your_current_directory}}"` (replace for your current directory itself, of course).
 - Restart your shell configuration by typing `source ~/.bashrc` or `source ~/.zshrc`, whatever.
 
-### Criar projeto React.js com Next.js:
+## Some React common steps:
 
-- Com **React**:
-  - `npx create-react-app client-app --template typescript`
-- Com **Next**:
-  - `npx create-next-app@latest client-app`
-    - TypeScript YES
-    - ESLint YES
-    - Tailwind CSS YES
-    - 'src/' directory YES
-    - App Router YES
-    - import alias NO
-- Com **Vite**:
+### Create the React Router or Remix project:
+
+- With **React Router**:
   - `npm create vite@latest client-app -- --template react-ts`
-- Instalando SASS (usar com arquivos SCSS):
-  - `npm i sass`
-- Instalando Material-UI e Material-Icons:
-  - `npm install @mui/material @emotion/react @emotion/styled`
-  - `npm i @mui/icons-material`
-- Rotas:
-  - `npm i react-router-dom`
-- Axios:
-  - `npm install axios`
-- Moment:
-  - `npm i moment`
-- sweetalert2:
-  - `npm i sweetalert2`
+  - `npm install react-router-dom`
+- with **Remix**:
+  - `npx create-remix@latest`
 
-Another utils becoming from another project:
-
+Some good libs to install (if needed):
+- `npm i sass`
+- `npm install @mui/material @emotion/react @emotion/styled`
+- `npm i @mui/icons-material`
+- `npm install axios`
+- `npm i sweetalert2`
 - npx shadcn-ui@latest init
-
   - Style: New York.
   - Base color: Zinc.
   - CSS variables: yes.
-
 - npx shadcn-ui@latest add button
 - npx shadcn-ui@latest add progress
 - npx shadcn-ui@latest add toast
@@ -111,45 +87,29 @@ Another utils becoming from another project:
 - npx shadcn-ui@latest add dialog
 - npx shadcn-ui@latest add card
 - npx shadcn-ui@latest add table
-
 - npm install lucide-react
-
 - npm install framer-motion
-
 - npm install react-dropzone
-
 - npm install uploadthing @uploadthing/react
-
 - npm install zod
-
 - npm install prisma @prisma/client
-
   - npx prisma init
   - npx prisma db push
   - npx prisma studio
-
 - npm install sharp@0.32.6
-
 - npm install react-rnd
-
 - npm install @headlessui/react
-
 - npm install @tanstack/react-query
-
 - npm install react-dom-confetti
-
 - npm install stripe
-
 - npm install @react-email/components
-
 - npm install resend
 
-### Após criar React, agora na raiz do projeto:
-
+### Once the React project is created, on the root of this repository:
 - `npm init`
-- Acrescentar em _package.json_, em _scripts_, o item:
+- In _package.json_, _scripts_, add:
   - _"start": "concurrently \"dotnet watch run\" \"cd client-app && npm run dev\""_
 - `npm install --sav-dev concurrently`
 - `npm install react react-dom next --sav-dev concurrently`
 
-Agora, para rodar, basta digitar `npm start` que já irá rodar tanto o backend quanto o frontend.
+Now, to run together, just type `npm install` and both backend and frontend are going to start together.
