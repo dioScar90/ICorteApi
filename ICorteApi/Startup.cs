@@ -23,20 +23,20 @@ public class Startup(IConfiguration configuration)
     {
         var connectionString = Configuration.GetConnectionString("SqliteConnection");
 
-        services.AddDbContext<ICorteContext>(options =>
+        services.AddDbContext<AppDbContext>(options =>
         {
             // options.UseNpgsql(
             //     connectionString,
-            //     assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
+            //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
             // );
             options.UseSqlite(
                 connectionString,
-                assembly => assembly.MigrationsAssembly(typeof(ICorteContext).Assembly.FullName)
+                assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
             );
             // options.UseInMemoryDatabase("AppDb");
         });
         
-        services.AddScoped<ICorteContext>();
+        services.AddScoped<AppDbContext>();
         
         services.AddAuthorization();
         
@@ -60,7 +60,7 @@ public class Startup(IConfiguration configuration)
             options.User.RequireUniqueEmail = false;
         })
         .AddRoles<IdentityRole<int>>()
-        .AddEntityFrameworkStores<ICorteContext>()
+        .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
         
         services.ConfigureApplicationCookie(options =>

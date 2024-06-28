@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Entities;
 
-public class BaseUser : IdentityUser<int>, IBaseEntity, IBaseTableEntity
+public abstract class BaseUser : IdentityUser<int>, IBaseEntity, IBaseTableEntity
 {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; }
+    public bool? IsDeleted { get; set; }
 }

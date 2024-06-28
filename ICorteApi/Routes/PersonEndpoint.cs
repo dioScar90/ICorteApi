@@ -39,7 +39,7 @@ public static class PersonEndpoint
     
     // public static async Task<IResult> CreateUser(
     //     UserDtoRegisterRequest dto,
-    //     ICorteContext context,
+    //     AppDbContext context,
     //     UserManager<User> userManager,
     //     SignInManager<User> signInManager)
     // {
@@ -77,7 +77,7 @@ public static class PersonEndpoint
     //     }
     // }
     
-    public static async Task<IResult> GetById(ClaimsPrincipal user, UserManager<User> userManager, ICorteContext context)
+    public static async Task<IResult> GetById(ClaimsPrincipal user, UserManager<User> userManager, AppDbContext context)
     {
         // Obtendo o ID do usuário autenticado
         // var userId = userManager.GetUserId(user);

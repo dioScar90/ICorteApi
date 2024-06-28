@@ -21,9 +21,9 @@ public static class AddressEndpoint
         group.MapDelete("{id}", DeleteAddress);
     }
     
-    public static async Task<IResult> GetAddress(int id, ICorteContext context)
+    public static async Task<IResult> GetAddress(int id, AppDbContext context)
     {
-        var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
+        var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
 
         if (address is null)
             return Results.NotFound("Agendamento não encontrado");
@@ -32,7 +32,7 @@ public static class AddressEndpoint
         return Results.Ok(addressDto);
     }
     
-    public static async Task<IResult> CreateAddress(AddressDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> CreateAddress(AddressDtoRequest dto, AppDbContext context)
     {
         try
         {
@@ -49,11 +49,11 @@ public static class AddressEndpoint
         }
     }
 
-    public static async Task<IResult> UpdateAddress(int id, AddressDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> UpdateAddress(int id, AddressDtoRequest dto, AppDbContext context)
     {
         try
         {
-            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
+            var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
 
             if (address is null)
                 return Results.NotFound();
@@ -78,11 +78,11 @@ public static class AddressEndpoint
         }
     }
 
-    public static async Task<IResult> DeleteAddress(int id, ICorteContext context)
+    public static async Task<IResult> DeleteAddress(int id, AppDbContext context)
     {
         try
         {
-            var address = await context.Addresses.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
+            var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
 
             if (address is null)
                 return Results.NotFound();

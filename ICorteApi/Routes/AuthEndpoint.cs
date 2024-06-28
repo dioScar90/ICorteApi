@@ -45,7 +45,7 @@ public static class AuthEndpoint
     
     public static async Task<IResult> CreateUser(
         UserDtoRegisterRequest dto,
-        ICorteContext context,
+        AppDbContext context,
         UserManager<User> userManager,
         SignInManager<User> signInManager)
     {

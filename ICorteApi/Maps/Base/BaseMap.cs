@@ -37,7 +37,7 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             // createdAtProperty.HasDefaultValue(DateTime.UtcNow);
             // isDeletedProperty.HasDefaultValue(true);
 
-            builder.HasQueryFilter(x => !((IBaseEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
+            builder.HasQueryFilter(x => ((IBaseEntity)x).IsDeleted != true); // same as 'x => !x.IsDeleted'
         }
     }
 

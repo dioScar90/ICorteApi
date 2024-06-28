@@ -22,11 +22,11 @@ public static class BarberShopEndpoint
         group.MapDelete("{id}", DeleteBarberShop);
     }
 
-    public static async Task<IResult> GetBarberShop(int id, ICorteContext context)
+    public static async Task<IResult> GetBarberShop(int id, AppDbContext context)
     {
         var barberShop = await context.BarberShops
             .Include(b => b.Address)
-            .SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
+            .SingleOrDefaultAsync(b => b.Id == id);
 
         if (barberShop is null)
             return Results.NotFound();
@@ -35,7 +35,7 @@ public static class BarberShopEndpoint
         return Results.Ok(barberShopDto);
     }
 
-    // public static async Task<IResult> GetAllBarbers(int page, int perPage, ICorteContext context)
+    // public static async Task<IResult> GetAllBarbers(int page, int perPage, AppDbContext context)
     // {
     //     var barbers = new BarberRepository(context)
     //         .GetAll(page, perPage);
@@ -50,7 +50,7 @@ public static class BarberShopEndpoint
     //     return Results.Ok(dtos);
     // }
     
-    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, AppDbContext context)
     {
         try
         {
@@ -67,11 +67,11 @@ public static class BarberShopEndpoint
         }
     }
     
-    public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, AppDbContext context)
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
+            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
             if (barberShop is null)
                 return Results.NotFound();
@@ -108,11 +108,11 @@ public static class BarberShopEndpoint
         }
     }
     
-    public static async Task<IResult> DeleteBarberShop(int id, ICorteContext context)
+    public static async Task<IResult> DeleteBarberShop(int id, AppDbContext context)
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.IsDeleted && b.Id == id);
+            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
             if (barberShop is null)
                 return Results.NotFound();

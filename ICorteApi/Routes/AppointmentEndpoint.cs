@@ -21,10 +21,10 @@ public static class AppointmentEndpoint
         group.MapDelete("{id}", DeleteAppointment);
     }
     
-    public static async Task<IResult> GetAppointment(int id, ICorteContext context)
+    public static async Task<IResult> GetAppointment(int id, AppDbContext context)
     {
         var appointment = await context.Appointments
-            .SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
+            .SingleOrDefaultAsync(a => a.Id == id);
 
         if (appointment is null)
             return Results.NotFound("Agendamento não encontrado");
@@ -33,7 +33,7 @@ public static class AppointmentEndpoint
         return Results.Ok(appointmentDto);
     }
     
-    public static async Task<IResult> CreateAppointment(AppointmentDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> CreateAppointment(AppointmentDtoRequest dto, AppDbContext context)
     {
         try
         {
@@ -50,11 +50,11 @@ public static class AppointmentEndpoint
         }
     }
 
-    public static async Task<IResult> UpdateAppointment(int id, AppointmentDtoRequest dto, ICorteContext context)
+    public static async Task<IResult> UpdateAppointment(int id, AppointmentDtoRequest dto, AppDbContext context)
     {
         try
         {
-            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.IsDeleted && a.Id == id);
+            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.Id == id);
 
             if (appointment is null)
                 return Results.NotFound();
@@ -71,11 +71,11 @@ public static class AppointmentEndpoint
         }
     }
 
-    public static async Task<IResult> DeleteAppointment(int id, ICorteContext context)
+    public static async Task<IResult> DeleteAppointment(int id, AppDbContext context)
     {
         try
         {
-            var appointment = await context.Appointments.SingleOrDefaultAsync(a => !a.IsDeleted && a.Id == id);
+            var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.Id == id);
 
             if (appointment is null)
                 return Results.NotFound();
