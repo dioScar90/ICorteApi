@@ -1,17 +1,15 @@
-using ICorteApi.Context;
 using ICorteApi.Settings;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using ICorteApi.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
-using System.Text;
 using ICorteApi.Routes;
-using ICorteApi.Enums;
 using ICorteApi.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Application.Services;
+using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Infraestructure.Repositories;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi;
 
@@ -36,7 +34,9 @@ public class Startup(IConfiguration configuration)
             // options.UseInMemoryDatabase("AppDb");
         });
         
-        services.AddScoped<AppDbContext>();
+        // services.AddScoped<AppDbContext>();
+        services.AddScoped<IBarberShopService, BarberShopService>();
+        services.AddScoped<IBarberShopRepository, BarberShopRepository>();
         
         services.AddAuthorization();
         
