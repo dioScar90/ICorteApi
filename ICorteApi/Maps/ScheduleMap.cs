@@ -14,6 +14,7 @@ public class ScheduleMap : BaseMap<Schedule>
             .HasForeignKey(s => s.BarberShopId);
         
         builder.HasOne(s => s.Barber)
-            .
+            .WithMany(b => b.Schedules)
+            .HasForeignKey(s => s.BarberId);
     }
 }

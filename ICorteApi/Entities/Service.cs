@@ -11,5 +11,5 @@ public class Service : BaseEntity
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
 
-    public IEnumerable<AppointmentService> AppointmentServices { get; set; } = [];
+    public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
 }

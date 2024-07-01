@@ -16,8 +16,8 @@ public class BarberShop : BaseEntity
     public Person Owner { get; set; }
 
     public Address Address { get; set; }
-    public IEnumerable<Person> Barbers { get; set; } = [];
-    public IEnumerable<Schedule> Schedules { get; set; } = [];
-    public IEnumerable<Service> Services { get; set; } = [];
-    public IEnumerable<Report> Reports { get; set; } = [];
+    public ICollection<Person> Barbers { get; set; } = [];
+    public ICollection<Schedule> Schedules { get; set; } = [];
+    public ICollection<Service> Services { get; set; } = [];
+    public ICollection<Report> Reports { get; set; } = [];
 }

@@ -17,18 +17,3 @@ public class Address : BaseEntity
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
 }
-
-/*
-CHAT GPT
-
-Address: Representa os endereços.
-
-Id (int)
-ClientId (int) - Foreign Key
-Street (string)
-City (string)
-State (string)
-PostalCode (string)
-Country (string)
-Navigation Properties: Client
-*/

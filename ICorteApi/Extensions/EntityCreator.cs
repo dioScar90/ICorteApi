@@ -5,22 +5,20 @@ namespace ICorteApi.Extensions;
 
 public static class EntityCreator
 {
-    public static TEntity? CreateEntity<TEntity>(this IDtoRequest? dto)
-        where TEntity : class, IBaseEntity
+    public static TEntity? CreateEntity<TEntity>(this IDtoRequest? dtoRequest) where TEntity : class, IBaseEntity
     {
-        if (dto is UserDtoRegisterRequest registerDto)
-            return MapDtoToUser(registerDto) as TEntity;
+        return dtoRequest switch
+        {
+            UserDtoRegisterRequest registerDto  => MapDtoToUser(registerDto) as TEntity,
 
-        if (dto is PersonDtoRequest personDto)
-            return MapDtoToPerson(personDto) as TEntity;
+            PersonDtoRequest personDto          => MapDtoToPerson(personDto) as TEntity,
 
-        if (dto is BarberShopDtoRequest barberShopDto)
-            return MapDtoToBarberShop(barberShopDto) as TEntity;
+            BarberShopDtoRequest barberShopDto  => MapDtoToBarberShop(barberShopDto) as TEntity,
 
-        if (dto is AddressDtoRequest addressDto)
-            return MapDtoToAddress(addressDto) as TEntity;
-        
-        return default;
+            AddressDtoRequest addressDto        => MapDtoToAddress(addressDto) as TEntity,
+
+            _ => null
+        };
     }
     
     private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
@@ -54,7 +52,7 @@ public static class EntityCreator
             Rating = barberShopDto.Rating,
             
             Address = barberShopDto.Address?.CreateEntity<Address>(),
-            Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToArray()
+            Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
         };
         
     private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>

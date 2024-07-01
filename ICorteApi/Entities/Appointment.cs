@@ -15,7 +15,7 @@ public class Appointment : BaseEntity
     public int ClientId { get; set; }
     public Person Client { get; set; }
     
-    public IEnumerable<AppointmentService> AppointmentServices { get; set; }
+    public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
 }
 
 // Alternative for using RecurringSchedule:

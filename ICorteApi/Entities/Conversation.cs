@@ -2,9 +2,7 @@ namespace ICorteApi.Entities;
 
 public class Conversation : BaseEntity
 {
-    
-    // Navigation Properties
-    public IEnumerable<Message> Messages { get; set; } = [];
-    // public IEnumerable<User> Participants { get; set; } = [];
-    public IEnumerable<PersonConversation> PersonConversations { get; set; } = [];
+    public ICollection<Message> Messages { get; set; } = [];
+    // public ICollection<User> Participants { get; set; } = [];
+    public ICollection<PersonConversation> PersonConversations { get; set; } = [];
 }

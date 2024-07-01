@@ -7,22 +7,20 @@ namespace ICorteApi.Extensions;
 
 public static class DtoCreator
 {
-    public static TDtoResponse? CreateDto<TDtoResponse>(this IBaseEntity entity)
-        where TDtoResponse : class, IDtoResponse
+    public static T? CreateDto<T>(this IBaseEntity entity) where T : class, IDtoResponse
     {
-        if (entity is User user)
-            return MapUserToDto(user) as TDtoResponse;
+        return entity switch
+        {
+            User user               => MapUserToDto(user) as T,
 
-        if (entity is Person person)
-            return MapPersonToDto(person) as TDtoResponse;
+            Person person           => MapPersonToDto(person) as T,
 
-        if (entity is BarberShop barberShop)
-            return MapBarberShopToDto(barberShop) as TDtoResponse;
+            BarberShop barberShop   => MapBarberShopToDto(barberShop) as T,
 
-        if (entity is Address address)
-            return MapAddressToDto(address) as TDtoResponse;
-        
-        return null;
+            Address address         => MapAddressToDto(address) as T,
+
+            _ => null
+        };
     }
 
     private static UserRole[] GetRolesAsEnumArray(string[] roles) =>
