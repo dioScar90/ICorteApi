@@ -1,9 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
-using ICorteApi.Validators;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Enums;
 
-namespace ICorteApi.Dtos;
+namespace ICorteApi.Application.Dtos;
 
 public record UserDtoRequest(
     string Email,
@@ -36,28 +34,27 @@ public record UserDtoLoginRequest(
 
 public record UserDtoForgotPasswordRequest(
     string Email
-): IDtoRequest;
+) : IDtoRequest;
 
 public record UserDtoResetPasswordRequest(
     string Email,
     string Token,
     string NewPassword,
     string ConfirmNewPassword
-): IDtoRequest;
+) : IDtoRequest;
 
 public record UserDtoUpdateProfileRequest(
     string FirstName,
     string LastName
-    // Outros campos que você deseja permitir a atualização.
-): IDtoRequest;
+) : IDtoRequest;
 
 public record UserDtoChangePasswordRequest(
     string CurrentPassword,
     string NewPassword,
     string ConfirmNewPassword
-): IDtoRequest;
+) : IDtoRequest;
 
 public record UserDtoConfirmEmailRequest(
     string Email,
     string Token
-): IDtoRequest;
+) : IDtoRequest;

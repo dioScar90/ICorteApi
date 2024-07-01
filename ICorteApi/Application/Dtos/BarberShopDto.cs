@@ -1,9 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
-using ICorteApi.Validators;
+using ICorteApi.Application.Interfaces;
 
-namespace ICorteApi.Dtos;
+namespace ICorteApi.Application.Dtos;
 
 public record BarberShopDtoRequest(
     string Name,
@@ -17,8 +14,8 @@ public record BarberShopDtoRequest(
     double Rating,
     AddressDtoRequest? Address,
     PersonDtoRequest[]? Barbers
-    // Schedule[]? Schedules,
-    // Service[]? Services
+// Schedule[]? Schedules,
+// Service[]? Services
 ) : IDtoRequest;
 
 public record BarberShopDtoResponse(
@@ -31,9 +28,9 @@ public record BarberShopDtoResponse(
     TimeSpan ClosingHours,
     string DaysOpen,
     double Rating,
-    
+
     AddressDtoResponse? Address,
     PersonDtoResponse[]? Barbers
-    // Schedule[]? Schedules,
-    // Service[]? Services
+// Schedule[]? Schedules,
+// Service[]? Services
 ) : IDtoResponse;

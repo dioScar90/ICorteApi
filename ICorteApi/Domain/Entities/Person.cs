@@ -1,3 +1,5 @@
+using ICorteApi.Domain.Base;
+
 namespace ICorteApi.Domain.Entities;
 
 public class Person : BaseEntity

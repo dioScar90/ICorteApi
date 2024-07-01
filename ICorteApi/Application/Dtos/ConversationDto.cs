@@ -1,6 +1,13 @@
-namespace ICorteApi.Dtos;
+using ICorteApi.Application.Interfaces;
 
-public record ConversationDto(
+namespace ICorteApi.Application.Dtos;
+
+public record ConversationDtoRequest(
     int BarberId,
     int ClientId
-);
+) : IDtoRequest;
+
+public record ConversationDtoResponse(
+    int BarberId,
+    int ClientId
+) : IDtoResponse;

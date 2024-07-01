@@ -1,3 +1,4 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
@@ -57,7 +58,7 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
     {
         try
         {
-            var result = await _repository.GetAsync(x => x.Id == id);
+            var result = await _repository.GetByIdAsync(x => x.Id == id);
 
             if (!result.Success)
                 return new ResponseDataModel<BarberShop> { Success = false };
@@ -70,11 +71,11 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
         }
     }
 
-    public async Task<IResponseModel> UpdateAsync(BarberShop barberShop)
+    public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
     {
         try
         {
-            var result = await _repository.UpdateAsync(barberShop);
+            var result = await _repository.UpdateAsync(id, dto);
             return new ResponseModel { Success = result.Success };
         }
         catch (Exception)

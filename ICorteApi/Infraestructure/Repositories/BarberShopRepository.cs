@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
@@ -11,15 +12,15 @@ namespace ICorteApi.Infraestructure.Repositories;
 public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 {
     private readonly AppDbContext _context = context;
+
+    private async Task<bool> SaveChangesAsync() => await context.SaveChangesAsync() > 0;
     
     public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
     {
         try
         {
             await _context.BarberShops.AddAsync(barberShop);
-            var newId = await _context.SaveChangesAsync();
-
-            return new ResponseModel { Success = newId > 0 };
+            return new ResponseModel { Success = await SaveChangesAsync() };
         }
         catch (Exception)
         {
@@ -27,7 +28,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
         }
     }
 
-    public async Task<IResponseDataModel<BarberShop>> GetAsync(Expression<Func<BarberShop, bool>> filter)
+    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(Expression<Func<BarberShop, bool>> filter)
     {
         try
         {
@@ -64,48 +65,54 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
         };
     }
 
-    public async Task<IResponseModel> UpdateAsync(BarberShop barberShop)
+    public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
     {
         try
         {
             var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+
+            if (barberShop is null)
+                return new ResponseModel { Success = false };
             
-            barberShop.Name = barberShop.Name;
-            barberShop.Weight = barberShop.Weight;
-            barberShop.Reps = barberShop.Reps;
-            _context.BarberShops.Update(barberShop);
-            return await _context.SaveChangesAsync() == 1 ?
-              new ResponseModel { Success = true } :
-              new ResponseModel
-              {
-                  Success = false
-              };
+            barberShop.Name = dto.Name;
+            barberShop.Description = dto.Description;
+            barberShop.PhoneNumber = dto.PhoneNumber;
+            barberShop.ComercialNumber = dto.ComercialNumber;
+            barberShop.ComercialEmail = dto.ComercialEmail;
+            barberShop.OpeningHours = dto.OpeningHours;
+            barberShop.ClosingHours = dto.ClosingHours;
+            barberShop.DaysOpen = dto.DaysOpen;
+            
+            if (dto.Address is not null)
+            {
+                barberShop.Address.Street = dto.Address.Street;
+                barberShop.Address.Number = dto.Address.Number;
+                barberShop.Address.Complement = dto.Address.Complement;
+                barberShop.Address.Neighborhood = dto.Address.Neighborhood;
+                barberShop.Address.City = dto.Address.City;
+                barberShop.Address.State = dto.Address.State;
+                barberShop.Address.PostalCode = dto.Address.PostalCode;
+                barberShop.Address.Country = dto.Address.Country;
+            }
+
+            barberShop.UpdatedAt = DateTime.UtcNow;
+            
+            return new ResponseModel { Success = await SaveChangesAsync() };
         }
         catch (Exception)
         {
-
             throw;
         }
     }
 
     public async Task<IResponseModel> DeleteAsync(int id)
     {
-        try
-        {
-            var liftData = await GetAsync(x => x.Id == id);
-            if (!liftData.Success) return new ResponseModel { Success = false, Message = liftData.Message };
-            _context.BarberShops.Remove(liftData.Data);
-            return await _context.SaveChangesAsync() == 1 ?
-                new ResponseModel { Success = true } :
-                new ResponseModel
-                {
-                    Success = false
-                };
-        }
-        catch (Exception)
-        {
+        var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
-            throw;
-        }
+        if (barberShop is null)
+            return new ResponseModel { Success = false, Message = "Barbearia não encontrada" };
+        
+        context.BarberShops.Remove(barberShop);
+        return new ResponseModel { Success = await SaveChangesAsync() };
     }
 }

@@ -1,4 +1,5 @@
-using ICorteApi.Enums;
+using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 

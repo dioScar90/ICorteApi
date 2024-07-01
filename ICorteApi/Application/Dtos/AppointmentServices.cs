@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ICorteApi.Application.Interfaces;
 
-namespace ICorteApi.Dtos;
+namespace ICorteApi.Application.Dtos;
 
 public record AppointmentServicesDtoRequest(
     int ServiceId

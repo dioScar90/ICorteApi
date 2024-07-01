@@ -1,3 +1,4 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 
@@ -8,6 +9,6 @@ public interface IBarberShopService
        Task<IResponseModel> CreateAsync(BarberShop barberShop);
        Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id);
        Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync();
-       Task<IResponseModel> UpdateAsync(BarberShop barberShop);
+       Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto);
        Task<IResponseModel> DeleteAsync(int id);
 }

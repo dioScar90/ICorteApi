@@ -1,9 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
-using ICorteApi.Validators;
+using ICorteApi.Application.Interfaces;
 
-namespace ICorteApi.Dtos;
+namespace ICorteApi.Application.Dtos;
 
 public record PersonDtoRequest(
     string FirstName,
@@ -17,6 +14,6 @@ public record PersonDtoResponse(
     string LastName,
     DateTime? LastVisitDate,
     string[] Roles
-    // UserRole[] Roles
-    // AddressDtoResponse[] Addresses
+// UserRole[] Roles
+// AddressDtoResponse[] Addresses
 ) : IDtoResponse;

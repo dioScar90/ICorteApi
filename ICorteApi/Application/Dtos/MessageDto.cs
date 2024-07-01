@@ -1,4 +1,6 @@
-namespace ICorteApi.Dtos;
+using ICorteApi.Application.Interfaces;
+
+namespace ICorteApi.Application.Dtos;
 
 public record MessageDtoRequest(
     string Content,
