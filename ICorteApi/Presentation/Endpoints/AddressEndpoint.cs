@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ICorteApi.Entities;
-using ICorteApi.Context;
-using ICorteApi.Dtos;
-using ICorteApi.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Presentation.Extensions;
 
-namespace ICorteApi.Routes;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {
@@ -20,7 +19,7 @@ public static class AddressEndpoint
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
     }
-    
+
     public static async Task<IResult> GetAddress(int id, AppDbContext context)
     {
         var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
@@ -31,13 +30,13 @@ public static class AddressEndpoint
         var addressDto = address.CreateDto<AddressDtoResponse>();
         return Results.Ok(addressDto);
     }
-    
+
     public static async Task<IResult> CreateAddress(AddressDtoRequest dto, AppDbContext context)
     {
         try
         {
             var newAddress = dto.CreateEntity<Address>()!;
-            
+
             await context.Addresses.AddAsync(newAddress);
             await context.SaveChangesAsync();
 
@@ -57,7 +56,7 @@ public static class AddressEndpoint
 
             if (address is null)
                 return Results.NotFound();
-            
+
             address.Street = dto.Street;
             address.Number = dto.Number;
             address.Complement = dto.Complement;
@@ -66,7 +65,7 @@ public static class AddressEndpoint
             address.State = dto.State;
             address.PostalCode = dto.PostalCode;
             address.Country = dto.Country;
-            
+
             address.UpdatedAt = DateTime.UtcNow;
 
             await context.SaveChangesAsync();
@@ -86,7 +85,7 @@ public static class AddressEndpoint
 
             if (address is null)
                 return Results.NotFound();
-            
+
             address.UpdatedAt = DateTime.UtcNow;
             address.IsDeleted = true;
 

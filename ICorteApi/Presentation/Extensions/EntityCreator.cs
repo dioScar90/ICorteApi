@@ -1,7 +1,9 @@
-using ICorteApi.Dtos;
-using ICorteApi.Entities;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Interfaces;
 
-namespace ICorteApi.Extensions;
+namespace ICorteApi.Presentation.Extensions;
 
 public static class EntityCreator
 {
@@ -9,18 +11,18 @@ public static class EntityCreator
     {
         return dtoRequest switch
         {
-            UserDtoRegisterRequest registerDto  => MapDtoToUser(registerDto) as TEntity,
+            UserDtoRegisterRequest registerDto => MapDtoToUser(registerDto) as TEntity,
 
-            PersonDtoRequest personDto          => MapDtoToPerson(personDto) as TEntity,
+            PersonDtoRequest personDto => MapDtoToPerson(personDto) as TEntity,
 
-            BarberShopDtoRequest barberShopDto  => MapDtoToBarberShop(barberShopDto) as TEntity,
+            BarberShopDtoRequest barberShopDto => MapDtoToBarberShop(barberShopDto) as TEntity,
 
-            AddressDtoRequest addressDto        => MapDtoToAddress(addressDto) as TEntity,
+            AddressDtoRequest addressDto => MapDtoToAddress(addressDto) as TEntity,
 
             _ => null
         };
     }
-    
+
     private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
         new()
         {
@@ -29,7 +31,7 @@ public static class EntityCreator
             PhoneNumber = userDto.PhoneNumber,
             Person = userDto.Person.CreateEntity<Person>(),
         };
-    
+
     private static Person MapDtoToPerson(PersonDtoRequest personDto) =>
         new()
         {
@@ -50,11 +52,11 @@ public static class EntityCreator
             ClosingHours = barberShopDto.ClosingHours,
             DaysOpen = barberShopDto.DaysOpen,
             Rating = barberShopDto.Rating,
-            
+
             Address = barberShopDto.Address?.CreateEntity<Address>(),
             Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
         };
-        
+
     private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>
         new()
         {

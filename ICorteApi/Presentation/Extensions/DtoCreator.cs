@@ -1,9 +1,10 @@
-using System.Security.Claims;
-using ICorteApi.Dtos;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
+using ICorteApi.Domain.Interfaces;
 
-namespace ICorteApi.Extensions;
+namespace ICorteApi.Presentation.Extensions;
 
 public static class DtoCreator
 {
@@ -11,13 +12,13 @@ public static class DtoCreator
     {
         return entity switch
         {
-            User user               => MapUserToDto(user) as T,
+            User user => MapUserToDto(user) as T,
 
-            Person person           => MapPersonToDto(person) as T,
+            Person person => MapPersonToDto(person) as T,
 
-            BarberShop barberShop   => MapBarberShopToDto(barberShop) as T,
+            BarberShop barberShop => MapBarberShopToDto(barberShop) as T,
 
-            Address address         => MapAddressToDto(address) as T,
+            Address address => MapAddressToDto(address) as T,
 
             _ => null
         };
@@ -29,7 +30,7 @@ public static class DtoCreator
             .Where(role => role.HasValue)
             .Select(role => role.Value)
             .ToArray();
-    
+
     private static UserDtoResponse MapUserToDto(User user) =>
         new(
             user.Id,
@@ -38,7 +39,7 @@ public static class DtoCreator
             // user.Person is null ? default : user.Person.CreateDto<PersonDtoResponse>()
             user.Person?.CreateDto<PersonDtoResponse>()
         );
-    
+
     private static PersonDtoResponse MapPersonToDto(Person person) =>
         new(
             person.Id,
@@ -63,7 +64,7 @@ public static class DtoCreator
             barberShop.Address?.CreateDto<AddressDtoResponse>(),
             barberShop.Barbers?.Select(b => b.CreateDto<PersonDtoResponse>()).ToArray()
         );
-        
+
     private static AddressDtoResponse MapAddressToDto(Address address) =>
         new(
             address.Id,

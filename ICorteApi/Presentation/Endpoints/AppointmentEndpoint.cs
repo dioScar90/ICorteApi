@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ICorteApi.Entities;
-using ICorteApi.Context;
-using ICorteApi.Dtos;
-using ICorteApi.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Presentation.Extensions;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Domain.Entities;
 
-namespace ICorteApi.Routes;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AppointmentEndpoint
 {
@@ -20,7 +19,7 @@ public static class AppointmentEndpoint
         group.MapPut("{id}", UpdateAppointment);
         group.MapDelete("{id}", DeleteAppointment);
     }
-    
+
     public static async Task<IResult> GetAppointment(int id, AppDbContext context)
     {
         var appointment = await context.Appointments
@@ -32,16 +31,16 @@ public static class AppointmentEndpoint
         var appointmentDto = appointment.CreateDto<AppointmentDtoResponse>();
         return Results.Ok(appointmentDto);
     }
-    
+
     public static async Task<IResult> CreateAppointment(AppointmentDtoRequest dto, AppDbContext context)
     {
         try
         {
             var newAppointment = dto.CreateEntity<Appointment>()!;
-            
+
             await context.Appointments.AddAsync(newAppointment);
             await context.SaveChangesAsync();
-            
+
             return Results.Created($"/appointment/{newAppointment.Id}", new { Message = "Agendamento criado com sucesso" });
         }
         catch (Exception ex)
@@ -61,7 +60,7 @@ public static class AppointmentEndpoint
 
             appointment.AppointmentDate = dto.AppointmentDate;
             appointment.UpdatedAt = DateTime.UtcNow;
-            
+
             await context.SaveChangesAsync();
             return Results.Ok(new { Message = "Agendamento atualizado com sucesso" });
         }
@@ -79,7 +78,7 @@ public static class AppointmentEndpoint
 
             if (appointment is null)
                 return Results.NotFound();
-            
+
             appointment.UpdatedAt = DateTime.UtcNow;
             appointment.IsDeleted = true;
 

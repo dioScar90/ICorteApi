@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ICorteApi.Extensions;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Infraestructure.Context;
+using ICorteApi.Presentation.Extensions;
 
-namespace ICorteApi.Routes;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberShopEndpoint
 {
@@ -31,7 +31,7 @@ public static class BarberShopEndpoint
         var barberShopDto = barberShop.Data.CreateDto<BarberShopDtoResponse>();
         return Results.Ok(barberShopDto);
     }
-    
+
     // public static async Task<IResult> GetAllBarbers(int page, int perPage, AppDbContext context)
     // {
     //     var barbers = new BarberRepository(context)
@@ -43,10 +43,10 @@ public static class BarberShopEndpoint
     //     var dtos = await barbers
     //         .Select(b => BarberToDtoResponse(b))
     //         .ToListAsync();
-            
+
     //     return Results.Ok(dtos);
     // }
-    
+
     public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, AppDbContext context)
     {
         try
@@ -63,7 +63,7 @@ public static class BarberShopEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, IBarberShopService barberShopService)
     {
         try
@@ -73,7 +73,7 @@ public static class BarberShopEndpoint
 
             // if (barberShop is null)
             //     return Results.NotFound();
-            
+
             // barberShop.Name = dto.Name;
             // barberShop.Description = dto.Description;
             // barberShop.PhoneNumber = dto.PhoneNumber;
@@ -82,7 +82,7 @@ public static class BarberShopEndpoint
             // barberShop.OpeningHours = dto.OpeningHours;
             // barberShop.ClosingHours = dto.ClosingHours;
             // barberShop.DaysOpen = dto.DaysOpen;
-            
+
             // if (dto.Address is not null)
             // {
             //     barberShop.Address.Street = dto.Address.Street;
@@ -96,7 +96,7 @@ public static class BarberShopEndpoint
             // }
 
             // barberShop.UpdatedAt = DateTime.UtcNow;
-            
+
             // await context.SaveChangesAsync();
             // return Results.Ok(new { Message = "Barbearia atualizada com sucesso" });
             return Results.Ok(oie);
@@ -106,7 +106,7 @@ public static class BarberShopEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> DeleteBarberShop(int id, AppDbContext context)
     {
         try

@@ -1,8 +1,7 @@
 using System.Security.Claims;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
+using ICorteApi.Domain.Enums;
 
-namespace ICorteApi.Extensions;
+namespace ICorteApi.Presentation.Extensions;
 
 public static class AuthorizationExtensions
 {

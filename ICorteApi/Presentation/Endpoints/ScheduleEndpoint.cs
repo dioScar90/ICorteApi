@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ICorteApi.Context;
-using Microsoft.AspNetCore.Http.HttpResults;
-using ICorteApi.Entities;
-using ICorteApi.Dtos;
-using ICorteApi.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Presentation.Extensions;
+using ICorteApi.Domain.Entities;
 
-namespace ICorteApi.Routes;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class ScheduleEndpoint
 {
@@ -49,7 +47,7 @@ public static class ScheduleEndpoint
     //     var dtos = await schedules
     //         .Select(b => ScheduleToDtoResponse(b))
     //         .ToListAsync();
-            
+
     //     return Results.Ok(dtos);
     // }
 
@@ -58,7 +56,7 @@ public static class ScheduleEndpoint
         var availableTimeSlots = _scheduleService.GetAvailableTimeSlots(barberId, date);
         return Results.Ok(availableTimeSlots);
     }
-    
+
     public static async Task<IResult> GetAvailableTimeSlots(int barberId, DateTime date, AppDbContext context)
     {
         var recurringSchedules = context.RecurringSchedules
@@ -89,7 +87,7 @@ public static class ScheduleEndpoint
 
         return availableTimeSlots;
     }
-    
+
     public static async Task<IResult> CreateSchedule(ScheduleDtoRequest dto, AppDbContext context)
     {
         try
@@ -106,7 +104,7 @@ public static class ScheduleEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> UpdateSchedule(int id, ScheduleDtoRequest dto, AppDbContext context)
     {
         try
@@ -115,14 +113,14 @@ public static class ScheduleEndpoint
 
             if (schedule is null)
                 return Results.NotFound();
-                
+
             schedule.DayOfWeek = dto.DayOfWeek;
             schedule.StartTime = dto.StartTime;
             schedule.EndTime = dto.EndTime;
             schedule.IsAvailable = dto.IsAvailable;
-            
+
             schedule.UpdatedAt = DateTime.UtcNow;
-            
+
             await context.SaveChangesAsync();
             return Results.Ok(new { Message = "Agendamento atualizado com sucesso" });
         }
@@ -131,7 +129,7 @@ public static class ScheduleEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> DeleteSchedule(int id, AppDbContext context)
     {
         try
@@ -143,7 +141,7 @@ public static class ScheduleEndpoint
 
             schedule.UpdatedAt = DateTime.UtcNow;
             schedule.IsDeleted = true;
-            
+
             await context.SaveChangesAsync();
             return Results.NoContent();
         }

@@ -1,18 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ICorteApi.Context;
-using Microsoft.AspNetCore.Http.HttpResults;
-using ICorteApi.Entities;
-using ICorteApi.Dtos;
-using ICorteApi.Extensions;
-using ICorteApi.Enums;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Presentation.Extensions;
+using ICorteApi.Domain.Enums;
 
-namespace ICorteApi.Routes;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AuthEndpoint
 {
@@ -39,10 +34,10 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.Unauthorized();
-        
+
         return Results.Ok("Login bem-sucedido");
     }
-    
+
     public static async Task<IResult> CreateUser(
         UserDtoRegisterRequest dto,
         AppDbContext context,
@@ -64,12 +59,12 @@ public static class AuthEndpoint
 
             if (!userOperation.Succeeded)
                 throw new Exception();
-            
+
             var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
 
             if (!roleOperation.Succeeded)
                 throw new Exception();
-            
+
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -82,14 +77,14 @@ public static class AuthEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> GetUser(ClaimsPrincipal user, UserManager<User> userManager)
     {
         var currentUser = await userManager.GetUserAsync(user);
 
         if (currentUser is null)
             return Results.Unauthorized();
-        
+
         var roles = await userManager.GetRolesAsync(currentUser);
         var userDtoResponse = currentUser.CreateDto<UserDtoResponse>();
 
@@ -98,7 +93,7 @@ public static class AuthEndpoint
         //     .Where(role => role.HasValue)
         //     .Select(role => role.Value)
         //     .ToArray();
-        
+
         return Results.Ok(userDtoResponse);
         // return Results.Ok(currentUser);
     }
@@ -121,7 +116,7 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.BadRequest(new { Message = "Erro ao atualizar perfil." });
-        
+
         return Results.Ok(new { Message = "Perfil atualizado com sucesso." });
     }
 
@@ -132,9 +127,9 @@ public static class AuthEndpoint
             // 'empty' must be passed and also must be empty, like => {}
             // It was written on documentation. I don't know why.
             // It's unnecessary, perhaps.
-            if (empty is not {})
+            if (empty is not { })
                 return Results.Unauthorized();
-                
+
             await signInManager.SignOutAsync();
             return Results.Ok();
         }
@@ -143,7 +138,7 @@ public static class AuthEndpoint
             return TypedResults.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> ForgotPassword(UserManager<User> userManager, UserDtoForgotPasswordRequest request)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
@@ -175,10 +170,10 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.BadRequest(new { Message = "Token inválido ou a senha não atende aos requisitos de segurança." });
-        
+
         return Results.Ok(new { Message = "Senha redefinida com sucesso." });
     }
-    
+
     public static async Task<IResult> ChangePassword(
         UserManager<User> userManager, ClaimsPrincipal user, UserDtoChangePasswordRequest request)
     {
@@ -195,7 +190,7 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.BadRequest(new { Message = "Erro ao alterar senha." });
-        
+
         return Results.Ok(new { Message = "Senha alterada com sucesso." });
     }
 
@@ -210,10 +205,10 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.BadRequest(new { Message = "Erro ao confirmar email." });
-        
+
         return Results.Ok(new { Message = "Email confirmado com sucesso." });
     }
-    
+
     public static async Task<IResult> DeleteUser(UserManager<User> userManager, HttpContext httpContext)
     {
         var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
