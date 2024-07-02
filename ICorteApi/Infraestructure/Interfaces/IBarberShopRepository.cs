@@ -8,8 +8,8 @@ namespace ICorteApi.Infraestructure.Interfaces;
 public interface IBarberShopRepository
 {
     Task<IResponseModel> CreateAsync(BarberShop barberShop);
-    Task<IResponseDataModel<BarberShop>> GetByIdAsync(Expression<Func<BarberShop, bool>>? filter);
-    Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(Expression<Func<BarberShop, bool>>? filter = null);
+    Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id);
+    Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(int page, int pageSize, Expression<Func<BarberShop, bool>>? filter = null);
     Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto);
     Task<IResponseModel> DeleteAsync(int id);
 }

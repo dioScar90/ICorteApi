@@ -2,7 +2,6 @@ using ICorteApi.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
-using ICorteApi.Routes;
 using ICorteApi.Services;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Services;
@@ -10,16 +9,17 @@ using ICorteApi.Infraestructure.Interfaces;
 using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Presentation.Endpoints;
 
 namespace ICorteApi;
 
 public class Startup(IConfiguration configuration)
 {
-    public IConfiguration Configuration { get; } = configuration;
+    private readonly IConfiguration _configuration = configuration;
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var connectionString = Configuration.GetConnectionString("SqliteConnection");
+        var connectionString = _configuration.GetConnectionString("SqliteConnection");
 
         services.AddDbContext<AppDbContext>(options =>
         {
@@ -89,9 +89,9 @@ public class Startup(IConfiguration configuration)
         //         ValidateAudience = true,
         //         ValidateLifetime = true,
         //         ValidateIssuerSigningKey = true,
-        //         ValidIssuer = Configuration["Jwt:Issuer"],
-        //         ValidAudience = Configuration["Jwt:Audience"],
-        //         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]!))
+        //         ValidIssuer = _configuration["Jwt:Issuer"],
+        //         ValidAudience = _configuration["Jwt:Audience"],
+        //         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!))
         //     };
         // });
 

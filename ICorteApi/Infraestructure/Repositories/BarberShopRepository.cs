@@ -13,50 +13,30 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 {
     private readonly AppDbContext _context = context;
 
-    private async Task<bool> SaveChangesAsync() => await context.SaveChangesAsync() > 0;
+    private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     
     public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
     {
-        try
-        {
-            await _context.BarberShops.AddAsync(barberShop);
-            return new ResponseModel { Success = await SaveChangesAsync() };
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        _context.BarberShops.Add(barberShop);
+        return new ResponseModel { Success = await SaveChangesAsync() };
     }
 
-    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(Expression<Func<BarberShop, bool>> filter)
+    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
     {
-        try
+        var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+
+        if (barberShop is null)
+            return new ResponseDataModel<BarberShop> { Success = false, Message = "Barbeiro não encontrado" };
+
+        return new ResponseDataModel<BarberShop>
         {
-            var barberShop = await _context.BarberShops.SingleOrDefaultAsync(filter);
-
-            if (barberShop is null)
-            {
-                return new ResponseDataModel<BarberShop>
-                {
-                    Success = false,
-                    Message = "BarberShop not found"
-                };
-            }
-
-            return new ResponseDataModel<BarberShop>
-            {
-                Success = true,
-                Data = barberShop
-            };
-        }
-        catch (Exception)
-        {
-
-            throw;
-        }
+            Success = true,
+            Data = barberShop,
+        };
     }
 
-    public async Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(Expression<Func<BarberShop, bool>>? filter)
+    public async Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(
+        int page, int pageSize, Expression<Func<BarberShop, bool>>? filter)
     {
         return new ResponseDataModel<IEnumerable<BarberShop>>
         {
@@ -69,7 +49,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+            var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
             if (barberShop is null)
                 return new ResponseModel { Success = false };
@@ -93,6 +73,8 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
                 barberShop.Address.State = dto.Address.State;
                 barberShop.Address.PostalCode = dto.Address.PostalCode;
                 barberShop.Address.Country = dto.Address.Country;
+
+                barberShop.Address.UpdatedAt = DateTime.UtcNow;
             }
 
             barberShop.UpdatedAt = DateTime.UtcNow;
@@ -107,12 +89,19 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
     public async Task<IResponseModel> DeleteAsync(int id)
     {
-        var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+        try
+        {
+            var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
-        if (barberShop is null)
-            return new ResponseModel { Success = false, Message = "Barbearia não encontrada" };
-        
-        context.BarberShops.Remove(barberShop);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+            if (barberShop is null)
+                return new ResponseModel { Success = false, Message = "Barbearia não encontrada" };
+            
+            _context.BarberShops.Remove(barberShop);
+            return new ResponseModel { Success = await SaveChangesAsync() };
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 }

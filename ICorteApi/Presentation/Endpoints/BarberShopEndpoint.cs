@@ -4,6 +4,7 @@ using ICorteApi.Domain.Entities;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,7 +15,7 @@ public static class BarberShopEndpoint
         const string INDEX = "";
         var group = app.MapGroup("barberShop");
 
-        // group.MapGet(INDEX, GetAllBarbers);
+        group.MapGet(INDEX, GetAllBarbers);
         group.MapGet("{id}", GetBarberShop);
         group.MapPost(INDEX, CreateBarberShop);
         group.MapPut("{id}", UpdateBarberShop);
@@ -23,40 +24,76 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> GetBarberShop(int id, IBarberShopService barberShopService)
     {
-        var barberShop = await barberShopService.GetByIdAsync(id);
+        try
+        {
+            var response = await barberShopService.GetByIdAsync(id);
 
-        if (!barberShop.Success)
-            return Results.NotFound();
+            if (!response.Success)
+                return Results.NotFound();
 
-        var barberShopDto = barberShop.Data.CreateDto<BarberShopDtoResponse>();
-        return Results.Ok(barberShopDto);
+            var barberShopDto = response.Data.CreateDto<BarberShopDtoResponse>();
+            return Results.Ok(barberShopDto);
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
     }
 
-    // public static async Task<IResult> GetAllBarbers(int page, int perPage, AppDbContext context)
-    // {
-    //     var barbers = new BarberRepository(context)
-    //         .GetAll(page, perPage);
+    private static (int, int) SanitizeIndexAndPageSize(int page, int? pageSize)
+    {
+        const int DEFAULT_PAGE_SIZE = 25;
 
-    //     if (!barbers.Any())
-    //         Results.NotFound();
+        if (page < 1)
+            page = 1;
 
-    //     var dtos = await barbers
-    //         .Select(b => BarberToDtoResponse(b))
-    //         .ToListAsync();
+        pageSize ??= DEFAULT_PAGE_SIZE;
 
-    //     return Results.Ok(dtos);
-    // }
+        if (pageSize < 1)
+            pageSize = DEFAULT_PAGE_SIZE;
 
-    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, AppDbContext context)
+        return (page, (int)pageSize);
+    }
+
+    public static async Task<IResult> GetAllBarbers(
+        [FromQuery(Name = "page")] int pageAux,
+        [FromQuery(Name = "pageSize")] int pageSizeAux,
+        IBarberShopService barberShopService)
+    {
+        try
+        {
+            var (page, pageSize) = SanitizeIndexAndPageSize(pageAux, pageSizeAux);
+            var response = await barberShopService.GetAllAsync(page, pageSize);
+
+            if (!response.Success)
+                return Results.BadRequest(response.Message);
+
+            if (!response.Data.Any())
+                return Results.NotFound();
+            
+            var dtos = response.Data
+                .Select(b => b.CreateDto<BarberShopDtoResponse>())
+                .ToList();
+
+            return Results.Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    }
+
+    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, IBarberShopService barberShopService)
     {
         try
         {
             var newBarberShop = dto.CreateEntity<BarberShop>();
+            var response = await barberShopService.CreateAsync(newBarberShop!);
 
-            await context.BarberShops.AddAsync(newBarberShop!);
-            await context.SaveChangesAsync();
+            if (!response.Success)
+                Results.BadRequest(response.Message);
 
-            return Results.Created($"/barber/{newBarberShop.Id}", new { Message = "Barbearia criada com sucesso" });
+            return Results.Created($"/barber/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
         }
         catch (Exception ex)
         {
@@ -68,7 +105,8 @@ public static class BarberShopEndpoint
     {
         try
         {
-            var oie = await barberShopService.UpdateAsync(id, dto);
+            // var barberShop = dto.CreateEntity<BarberShop>();
+            var resposne = await barberShopService.UpdateAsync(id, dto);
             // var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
             // if (barberShop is null)

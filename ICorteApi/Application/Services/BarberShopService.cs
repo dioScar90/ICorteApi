@@ -41,7 +41,7 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
     {
         try
         {
-            var result = await _repository.GetAllAsync();
+            var result = await _repository.GetAllAsync(1, 25);
 
             if (!result.Success)
                 return new ResponseDataModel<IEnumerable<BarberShop>> { Success = false };
@@ -58,7 +58,7 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
     {
         try
         {
-            var result = await _repository.GetByIdAsync(x => x.Id == id);
+            var result = await _repository.GetByIdAsync(id);
 
             if (!result.Success)
                 return new ResponseDataModel<BarberShop> { Success = false };
