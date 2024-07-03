@@ -9,7 +9,7 @@ public record PersonDtoRequest(
 ) : IDtoRequest;
 
 public record PersonDtoResponse(
-    int Id,
+    int UserId,
     string FirstName,
     string LastName,
     DateTime? LastVisitDate,

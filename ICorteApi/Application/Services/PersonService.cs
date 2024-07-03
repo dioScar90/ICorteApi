@@ -61,7 +61,7 @@ public class PersonService(IPersonRepository personRepository) : IPersonService
             var result = await _repository.GetByIdAsync(id);
 
             if (!result.Success)
-                return new ResponseDataModel<Person> { Success = false };
+                return new ResponseDataModel<Person> { Success = false, Message = "Não há ninguém com esse nome aqui" };
                 
             return new ResponseDataModel<Person> { Success = true, Data = result.Data };
         }

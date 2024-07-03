@@ -23,7 +23,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
     public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
     {
-        var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+        var barberShop = await _context.BarberShops.Include(b => b.Address).SingleOrDefaultAsync(b => b.Id == id);
 
         if (barberShop is null)
             return new ResponseDataModel<BarberShop> { Success = false, Message = "Barbeiro não encontrado" };
@@ -55,12 +55,11 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
                 return new ResponseModel { Success = false };
             
             barberShop.Name = dto.Name;
-            barberShop.Description = dto.Description;
-            barberShop.PhoneNumber = dto.PhoneNumber;
+            barberShop.Description = dto.Description ?? default;
             barberShop.ComercialNumber = dto.ComercialNumber;
             barberShop.ComercialEmail = dto.ComercialEmail;
-            barberShop.OpeningHours = dto.OpeningHours;
-            barberShop.ClosingHours = dto.ClosingHours;
+            barberShop.OpeningHours = TimeSpan.TryParse(dto.OpeningHours, out TimeSpan opening) ? opening : default(TimeSpan);
+            barberShop.ClosingHours = TimeSpan.TryParse(dto.ClosingHours, out TimeSpan closing) ? closing : default(TimeSpan);
             barberShop.DaysOpen = dto.DaysOpen;
             
             if (dto.Address is not null)

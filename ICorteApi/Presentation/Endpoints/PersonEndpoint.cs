@@ -1,22 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
+﻿// using Microsoft.AspNetCore.Identity;
+// using System.Security.Claims;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
+using ICorteApi.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class PersonEndpoint
 {
+    private const string INDEX = "";
+    private const string ENDPOINT_PREFIX = "person";
+    private const string ENDPOINT_NAME = "Person";
+
     public static void MapPersonEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("person").RequireAuthorization();
+        var group = app.MapGroup(ENDPOINT_PREFIX)
+            // .WithGroupName(ENDPOINT_NAME)
+            .RequireAuthorization();
 
-        // group.MapGet("", GetAll);
-        group.MapGet("", GetById);
-        // group.MapPost("", CreatePerson);
+        // group.MapGet(INDEX, GetAll);
+        group.MapGet("me", GetMe);
+        group.MapPost(INDEX, CreatePerson);
         // group.MapPut("{id}", UpdatePerson);
         // group.MapDelete("{id}", DeletePerson);
     }
@@ -31,60 +37,63 @@ public static class PersonEndpoint
     //     return Results.Ok("Login bem-sucedido");
     // }
 
-    // public static async Task<IResult> CreateUser(
-    //     UserDtoRegisterRequest dto,
-    //     AppDbContext context,
-    //     UserManager<User> userManager,
-    //     SignInManager<User> signInManager)
-    // {
-    //     // Maybe it isn't necessary. Do a future confirmation, because this is
-    //     // the only reason why context is here.
-    //     using var transaction = await context.Database.BeginTransactionAsync();
+    public static async Task<IResult> CreatePerson(
+        PersonDtoRequest dto,
+        // ClaimsPrincipal user,
+        // UserManager<User> userManager,
+        [FromServices] IUserService userService,
+        [FromServices] IPersonService personService)
+    {
+        // if (!int.TryParse(userManager.GetUserId(user), out int userId))
+        //     return Results.NotFound(new { Message = "Paranoid" });
 
-    //     try
-    //     {
-    //         var newUser = dto.CreateEntity<User>()!;
+        // var userToUpdate = await userManager.FindByIdAsync(userId.ToString());
 
-    //         newUser.UserName = newUser.Email;
-    //         newUser.EmailConfirmed = true;
+        // if (userToUpdate is null)
+        //     return Results.NotFound(new { Message = "Sua mãe é minha" });
 
-    //         var userOperation = await userManager.CreateAsync(newUser, dto.Password);
+        var userResponse = await userService.GetAsync();
 
-    //         if (!userOperation.Succeeded)
-    //             throw new Exception();
+        if (!userResponse.Success)
+            return Results.BadRequest(userResponse);
 
-    //         var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
+        var newPerson = dto.CreateEntity<Person>();
+        newPerson!.UserId = userResponse.Data.Id;
 
-    //         if (!roleOperation.Succeeded)
-    //             throw new Exception();
+        var personResponse = await personService.CreateAsync(newPerson);
+    
+        if (!personResponse.Success)
+            return Results.BadRequest(personResponse);
+        
+        return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Usuário criado com sucesso" });
+    }
 
-    //         await context.SaveChangesAsync();
-    //         await transaction.CommitAsync();
-
-    //         await signInManager.SignInAsync(newUser, isPersistent: false);
-    //         return Results.Created($"/person/{newUser.Person!.Id}", new { Message = "Usuário criado com sucesso" });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         await transaction.RollbackAsync();
-    //         return Results.BadRequest(ex.Message);
-    //     }
-    // }
-
-    public static async Task<IResult> GetById(ClaimsPrincipal user, UserManager<User> userManager, AppDbContext context)
+    public static async Task<IResult> GetMe(
+        // ClaimsPrincipal user,
+        // UserManager<User> userManager,
+        [FromServices] IUserService userService,
+        [FromServices] IPersonService personService)
     {
         // Obtendo o ID do usuário autenticado
         // var userId = userManager.GetUserId(user);
+        var userResponse = await userService.GetAsync();
 
-        if (!int.TryParse(userManager.GetUserId(user), out int userId))
-            return Results.Unauthorized();
+        if (!userResponse.Success)
+            return Results.BadRequest(userResponse);
 
-        var person = await context.People.SingleOrDefaultAsync(p => p.UserId == userId);
+        // if (!int.TryParse(userManager.GetUserId(user), out int userId))
+        //     return Results.Unauthorized();
 
-        if (person is null)
-            return Results.NotFound(new { Message = "Person information not found for the current user." });
+        Console.WriteLine("\n\n\n");
+        Console.WriteLine(userResponse.Data.Id);
+        Console.WriteLine("\n\n\n");
 
-        var personDto = person.CreateDto<PersonDtoResponse>();
+        var personResponse = await personService.GetByIdAsync(userResponse.Data.Id);
+
+        if (!personResponse.Success)
+            return Results.NotFound(personResponse);
+        
+        var personDto = personResponse.Data.CreateDto<PersonDtoResponse>();
         return Results.Ok(personDto);
     }
 

@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ICorteApi.Entities;
-using ICorteApi.Enums;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
-namespace ICorteApi.Services;
+namespace ICorteApi.Application.Services;
 
 public static class SeedDataService
 {

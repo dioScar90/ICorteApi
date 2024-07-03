@@ -74,6 +74,9 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
         if (underlyingType == typeof(DateTimeOffset))
             return true;
 
+        if (underlyingType == typeof(TimeSpan))
+            return true;
+
         if (underlyingType == typeof(Guid))
             return true;
 

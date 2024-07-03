@@ -15,9 +15,9 @@ public class Person : BaseCrudEntity
     public BarberShop BarberShop { get; set; }
     
     public BarberShop OwnedBarberShop { get; set; }
-    public ICollection<Schedule> Schedules { get; set; } = [];
-    public ICollection<Appointment> Appointments { get; set; } = [];
-    public ICollection<Report> Reports { get; set; } = [];
-    public ICollection<Message> Messages { get; set; } = [];
-    public ICollection<PersonConversation> PersonConversations { get; set; } = [];
+    // public ICollection<Schedule> Schedules { get; set; } = [];
+    // public ICollection<Appointment> Appointments { get; set; } = [];
+    // public ICollection<Report> Reports { get; set; } = [];
+    // public ICollection<Message> Messages { get; set; } = [];
+    // public ICollection<PersonConversation> PersonConversations { get; set; } = [];
 }

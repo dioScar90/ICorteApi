@@ -8,7 +8,7 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class DtoCreator
 {
-    public static T? CreateDto<T>(this IBaseEntity entity) where T : class, IDtoResponse
+    public static T? CreateDto<T>(this IBaseTableEntity entity) where T : class, IDtoResponse
     {
         return entity switch
         {
@@ -42,7 +42,7 @@ public static class DtoCreator
 
     private static PersonDtoResponse MapPersonToDto(Person person) =>
         new(
-            person.Id,
+            person.UserId,
             person.FirstName,
             person.LastName,
             person.LastVisitDate,
@@ -52,9 +52,9 @@ public static class DtoCreator
 
     private static BarberShopDtoResponse MapBarberShopToDto(BarberShop barberShop) =>
         new(
+            barberShop.Id,
             barberShop.Name,
             barberShop.Description,
-            barberShop.PhoneNumber,
             barberShop.ComercialNumber,
             barberShop.ComercialEmail,
             barberShop.OpeningHours,

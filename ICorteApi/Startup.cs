@@ -2,7 +2,6 @@ using ICorteApi.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
-using ICorteApi.Services;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Services;
 using ICorteApi.Infraestructure.Interfaces;
@@ -33,10 +32,16 @@ public class Startup(IConfiguration configuration)
             );
             // options.UseInMemoryDatabase("AppDb");
         });
+
+        services.AddHttpContextAccessor();
         
         // services.AddScoped<AppDbContext>();
         services.AddScoped<IBarberShopService, BarberShopService>();
         services.AddScoped<IBarberShopRepository, BarberShopRepository>();
+        services.AddScoped<IPersonService, PersonService>();
+        services.AddScoped<IPersonRepository, PersonRepository>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserRepository, UserRepository>();
         
         services.AddAuthorization();
         

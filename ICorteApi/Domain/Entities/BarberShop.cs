@@ -6,7 +6,6 @@ public class BarberShop : BaseEntity
 {
     public string Name { get; set; }
     public string? Description { get; set; }
-    public string PhoneNumber { get; set; }
     public string ComercialNumber { get; set; }
     public string ComercialEmail { get; set; }
     public TimeSpan OpeningHours { get; set; }
@@ -19,7 +18,7 @@ public class BarberShop : BaseEntity
 
     public Address Address { get; set; }
     public ICollection<Person> Barbers { get; set; } = [];
-    public ICollection<Schedule> Schedules { get; set; } = [];
-    public ICollection<Service> Services { get; set; } = [];
-    public ICollection<Report> Reports { get; set; } = [];
+    // public ICollection<Schedule> Schedules { get; set; } = [];
+    // public ICollection<Service> Services { get; set; } = [];
+    // public ICollection<Report> Reports { get; set; } = [];
 }

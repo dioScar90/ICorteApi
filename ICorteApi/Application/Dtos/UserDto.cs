@@ -17,14 +17,14 @@ public record UserDtoResponse(
     string Email,
     // UserRole[] Roles,
     string[] Roles,
-    PersonDtoResponse? PersonDto = null
+    PersonDtoResponse? PersonDto
 ) : IDtoResponse;
 
 public record UserDtoRegisterRequest(
     string Email,
     string Password,
     string PhoneNumber,
-    PersonDtoRequest Person
+    PersonDtoRequest PersonDto
 ) : IDtoRequest;
 
 public record UserDtoLoginRequest(

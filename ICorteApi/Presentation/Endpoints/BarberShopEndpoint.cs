@@ -10,10 +10,15 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberShopEndpoint
 {
+    private const string INDEX = "";
+    private const string ENDPOINT_PREFIX = "barberShop";
+    private const string ENDPOINT_NAME = "Barber Shop";
+    
     public static void MapBarberShopEndpoint(this IEndpointRouteBuilder app)
     {
-        const string INDEX = "";
-        var group = app.MapGroup("barberShop");
+        var group = app.MapGroup(ENDPOINT_PREFIX)
+            // .WithGroupName(ENDPOINT_NAME)
+            .RequireAuthorization();
 
         group.MapGet(INDEX, GetAllBarbers);
         group.MapGet("{id}", GetBarberShop);
@@ -83,17 +88,24 @@ public static class BarberShopEndpoint
         }
     }
 
-    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, IBarberShopService barberShopService)
+    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, IBarberShopService barberShopService, IUserService userService)
     {
         try
         {
+            var ownerId = await userService.GetUserIdAsync();
+
+            if (ownerId is null)
+                return Results.NotFound();
+            
             var newBarberShop = dto.CreateEntity<BarberShop>();
+            newBarberShop.OwnerId = (int)ownerId;
+
             var response = await barberShopService.CreateAsync(newBarberShop!);
 
             if (!response.Success)
                 Results.BadRequest(response.Message);
-
-            return Results.Created($"/barber/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
+                
+            return Results.Created($"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
         }
         catch (Exception ex)
         {

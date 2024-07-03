@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using ICorteApi.Application.Interfaces;
 
 namespace ICorteApi.Application.Dtos;
@@ -5,13 +6,12 @@ namespace ICorteApi.Application.Dtos;
 public record BarberShopDtoRequest(
     string Name,
     string? Description,
-    string PhoneNumber,
     string ComercialNumber,
     string ComercialEmail,
-    TimeSpan OpeningHours,
-    TimeSpan ClosingHours,
+    string OpeningHours, // TimeSpan cannot be directly conversion by JSON until .NET v8
+    string ClosingHours, // TimeSpan cannot be directly conversion by JSON until .NET v8
     string DaysOpen,
-    double Rating,
+    double? Rating,
     AddressDtoRequest? Address,
     PersonDtoRequest[]? Barbers
 // Schedule[]? Schedules,
@@ -19,15 +19,15 @@ public record BarberShopDtoRequest(
 ) : IDtoRequest;
 
 public record BarberShopDtoResponse(
+    int Id,
     string Name,
     string? Description,
-    string PhoneNumber,
     string ComercialNumber,
     string ComercialEmail,
     TimeSpan OpeningHours,
     TimeSpan ClosingHours,
     string DaysOpen,
-    double Rating,
+    double? Rating,
 
     AddressDtoResponse? Address,
     PersonDtoResponse[]? Barbers

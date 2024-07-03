@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -11,8 +8,8 @@ public static class ConfigureEndpoints
     {
         app.UseEndpoints(endpoints =>
         {
-            // endpoints.MapIdentityApi<User>();
-            endpoints.MapAuthEndpoint();
+            endpoints.MapIdentityApi<User>();
+            // endpoints.MapAuthEndpoint();
             endpoints.MapPersonEndpoint();
             endpoints.MapBarberShopEndpoint();
             endpoints.MapAddressEndpoint();

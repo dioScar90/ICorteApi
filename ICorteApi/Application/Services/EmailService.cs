@@ -1,4 +1,4 @@
-namespace ICorteApi.Services;
+namespace ICorteApi.Application.Services;
 
 public class EmailService
 {

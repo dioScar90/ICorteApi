@@ -8,10 +8,15 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {
+    private const string INDEX = "";
+    private const string ENDPOINT_PREFIX = "address";
+    private const string ENDPOINT_NAME = "Address";
+
     public static void MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
-        const string INDEX = "";
-        var group = app.MapGroup("address");
+        var group = app.MapGroup(ENDPOINT_PREFIX)
+            // .WithGroupName(ENDPOINT_NAME)
+            .RequireAuthorization();
 
         // group.MapGet(INDEX, GetAddresses);
         group.MapGet("{id}", GetAddress);
@@ -40,7 +45,7 @@ public static class AddressEndpoint
             await context.Addresses.AddAsync(newAddress);
             await context.SaveChangesAsync();
 
-            return Results.Created($"/address/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
+            return Results.Created($"/{ENDPOINT_PREFIX}/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
         }
         catch (Exception ex)
         {
