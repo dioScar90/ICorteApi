@@ -105,39 +105,12 @@ public static class BarberShopEndpoint
     {
         try
         {
-            // var barberShop = dto.CreateEntity<BarberShop>();
-            var resposne = await barberShopService.UpdateAsync(id, dto);
-            // var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+            var response = await barberShopService.UpdateAsync(id, dto);
 
-            // if (barberShop is null)
-            //     return Results.NotFound();
-
-            // barberShop.Name = dto.Name;
-            // barberShop.Description = dto.Description;
-            // barberShop.PhoneNumber = dto.PhoneNumber;
-            // barberShop.ComercialNumber = dto.ComercialNumber;
-            // barberShop.ComercialEmail = dto.ComercialEmail;
-            // barberShop.OpeningHours = dto.OpeningHours;
-            // barberShop.ClosingHours = dto.ClosingHours;
-            // barberShop.DaysOpen = dto.DaysOpen;
-
-            // if (dto.Address is not null)
-            // {
-            //     barberShop.Address.Street = dto.Address.Street;
-            //     barberShop.Address.Number = dto.Address.Number;
-            //     barberShop.Address.Complement = dto.Address.Complement;
-            //     barberShop.Address.Neighborhood = dto.Address.Neighborhood;
-            //     barberShop.Address.City = dto.Address.City;
-            //     barberShop.Address.State = dto.Address.State;
-            //     barberShop.Address.PostalCode = dto.Address.PostalCode;
-            //     barberShop.Address.Country = dto.Address.Country;
-            // }
-
-            // barberShop.UpdatedAt = DateTime.UtcNow;
-
-            // await context.SaveChangesAsync();
-            // return Results.Ok(new { Message = "Barbearia atualizada com sucesso" });
-            return Results.Ok(oie);
+            if (!response.Success)
+                return Results.NotFound(response);
+            
+            return Results.NoContent();
         }
         catch (Exception ex)
         {

@@ -1,7 +1,7 @@
-using ICorteApi.Entities;
+using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ICorteApi.Maps;
+namespace ICorteApi.Infraestructure.Maps;
 
 public class MessageMap : BaseMap<Message>
 {

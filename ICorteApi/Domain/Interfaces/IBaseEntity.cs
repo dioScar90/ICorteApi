@@ -1,8 +1,9 @@
 namespace ICorteApi.Domain.Interfaces;
 
-public interface IBaseEntity {
+public interface IBaseEntity : IBaseCrudEntity
+{
     int Id { get; set; }
-    DateTime CreatedAt { get; set; }
-    DateTime? UpdatedAt { get; set; }
-    bool? IsDeleted { get; set; }
+    // DateTime CreatedAt { get; set; }
+    // DateTime? UpdatedAt { get; set; }
+    // bool? IsDeleted { get; set; }
 }

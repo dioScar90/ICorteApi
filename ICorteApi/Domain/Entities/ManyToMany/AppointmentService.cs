@@ -1,3 +1,5 @@
+using ICorteApi.Domain.Interfaces;
+
 namespace ICorteApi.Domain.Entities;
 
 public class AppointmentService : IBaseTableEntity

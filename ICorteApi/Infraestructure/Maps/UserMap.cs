@@ -1,7 +1,7 @@
-using ICorteApi.Entities;
+using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ICorteApi.Maps;
+namespace ICorteApi.Infraestructure.Maps;
 
 public class UserMap : BaseMap<User>
 {
@@ -9,8 +9,8 @@ public class UserMap : BaseMap<User>
     {
         base.Configure(builder);
 
-        builder.HasOne(u => u.Person)
-            .WithOne(p => p.User)
-            .HasForeignKey<Person>(p => p.UserId);
+        // builder.HasOne(u => u.Person)
+        //     .WithOne(p => p.User)
+        //     .HasForeignKey<Person>(p => p.UserId);
     }
 }

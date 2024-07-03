@@ -7,15 +7,15 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public class BarberShopService(IBarberShopRepository barberShopRepository) : IBarberShopService
+public class PersonService(IPersonRepository personRepository) : IPersonService
 {
-    private readonly IBarberShopRepository _repository = barberShopRepository;
+    private readonly IPersonRepository _repository = personRepository;
 
-    public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
+    public async Task<IResponseModel> CreateAsync(Person person)
     {
         try
         {
-            var result = await _repository.CreateAsync(barberShop);
+            var result = await _repository.CreateAsync(person);
             return new ResponseModel { Success = result.Success};
         }
         catch (Exception)
@@ -37,16 +37,16 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
         }
     }
 
-    public async Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(int page, int pageSize)
+    public async Task<IResponseDataModel<IEnumerable<Person>>> GetAllAsync(int page, int pageSize)
     {
         try
         {
             var result = await _repository.GetAllAsync(1, 25);
 
             if (!result.Success)
-                return new ResponseDataModel<IEnumerable<BarberShop>> { Success = false };
+                return new ResponseDataModel<IEnumerable<Person>> { Success = false };
                 
-            return new ResponseDataModel<IEnumerable<BarberShop>> { Success = true, Data = result.Data };
+            return new ResponseDataModel<IEnumerable<Person>> { Success = true, Data = result.Data };
         }
         catch (Exception)
         {
@@ -54,16 +54,16 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
         }
     }
     
-    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
+    public async Task<IResponseDataModel<Person>> GetByIdAsync(int id)
     {
         try
         {
             var result = await _repository.GetByIdAsync(id);
 
             if (!result.Success)
-                return new ResponseDataModel<BarberShop> { Success = false };
+                return new ResponseDataModel<Person> { Success = false };
                 
-            return new ResponseDataModel<BarberShop> { Success = true, Data = result.Data };
+            return new ResponseDataModel<Person> { Success = true, Data = result.Data };
         }
         catch (Exception)
         {
@@ -71,7 +71,7 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
         }
     }
 
-    public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
+    public async Task<IResponseModel> UpdateAsync(int id, PersonDtoRequest dto)
     {
         try
         {

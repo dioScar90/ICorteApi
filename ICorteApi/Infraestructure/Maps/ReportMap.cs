@@ -1,7 +1,7 @@
-using ICorteApi.Entities;
+using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ICorteApi.Maps;
+namespace ICorteApi.Infraestructure.Maps;
 
 public class ReportMap : BaseMap<Report>
 {
@@ -11,7 +11,7 @@ public class ReportMap : BaseMap<Report>
 
         builder.HasOne(r => r.Client)
             .WithMany(c => c.Reports)
-            .HasForeignKey(r => r.Client.Id);
+            .HasForeignKey(r => r.Client.UserId);
 
         builder.HasOne(p => p.BarberShop)
             .WithMany(b => b.Reports)

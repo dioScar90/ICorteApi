@@ -1,7 +1,7 @@
-using ICorteApi.Entities;
+using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ICorteApi.Maps;
+namespace ICorteApi.Infraestructure.Maps;
 
 public class ScheduleMap : BaseMap<Schedule>
 {
@@ -12,7 +12,7 @@ public class ScheduleMap : BaseMap<Schedule>
         builder.HasOne(s => s.BarberShop)
             .WithMany(b => b.Schedules)
             .HasForeignKey(s => s.BarberShopId);
-        
+
         builder.HasOne(s => s.Barber)
             .WithMany(b => b.Schedules)
             .HasForeignKey(s => s.BarberId);

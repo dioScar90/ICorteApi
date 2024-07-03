@@ -1,10 +1,10 @@
 
 using System.Text.RegularExpressions;
-using ICorteApi.Entities;
+using ICorteApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ICorteApi.Maps;
+namespace ICorteApi.Infraestructure.Maps;
 
 public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
 {
@@ -26,22 +26,22 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
                 builder.Property(prop.Name).HasColumnName(column_name);
             }
         }
-        
-        if (TEntityImplementsIBaseEntity())
+
+        if (TEntityImplementsIBaseCrudEntity())
         {
             // var idProperty = builder.Property(nameof(IBaseEntity.Id));
             // var createdAtProperty = builder.Property(nameof(IBaseEntity.CreatedAt));
             // var isDeletedProperty = builder.Property(nameof(IBaseEntity.IsDeleted));
-            
+
             // idProperty.ValueGeneratedOnAdd();
             // createdAtProperty.HasDefaultValue(DateTime.UtcNow);
             // isDeletedProperty.HasDefaultValue(true);
 
-            builder.HasQueryFilter(x => ((IBaseEntity)x).IsDeleted != true); // same as 'x => !x.IsDeleted'
+            builder.HasQueryFilter(x => ((IBaseCrudEntity)x).IsDeleted != true); // same as 'x => !x.IsDeleted'
         }
     }
 
-    private static bool TEntityImplementsIBaseEntity() => typeof(IBaseEntity).IsAssignableFrom(typeof(TEntity));
+    private static bool TEntityImplementsIBaseCrudEntity() => typeof(IBaseCrudEntity).IsAssignableFrom(typeof(TEntity));
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();
@@ -58,7 +58,7 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
         if (underlyingType.IsEnum)
             return true;
-            
+
         if (underlyingType == typeof(string))
             return true;
 

@@ -2,7 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Person : BaseEntity
+public class Person : BaseCrudEntity
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
