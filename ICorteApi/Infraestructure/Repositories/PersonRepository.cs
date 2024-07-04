@@ -23,7 +23,7 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
 
     public async Task<IResponseDataModel<Person>> GetByIdAsync(int userId)
     {
-        var person = await _context.People.SingleOrDefaultAsync(p => p.UserId == userId);
+        var person = await _context.People.Include(p => p.OwnedBarberShop).SingleOrDefaultAsync(p => p.UserId == userId);
 
         if (person is null)
             return new ResponseDataModel<Person> { Success = false, Message = "Usuário não encontrado" };

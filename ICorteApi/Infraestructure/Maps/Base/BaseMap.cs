@@ -27,7 +27,7 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             }
         }
 
-        if (TEntityImplementsIBaseCrudEntity())
+        if (TEntityImplementsIBaseSoftCrudEntity())
         {
             // var idProperty = builder.Property(nameof(IBaseEntity.Id));
             // var createdAtProperty = builder.Property(nameof(IBaseEntity.CreatedAt));
@@ -37,49 +37,31 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             // createdAtProperty.HasDefaultValue(DateTime.UtcNow);
             // isDeletedProperty.HasDefaultValue(true);
 
-            builder.HasQueryFilter(x => ((IBaseCrudEntity)x).IsDeleted != true); // same as 'x => !x.IsDeleted'
+            builder.HasQueryFilter(x => !((IBaseSoftCrudEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
         }
     }
 
-    private static bool TEntityImplementsIBaseCrudEntity() => typeof(IBaseCrudEntity).IsAssignableFrom(typeof(TEntity));
+    private static bool TEntityImplementsIBaseSoftCrudEntity() => typeof(IBaseSoftCrudEntity).IsAssignableFrom(typeof(TEntity));
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();
-
     private static string CamelCaseToSnakeCase(string prop) => MyRegex().Replace(prop, "$1_$2").ToLower();
 
     private static bool IsPrimitiveType(Type type)
     {
         // This line is necessary for allow nullable types.
         Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-        if (underlyingType.IsPrimitive)
-            return true;
-
-        if (underlyingType.IsEnum)
-            return true;
-
-        if (underlyingType == typeof(string))
-            return true;
-
-        if (underlyingType == typeof(float))
-            return true;
-
-        if (underlyingType == typeof(decimal))
-            return true;
-
-        if (underlyingType == typeof(DateTime))
-            return true;
-
-        if (underlyingType == typeof(DateTimeOffset))
-            return true;
-
-        if (underlyingType == typeof(TimeSpan))
-            return true;
-
-        if (underlyingType == typeof(Guid))
-            return true;
-
-        return false;
+        
+        return underlyingType.IsPrimitive
+            || underlyingType.IsEnum
+            || underlyingType == typeof(string)
+            || underlyingType == typeof(float)
+            || underlyingType == typeof(decimal)
+            || underlyingType == typeof(DateTime)
+            || underlyingType == typeof(DateOnly)
+            || underlyingType == typeof(TimeOnly)
+            || underlyingType == typeof(DateTimeOffset)
+            || underlyingType == typeof(TimeSpan)
+            || underlyingType == typeof(Guid);
     }
 }

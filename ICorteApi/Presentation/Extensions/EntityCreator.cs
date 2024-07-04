@@ -12,13 +12,10 @@ public static class EntityCreator
         return dtoRequest switch
         {
             UserDtoRegisterRequest registerDto => MapDtoToUser(registerDto) as TEntity,
-
             PersonDtoRequest personDto => MapDtoToPerson(personDto) as TEntity,
-
             BarberShopDtoRequest barberShopDto => MapDtoToBarberShop(barberShopDto) as TEntity,
-
+            OperatingScheduleDtoRequest operatingScheduleDto => MapDtoToOperatingSchedule(operatingScheduleDto) as TEntity,
             AddressDtoRequest addressDto => MapDtoToAddress(addressDto) as TEntity,
-
             _ => null
         };
     }
@@ -40,8 +37,28 @@ public static class EntityCreator
             // Addresses = personDto.Addresses?.Select(a => a.CreateEntity<Address>()).ToList(),
         };
 
-    private static TimeSpan getTimeSpanValue(string value) =>
+    private static TimeSpan GetTimeSpanValue(string value) =>
         TimeSpan.TryParse(value, out TimeSpan timeSpan) ? timeSpan : default;
+
+    // private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetOperatingScheduleDictionary(
+    //     Dictionary<DayOfWeek, (string, string)> operatingSchedule)
+    // {
+    //     var newDict = new Dictionary<DayOfWeek, (TimeSpan, TimeSpan)>();
+
+    //     foreach (var item in operatingSchedule)
+    //     {
+    //         newDict.Add(item.Key, (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item1)));
+    //     }
+
+    //     return newDict;
+    // }
+
+    private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetOperatingScheduleDictionary(
+        Dictionary<DayOfWeek, (string, string)> operatingSchedule) =>
+        operatingSchedule.ToDictionary(
+            item => item.Key,
+            item => (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item2))
+        );
 
     private static BarberShop MapDtoToBarberShop(BarberShopDtoRequest barberShopDto) =>
         new()
@@ -50,13 +67,25 @@ public static class EntityCreator
             Description = barberShopDto.Description ?? default,
             ComercialNumber = barberShopDto.ComercialNumber,
             ComercialEmail = barberShopDto.ComercialEmail,
-            OpeningHours = getTimeSpanValue(barberShopDto.OpeningHours),
-            ClosingHours = getTimeSpanValue(barberShopDto.ClosingHours),
-            DaysOpen = barberShopDto.DaysOpen,
             Rating = barberShopDto.Rating ?? default,
 
             Address = barberShopDto.Address?.CreateEntity<Address>(),
+            OperatingSchedules = barberShopDto.OperatingSchedules?.Select(oh => oh.CreateEntity<OperatingSchedule>()).ToList(),
             Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
+        };
+
+    private static OperatingSchedule MapDtoToOperatingSchedule(OperatingScheduleDtoRequest operatingScheduleDto) =>
+        new()
+        {
+            DayOfWeek = operatingScheduleDto.DayOfWeek,
+
+            // OpenTime = GetTimeSpanValue(operatingScheduleDto.OpenTime),
+            // CloseTime = GetTimeSpanValue(operatingScheduleDto.CloseTime),
+
+            OpenTime = operatingScheduleDto.OpenTime,
+            CloseTime = operatingScheduleDto.CloseTime,
+
+            IsActive = operatingScheduleDto.IsActive,
         };
 
     private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>

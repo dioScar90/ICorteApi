@@ -6,7 +6,7 @@ public class Person : BaseCrudEntity
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public DateTime? LastVisitDate { get; set; }
+    public DateOnly? LastVisitDate { get; set; }
 
     public int UserId { get; set; }
     public User User { get; set; }

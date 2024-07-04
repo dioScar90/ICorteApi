@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public class BarberMap : BaseMap<BarberShop>
+public class BarberShopMap : BaseMap<BarberShop>
 {
     public override void Configure(EntityTypeBuilder<BarberShop> builder)
     {

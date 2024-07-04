@@ -12,8 +12,9 @@ public record PersonDtoResponse(
     int UserId,
     string FirstName,
     string LastName,
-    DateTime? LastVisitDate,
-    string[] Roles
+    DateOnly? LastVisitDate,
+    string[] Roles,
+    BarberShopDtoResponse? OwnedBarberShop
 // UserRole[] Roles
 // AddressDtoResponse[] Addresses
 ) : IDtoResponse;

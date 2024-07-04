@@ -46,8 +46,8 @@ public static class DtoCreator
             person.FirstName,
             person.LastName,
             person.LastVisitDate,
-            []
-            // person.Addresses?.Select(a => a.CreateDto<AddressDtoResponse>()).ToArray()
+            [],
+            person.OwnedBarberShop?.CreateDto<BarberShopDtoResponse>()
         );
 
     private static BarberShopDtoResponse MapBarberShopToDto(BarberShop barberShop) =>
@@ -57,12 +57,19 @@ public static class DtoCreator
             barberShop.Description,
             barberShop.ComercialNumber,
             barberShop.ComercialEmail,
-            barberShop.OpeningHours,
-            barberShop.ClosingHours,
-            barberShop.DaysOpen,
             barberShop.Rating,
             barberShop.Address?.CreateDto<AddressDtoResponse>(),
+            barberShop.OperatingSchedules?.Select(b => b.CreateDto<OperatingScheduleDtoResponse>()).ToArray(),
             barberShop.Barbers?.Select(b => b.CreateDto<PersonDtoResponse>()).ToArray()
+        );
+
+    private static OperatingScheduleDtoResponse MapOperatingScheduleToDto(OperatingSchedule operatingSchedule) =>
+        new(
+            operatingSchedule.DayOfWeek,
+            operatingSchedule.BarberShopId,
+            operatingSchedule.OpenTime,
+            operatingSchedule.CloseTime,
+            operatingSchedule.IsActive
         );
 
     private static AddressDtoResponse MapAddressToDto(Address address) =>

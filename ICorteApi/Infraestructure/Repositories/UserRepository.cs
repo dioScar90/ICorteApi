@@ -11,18 +11,18 @@ namespace ICorteApi.Infraestructure.Repositories;
 public class UserRepository(AppDbContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager) : IUserRepository
 {
     private readonly AppDbContext _context = context;
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<User> _userManager = userManager;
 
     // private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-    
+
     public async Task<IResponseDataModel<User>> GetAsync()
     {
         var user = _httpContextAccessor.HttpContext?.User;
 
         if (user is null)
             return new ResponseDataModel<User> { Success = false, Message = "Unauthorized" };
-            
+
         if (!int.TryParse(_userManager.GetUserId(user), out int userId))
             return new ResponseDataModel<User> { Success = false, Message = "Unauthorized" };
 
@@ -40,13 +40,13 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
 
         if (user is null)
             return null;
-            
+
         if (!int.TryParse(_userManager.GetUserId(user), out int userId))
             return null;
 
         return userId;
     }
-    
+
     // public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
     // {
     //     try
@@ -55,16 +55,16 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
 
     //         if (barberShop is null)
     //             return new ResponseModel { Success = false };
-            
+
     //         barberShop.Name = dto.Name;
     //         barberShop.Description = dto.Description;
     //         barberShop.PhoneNumber = dto.PhoneNumber;
     //         barberShop.ComercialNumber = dto.ComercialNumber;
     //         barberShop.ComercialEmail = dto.ComercialEmail;
-    //         barberShop.OpeningHours = dto.OpeningHours;
+    //         barberShop.OperatingSchedule = dto.OperatingSchedule;
     //         barberShop.ClosingHours = dto.ClosingHours;
     //         barberShop.DaysOpen = dto.DaysOpen;
-            
+
     //         if (dto.Address is not null)
     //         {
     //             barberShop.Address.Street = dto.Address.Street;
@@ -80,7 +80,7 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
     //         }
 
     //         barberShop.UpdatedAt = DateTime.UtcNow;
-            
+
     //         return new ResponseModel { Success = await SaveChangesAsync() };
     //     }
     //     catch (Exception)

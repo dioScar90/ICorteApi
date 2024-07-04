@@ -14,7 +14,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     private readonly AppDbContext _context = context;
 
     private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-    
+
     public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
     {
         _context.BarberShops.Add(barberShop);
@@ -49,19 +49,33 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     {
         try
         {
-            var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+            var barberShop = dto.OperatingSchedules.Any()
+                ? await _context.BarberShops.Include(bs => bs.OperatingSchedules).SingleOrDefaultAsync(b => b.Id == id)
+                : await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
             if (barberShop is null)
                 return new ResponseModel { Success = false };
-            
+
+            var dateTimeUtcNow = DateTime.UtcNow;
+
             barberShop.Name = dto.Name;
             barberShop.Description = dto.Description ?? default;
             barberShop.ComercialNumber = dto.ComercialNumber;
             barberShop.ComercialEmail = dto.ComercialEmail;
-            barberShop.OpeningHours = TimeSpan.TryParse(dto.OpeningHours, out TimeSpan opening) ? opening : default(TimeSpan);
-            barberShop.ClosingHours = TimeSpan.TryParse(dto.ClosingHours, out TimeSpan closing) ? closing : default(TimeSpan);
-            barberShop.DaysOpen = dto.DaysOpen;
-            
+
+            foreach (var os in dto.OperatingSchedules)
+            {
+                var operatingSchedule = barberShop.OperatingSchedules
+                    .SingleOrDefault(bs => bs.DayOfWeek == os.DayOfWeek);
+
+                if (operatingSchedule is not null)
+                {
+                    operatingSchedule.OpenTime = os.OpenTime;
+                    operatingSchedule.CloseTime = os.CloseTime;
+                    operatingSchedule.UpdatedAt = dateTimeUtcNow;
+                }
+            }
+
             if (dto.Address is not null)
             {
                 barberShop.Address.Street = dto.Address.Street;
@@ -73,10 +87,10 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
                 barberShop.Address.PostalCode = dto.Address.PostalCode;
                 barberShop.Address.Country = dto.Address.Country;
 
-                barberShop.Address.UpdatedAt = DateTime.UtcNow;
+                barberShop.Address.UpdatedAt = dateTimeUtcNow;
             }
-
-            barberShop.UpdatedAt = DateTime.UtcNow;
+            
+            barberShop.UpdatedAt = dateTimeUtcNow;
             
             return new ResponseModel { Success = await SaveChangesAsync() };
         }
@@ -94,7 +108,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
             if (barberShop is null)
                 return new ResponseModel { Success = false, Message = "Barbearia não encontrada" };
-            
+
             _context.BarberShops.Remove(barberShop);
             return new ResponseModel { Success = await SaveChangesAsync() };
         }

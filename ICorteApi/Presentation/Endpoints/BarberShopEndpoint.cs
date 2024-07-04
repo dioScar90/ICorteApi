@@ -11,7 +11,7 @@ namespace ICorteApi.Presentation.Endpoints;
 public static class BarberShopEndpoint
 {
     private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "barberShop";
+    private const string ENDPOINT_PREFIX = "barber-shop";
     private const string ENDPOINT_NAME = "Barber Shop";
     
     public static void MapBarberShopEndpoint(this IEndpointRouteBuilder app)
@@ -20,7 +20,7 @@ public static class BarberShopEndpoint
             // .WithGroupName(ENDPOINT_NAME)
             .RequireAuthorization();
 
-        group.MapGet(INDEX, GetAllBarbers);
+        group.MapGet(INDEX, GetAllBarberShops);
         group.MapGet("{id}", GetBarberShop);
         group.MapPost(INDEX, CreateBarberShop);
         group.MapPut("{id}", UpdateBarberShop);
@@ -60,7 +60,7 @@ public static class BarberShopEndpoint
         return (page, (int)pageSize);
     }
 
-    public static async Task<IResult> GetAllBarbers(
+    public static async Task<IResult> GetAllBarberShops(
         [FromQuery(Name = "page")] int pageAux,
         [FromQuery(Name = "pageSize")] int pageSizeAux,
         IBarberShopService barberShopService)

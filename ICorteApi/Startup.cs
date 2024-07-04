@@ -9,6 +9,7 @@ using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Endpoints;
+using ICorteApi.Infraestructure.Interceptors;
 
 namespace ICorteApi;
 
@@ -20,22 +21,23 @@ public class Startup(IConfiguration configuration)
     {
         var connectionString = _configuration.GetConnectionString("SqliteConnection");
 
-        services.AddDbContext<AppDbContext>(options =>
-        {
-            // options.UseNpgsql(
-            //     connectionString,
-            //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
-            // );
-            options.UseSqlite(
-                connectionString,
-                assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
+        services.AddSingleton<UpdateAuditableInterceptor>();
+
+        services.AddDbContext<IAppDbContext, AppDbContext>((sp, options) =>
+            options
+                .AddInterceptors(
+                    sp.GetRequiredService<UpdateAuditableInterceptor>())
+                .UseSqlite(
+                    connectionString,
+                    assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+                // .UseNpgsql(
+                //     connectionString,
+                //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+                // .UseInMemoryDatabase("AppDb")
             );
-            // options.UseInMemoryDatabase("AppDb");
-        });
 
         services.AddHttpContextAccessor();
         
-        // services.AddScoped<AppDbContext>();
         services.AddScoped<IBarberShopService, BarberShopService>();
         services.AddScoped<IBarberShopRepository, BarberShopRepository>();
         services.AddScoped<IPersonService, PersonService>();

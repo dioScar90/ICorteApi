@@ -12,6 +12,7 @@ public static class ConfigureEndpoints
             // endpoints.MapAuthEndpoint();
             endpoints.MapPersonEndpoint();
             endpoints.MapBarberShopEndpoint();
+            // endpoints.MapOperatingScheduleEndpoint();
             endpoints.MapAddressEndpoint();
             endpoints.MapGet("/", () => "Hello World!");
         });
