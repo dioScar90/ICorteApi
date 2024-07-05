@@ -14,7 +14,7 @@ public static class OperatingScheduleEndpoint
     private const string ENDPOINT_PREFIX = "operating-schedule";
     private const string ENDPOINT_NAME = "Operating Schedule";
 
-    public static void MapOperatingScheduleEndpoint(this IEndpointRouteBuilder app)
+    public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             // .WithGroupName(ENDPOINT_NAME)

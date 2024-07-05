@@ -1,4 +1,5 @@
 using ICorteApi.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
@@ -13,6 +14,9 @@ public class OperatingScheduleMap : BaseMap<OperatingSchedule>
 
         builder.HasOne(os => os.BarberShop)
             .WithMany(bs => bs.OperatingSchedules)
-            .HasForeignKey(os => os.BarberShopId);
+            .HasForeignKey(os => os.BarberShopId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(x => !x.BarberShop.IsDeleted);
     }
 }

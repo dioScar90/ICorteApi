@@ -15,7 +15,7 @@
 //     private const string ENDPOINT_PREFIX = "auth";
 //     private const string ENDPOINT_NAME = "Authentication";
 
-//     public static void MapAuthEndpoint(this IEndpointRouteBuilder app)
+//     public static void Map(WebApplication app)
 //     {
 //         var group = app.MapGroup(ENDPOINT_PREFIX)
 //             .WithName(ENDPOINT_NAME)

@@ -28,4 +28,33 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
     }
+
+    public override int SaveChanges()
+    {
+        HandleSoftDelete();
+        return base.SaveChanges();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        HandleSoftDelete();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void HandleSoftDelete()
+    {
+        var deletedBarberShops = ChangeTracker.Entries<BarberShop>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
+            .Select(e => e.Entity)
+            .ToList();
+
+        foreach (var barberShop in deletedBarberShops)
+        {
+            var operatingSchedules = OperatingSchedules
+                .Where(os => os.BarberShopId == barberShop.Id)
+                .ToList();
+
+            OperatingSchedules.RemoveRange(operatingSchedules);
+        }
+    }
 }

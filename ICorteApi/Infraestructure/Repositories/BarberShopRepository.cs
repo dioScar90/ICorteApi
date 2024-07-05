@@ -23,7 +23,10 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
     public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
     {
-        var barberShop = await _context.BarberShops.Include(b => b.Address).SingleOrDefaultAsync(b => b.Id == id);
+        var barberShop = await _context.BarberShops
+            .Include(b => b.Address)
+            .Include(b => b.OperatingSchedules)
+            .SingleOrDefaultAsync(b => b.Id == id);
 
         if (barberShop is null)
             return new ResponseDataModel<BarberShop> { Success = false, Message = "Barbeiro não encontrado" };

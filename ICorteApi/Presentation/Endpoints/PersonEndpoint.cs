@@ -14,7 +14,7 @@ public static class PersonEndpoint
     private const string ENDPOINT_PREFIX = "person";
     private const string ENDPOINT_NAME = "Person";
 
-    public static void MapPersonEndpoint(this IEndpointRouteBuilder app)
+    public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             // .WithGroupName(ENDPOINT_NAME)

@@ -12,7 +12,7 @@
 //     private const string ENDPOINT_PREFIX = "appointment";
 //     private const string ENDPOINT_NAME = "Appointment";
 
-//     public static void MapAppointmentEndpoint(this IEndpointRouteBuilder app)
+//     public static void Map(WebApplication app)
 //     {
 //         var group = app.MapGroup(ENDPOINT_PREFIX)
 //             .WithName(ENDPOINT_NAME)

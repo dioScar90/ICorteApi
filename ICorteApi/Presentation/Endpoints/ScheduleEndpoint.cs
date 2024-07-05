@@ -12,7 +12,7 @@
 //     private static readonly string ENDPOINT_PREFIX = "schedule";
 //     private static readonly string ENDPOINT_NAME = "Schedule";
 
-//     public static void MapScheduleEndpoint(this IEndpointRouteBuilder app)
+//     public static void Map(WebApplication app)
 //     {
 //         var group = app.MapGroup(ENDPOINT_PREFIX)
 //             .WithName(ENDPOINT_NAME)

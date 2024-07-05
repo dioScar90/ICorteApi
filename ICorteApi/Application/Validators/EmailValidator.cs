@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 
-namespace ICorteApi.Validators;
+namespace ICorteApi.Application.Validators;
 
 public class EmailValidatorAttribute : ValidationAttribute
 {

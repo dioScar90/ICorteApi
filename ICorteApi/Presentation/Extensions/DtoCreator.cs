@@ -12,14 +12,11 @@ public static class DtoCreator
     {
         return entity switch
         {
-            User user => MapUserToDto(user) as T,
-
-            Person person => MapPersonToDto(person) as T,
-
-            BarberShop barberShop => MapBarberShopToDto(barberShop) as T,
-
-            Address address => MapAddressToDto(address) as T,
-
+            User user                       => MapUserToDto(user) as T,
+            Person person                   => MapPersonToDto(person) as T,
+            BarberShop barberShop           => MapBarberShopToDto(barberShop) as T,
+            OperatingSchedule opSchedule    => MapOperatingScheduleToDto(opSchedule) as T,
+            Address address                 => MapAddressToDto(address) as T,
             _ => null
         };
     }

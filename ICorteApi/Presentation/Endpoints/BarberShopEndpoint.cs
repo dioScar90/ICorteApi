@@ -14,7 +14,7 @@ public static class BarberShopEndpoint
     private const string ENDPOINT_PREFIX = "barber-shop";
     private const string ENDPOINT_NAME = "Barber Shop";
     
-    public static void MapBarberShopEndpoint(this IEndpointRouteBuilder app)
+    public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             // .WithGroupName(ENDPOINT_NAME)

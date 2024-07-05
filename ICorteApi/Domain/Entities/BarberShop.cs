@@ -8,7 +8,7 @@ public class BarberShop : BaseEntity
     public string? Description { get; set; }
     public string ComercialNumber { get; set; }
     public string ComercialEmail { get; set; }
-    public double Rating { get; set; }
+    public double? Rating { get; set; }
 
     public int OwnerId { get; set; }
     public Person Owner { get; set; }
