@@ -13,13 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options
-        .UseSqlite(
-            builder.Configuration.GetConnectionString("SqliteConnection"),
-            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+        // .UseSqlite(
+        //     builder.Configuration.GetConnectionString("SqliteConnection"),
+        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         // .UseNpgsql(
         //     builder.Configuration.GetConnectionString("PostgreSqlConnection"),
         //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // .UseInMemoryDatabase("AppDb")
+        .UseInMemoryDatabase("AppDb")
     );
 
 builder.Services.AddHttpContextAccessor();

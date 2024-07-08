@@ -88,22 +88,31 @@ public static class BarberShopEndpoint
         }
     }
 
-    public static async Task<IResult> CreateBarberShop(BarberShopDtoRequest dto, IBarberShopService barberShopService, IUserService userService)
+    public static async Task<IResult> CreateBarberShop(
+        BarberShopDtoRequest dto,
+        IBarberShopService barberShopService,
+        IPersonService personService,
+        IUserService userService)
     {
         try
         {
             var ownerId = await userService.GetUserIdAsync();
 
             if (ownerId is null)
-                return Results.NotFound();
-            
-            var newBarberShop = dto.CreateEntity<BarberShop>();
-            newBarberShop.OwnerId = (int)ownerId;
+                return Results.Unauthorized();
 
-            var response = await barberShopService.CreateAsync(newBarberShop!);
+            var respPerson = await personService.GetByIdAsync((int)ownerId);
+
+            if (!respPerson.Success)
+                return Results.BadRequest();
+            
+            var newBarberShop = dto.CreateEntity<BarberShop>()!;
+            newBarberShop.OwnerId = respPerson.Data!.UserId;
+
+            var response = await barberShopService.CreateAsync(newBarberShop);
 
             if (!response.Success)
-                Results.BadRequest(response.Message);
+                Results.BadRequest(response);
                 
             return Results.Created($"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
         }

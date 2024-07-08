@@ -28,9 +28,9 @@ public static class OperatingScheduleEndpoint
     }
     
     public static async Task<IResult> GetOperatingSchedule(
-        [FromRoute] int barberShopId,
-        [FromRoute] DayOfWeek dayOfWeek,
-        [FromServices] IOperatingScheduleService operatingScheduleService)
+        int barberShopId,
+        DayOfWeek dayOfWeek,
+        IOperatingScheduleService operatingScheduleService)
     {
         try
         {
@@ -39,7 +39,7 @@ public static class OperatingScheduleEndpoint
             if (!response.Success)
                 return Results.NotFound();
 
-            var operatingScheduleDto = response.Data.CreateDto<OperatingScheduleDtoResponse>();
+            var operatingScheduleDto = response.Data!.CreateDto<OperatingScheduleDtoResponse>();
             return Results.Ok(operatingScheduleDto);
         }
         catch (Exception ex)
@@ -47,31 +47,13 @@ public static class OperatingScheduleEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-
-    private static (int, int) SanitizeIndexAndPageSize(int page, int? pageSize)
-    {
-        const int DEFAULT_PAGE_SIZE = 25;
-
-        if (page < 1)
-            page = 1;
-
-        pageSize ??= DEFAULT_PAGE_SIZE;
-
-        if (pageSize < 1)
-            pageSize = DEFAULT_PAGE_SIZE;
-
-        return (page, (int)pageSize);
-    }
-
+    
     public static async Task<IResult> GetAllOperatingSchedules(
-        [FromRoute] int barberShopId,
-        // [FromQuery(Name = "page")] int pageAux,
-        // [FromQuery(Name = "pageSize")] int pageSizeAux,
-        [FromServices] IOperatingScheduleService operatingScheduleService)
+        int barberShopId,
+        IOperatingScheduleService operatingScheduleService)
     {
         try
         {
-            // var (page, pageSize) = SanitizeIndexAndPageSize(pageAux, pageSizeAux);
             var response = await operatingScheduleService.GetAllAsync(barberShopId);
 
             if (!response.Success)
@@ -93,19 +75,12 @@ public static class OperatingScheduleEndpoint
     }
 
     public static async Task<IResult> CreateOperatingSchedule(
-        [FromRoute] int barberShopId,
-        [FromBody] OperatingScheduleDtoRequest dto,
-        // IPersonService personService,
-        [FromServices] IOperatingScheduleService operatingScheduleService)
+        int barberShopId,
+        OperatingScheduleDtoRequest dto,
+        IOperatingScheduleService operatingScheduleService)
     {
         try
         {
-            // var responseBarberShop = await personService.GetMyBarberShopAsync();
-
-            // if (!responseBarberShop.Success)
-            //     return Results.NotFound(responseBarberShop);
-            
-            // int barberShopId = responseBarberShop.Data.Id;
             var response = await operatingScheduleService.CreateAsync(barberShopId, dto);
 
             if (!response.Success)
@@ -121,9 +96,9 @@ public static class OperatingScheduleEndpoint
     }
 
     public static async Task<IResult> UpdateOperatingSchedule(
-        [FromRoute] int barberShopId,
-        [FromBody] OperatingScheduleDtoRequest dto,
-        [FromServices] IOperatingScheduleService operatingScheduleService)
+        int barberShopId,
+        OperatingScheduleDtoRequest dto,
+        IOperatingScheduleService operatingScheduleService)
     {
         try
         {
@@ -141,9 +116,9 @@ public static class OperatingScheduleEndpoint
     }
 
     public static async Task<IResult> DeleteOperatingSchedule(
-        [FromRoute] int barberShopId,
-        [FromRoute] DayOfWeek dayOfWeek,
-        [FromServices] IOperatingScheduleService operatingScheduleService)
+        int barberShopId,
+        DayOfWeek dayOfWeek,
+        IOperatingScheduleService operatingScheduleService)
     {
         try
         {
