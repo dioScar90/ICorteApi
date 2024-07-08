@@ -19,11 +19,11 @@ public static class ConfigureEndpoints
         // });
 
         // app.MapGet("/", () => "Hello World!");
-        app.MapIdentityApi<User>();
         // AuthEndpoint.Map(app);
         PersonEndpoint.Map(app);
         BarberShopEndpoint.Map(app);
         OperatingScheduleEndpoint.Map(app);
         AddressEndpoint.Map(app);
+        app.MapIdentityApi<User>();
     }
 }

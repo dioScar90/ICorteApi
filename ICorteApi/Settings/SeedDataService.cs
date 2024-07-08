@@ -2,7 +2,7 @@ using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
-namespace ICorteApi.Application.Services;
+namespace ICorteApi.Settings;
 
 public static class SeedDataService
 {
