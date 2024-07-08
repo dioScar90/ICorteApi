@@ -10,7 +10,7 @@ public interface IOperatingScheduleRepository
     Task<IResponseModel> CreateAsync(OperatingSchedule operatingSchedule);
     Task<IResponseModel> CreateManyAsync(OperatingSchedule[] operatingSchedule);
     Task<IResponseDataModel<OperatingSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
-    Task<IResponseDataModel<IEnumerable<OperatingSchedule>>> GetAllAsync(int barberShopId);
+    Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId);
     Task<IResponseModel> UpdateAsync(OperatingSchedule operatingSchedule);
     Task<IResponseModel> UpdateManyAsync(OperatingSchedule[] operatingSchedule);
     Task<IResponseModel> DeleteAsync(OperatingSchedule operatingSchedule);

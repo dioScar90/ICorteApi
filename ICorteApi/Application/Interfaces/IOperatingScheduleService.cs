@@ -6,10 +6,10 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IOperatingScheduleService
 {
-       Task<IResponseDataModel<OperatingSchedule>> CreateAsync(int barberShopId, OperatingScheduleDtoRequest dto);
+       Task<IResponseModel> CreateAsync(int barberShopId, OperatingScheduleDtoRequest dto);
        Task<IResponseModel> CreateManyAsync(OperatingScheduleDtoRequest[] dtoArr);
        Task<IResponseDataModel<OperatingSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
-       Task<IResponseDataModel<IEnumerable<OperatingSchedule>>> GetAllAsync(int barberShopId);
+       Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId);
        Task<IResponseModel> UpdateAsync(int barberShopId, OperatingScheduleDtoRequest dto);
        Task<IResponseModel> UpdateManyAsync(int barberShopId, OperatingScheduleDtoRequest[] dtoArr);
        Task<IResponseModel> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId);

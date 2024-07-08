@@ -9,7 +9,7 @@ public interface IPersonService
        Task<IResponseModel> CreateAsync(Person person);
        Task<IResponseDataModel<Person>> GetByIdAsync(int userId);
        Task<IResponseDataModel<BarberShop>> GetMyBarberShopAsync();
-       Task<IResponseDataModel<IEnumerable<Person>>> GetAllAsync(int page, int pageSize);
+       Task<IResponseDataModel<ICollection<Person>>> GetAllAsync(int page, int pageSize);
        Task<IResponseModel> UpdateAsync(int userId, PersonDtoRequest dto);
        Task<IResponseModel> DeleteAsync(int userId);
 }

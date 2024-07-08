@@ -19,19 +19,17 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
     public async Task<IResponseDataModel<User>> GetAsync()
     {
         var user = _httpContextAccessor.HttpContext?.User;
+        var response = new ResponseDataModel<User>(user is not null);
 
-        if (user is null)
-            return new ResponseDataModel<User> { Success = false, Message = "Unauthorized" };
-
-        if (!int.TryParse(_userManager.GetUserId(user), out int userId))
-            return new ResponseDataModel<User> { Success = false, Message = "Unauthorized" };
-
+        if (!response.Success || !int.TryParse(_userManager.GetUserId(user), out int userId))
+            return response with { Message = "Unauthorized" };
+            
         var userEntity = await _userManager.FindByIdAsync(userId.ToString());
 
         if (userEntity is null)
-            return new ResponseDataModel<User> { Success = false, Message = "User not found" };
+            return response with { Message = "User not found" };
 
-        return new ResponseDataModel<User> { Success = true, Data = userEntity };
+        return response with { Success = true, Data = userEntity };
     }
 
     public async Task<int?> GetUserIdAsync()

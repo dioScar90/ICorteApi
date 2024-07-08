@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Interfaces;
 
-public interface IResponseDataModel<T> : IResponseModel
+public interface IResponseDataModel<T> : IResponseModel where T : class
 {
-    public T Data { get; set; }
+    public T? Data { get; }
 }

@@ -9,7 +9,7 @@ public interface IBarberShopRepository
 {
     Task<IResponseModel> CreateAsync(BarberShop barberShop);
     Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id);
-    Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(int page, int pageSize, Expression<Func<BarberShop, bool>>? filter = null);
-    Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto);
+    Task<IResponseDataModel<ICollection<BarberShop>>> GetAllAsync(int page, int pageSize, Expression<Func<BarberShop, bool>>? filter = null);
+    Task<IResponseModel> UpdateAsync(BarberShop barberShop);
     Task<IResponseModel> DeleteAsync(int id);
 }

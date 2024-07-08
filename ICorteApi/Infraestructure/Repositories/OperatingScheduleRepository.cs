@@ -18,53 +18,57 @@ public class OperatingScheduleRepository(AppDbContext context) : IOperatingSched
     public async Task<IResponseModel> CreateAsync(OperatingSchedule operatingSchedule)
     {
         _context.OperatingSchedules.Add(operatingSchedule);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseModel> CreateManyAsync(OperatingSchedule[] operatingSchedule)
     {
         _context.OperatingSchedules.AddRange(operatingSchedule);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseDataModel<OperatingSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var operatingSchedule = await _context.OperatingSchedules.SingleOrDefaultAsync(oh => oh.DayOfWeek == dayOfWeek && oh.BarberShopId == barberShopId);
+        var operatingSchedule = await _context.OperatingSchedules
+            .SingleOrDefaultAsync(oh => oh.DayOfWeek == dayOfWeek && oh.BarberShopId == barberShopId);
 
-        if (operatingSchedule is null)
-            return new ResponseDataModel<OperatingSchedule> { Success = false, Message = "Horário de funcionamento não encontrado" };
+        var response = new ResponseDataModel<OperatingSchedule>(
+            operatingSchedule is not null,
+            operatingSchedule
+        );
 
-        return new ResponseDataModel<OperatingSchedule>
-        {
-            Success = true,
-            Data = operatingSchedule,
-        };
+        if (!response.Success)
+            return response with { Message = "Horário de funcionamento não encontrado" };
+
+        return response;
     }
 
-    public async Task<IResponseDataModel<IEnumerable<OperatingSchedule>>> GetAllAsync(int barberShopId)
+    public async Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId)
     {
-        return new ResponseDataModel<IEnumerable<OperatingSchedule>>
-        {
-            Success = true,
-            Data = await _context.OperatingSchedules.Where(oh => oh.BarberShopId == barberShopId).ToListAsync()
-        };
+        var operatingSchedules = await _context.OperatingSchedules
+            .Where(oh => oh.BarberShopId == barberShopId).ToListAsync();
+        
+        return new ResponseDataModel<ICollection<OperatingSchedule>>(
+            operatingSchedules is not null,
+            operatingSchedules
+        );
     }
 
     public async Task<IResponseModel> UpdateAsync(OperatingSchedule operatingSchedule)
     {
         _context.OperatingSchedules.Update(operatingSchedule);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseModel> UpdateManyAsync(OperatingSchedule[] operatingSchedule)
     {
         _context.OperatingSchedules.UpdateRange(operatingSchedule);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseModel> DeleteAsync(OperatingSchedule operatingSchedule)
     {
         _context.OperatingSchedules.Remove(operatingSchedule);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 }

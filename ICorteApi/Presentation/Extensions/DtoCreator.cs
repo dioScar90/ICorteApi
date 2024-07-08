@@ -8,15 +8,15 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class DtoCreator
 {
-    public static T? CreateDto<T>(this IBaseTableEntity entity) where T : class, IDtoResponse
+    public static TDto? CreateDto<TDto>(this IBaseTableEntity entity) where TDto : class, IDtoResponse
     {
         return entity switch
         {
-            User user                       => MapUserToDto(user) as T,
-            Person person                   => MapPersonToDto(person) as T,
-            BarberShop barberShop           => MapBarberShopToDto(barberShop) as T,
-            OperatingSchedule opSchedule    => MapOperatingScheduleToDto(opSchedule) as T,
-            Address address                 => MapAddressToDto(address) as T,
+            User user                       => MapUserToDto(user) as TDto,
+            Person person                   => MapPersonToDto(person) as TDto,
+            BarberShop barberShop           => MapBarberShopToDto(barberShop) as TDto,
+            OperatingSchedule opSchedule    => MapOperatingScheduleToDto(opSchedule) as TDto,
+            Address address                 => MapAddressToDto(address) as TDto,
             _ => null
         };
     }

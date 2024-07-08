@@ -2,7 +2,11 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Base;
 
-public class ResponseDataModel<T> : ResponseModel, IResponseDataModel<T> where T : class
-{
-    public T Data { get; set; } = default(T);
-}
+public record ResponseDataModel<T>(
+    bool Success,
+    T? Data = default,
+    string? Message = default,
+    int? StatusCode = default
+) : ResponseModel(
+    Success, Message, StatusCode
+), IResponseDataModel<T> where T : class;

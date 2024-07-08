@@ -12,16 +12,12 @@ public class OperatingScheduleService(IOperatingScheduleRepository operatingSche
 {
     private readonly IOperatingScheduleRepository _repository = operatingScheduleRepository;
 
-    public async Task<IResponseDataModel<OperatingSchedule>> CreateAsync(int barberShopId, OperatingScheduleDtoRequest dto)
+    public async Task<IResponseModel> CreateAsync(int barberShopId, OperatingScheduleDtoRequest dto)
     {
         var newOperatingSchedule = dto.CreateEntity<OperatingSchedule>();
         newOperatingSchedule!.BarberShopId = barberShopId;
-        var response = await _repository.CreateAsync(newOperatingSchedule);
-
-        if (!response.Success)
-            return new ResponseDataModel<OperatingSchedule> { Success = false };
         
-        return new ResponseDataModel<OperatingSchedule> { Success = true, Data = newOperatingSchedule };
+        return await _repository.CreateAsync(newOperatingSchedule);
     }
 
     public async Task<IResponseModel> CreateManyAsync(OperatingScheduleDtoRequest[] dtoArr)
@@ -30,7 +26,7 @@ public class OperatingScheduleService(IOperatingScheduleRepository operatingSche
         return await _repository.CreateManyAsync(operatingScheduleArr!);
     }
 
-    public async Task<IResponseDataModel<IEnumerable<OperatingSchedule>>> GetAllAsync(int barberShopId)
+    public async Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId)
     {
         return await _repository.GetAllAsync(barberShopId);
     }
@@ -42,23 +38,35 @@ public class OperatingScheduleService(IOperatingScheduleRepository operatingSche
 
     public async Task<IResponseModel> UpdateAsync(int barberShopId, OperatingScheduleDtoRequest dto)
     {
-        var operatingSchedule = dto.CreateEntity<OperatingSchedule>();
-        operatingSchedule!.BarberShopId = barberShopId;
+        var response = await _repository.GetByIdAsync(dto.DayOfWeek, barberShopId);
 
-        return await _repository.CreateAsync(operatingSchedule);
+        if (!response.Success)
+            return new ResponseModel(response.Success, "Horário de funcionamento não encontrado");
+            
+        var barberShop = response.Data;
+
+        barberShop.UpdateEntityByDto(dto);
+        return await _repository.UpdateAsync(barberShop);
     }
 
     public async Task<IResponseModel> UpdateManyAsync(int barberShopId, OperatingScheduleDtoRequest[] dtoArr)
     {
-        var operatingScheduleArr = dtoArr
-            .Select(dto =>
-                {
-                    var newOperatingSchedule = dto.CreateEntity<OperatingSchedule>();
-                    newOperatingSchedule!.BarberShopId = barberShopId;
-                    return newOperatingSchedule;
-                })
-            .ToArray();
-        return await _repository.CreateManyAsync(operatingScheduleArr!);
+        var response = await _repository.GetAllAsync(barberShopId);
+
+        if (!response.Success)
+            return new ResponseModel(response.Success, "Horários de funcionamento não encontrados");
+            
+        var operatingSchedules = response.Data?.ToArray();
+        
+        foreach (var operatingSchedule in operatingSchedules)
+        {
+            var dto = dtoArr.FirstOrDefault(dto => dto.DayOfWeek == operatingSchedule.DayOfWeek);
+
+            if (dto is not null)
+                operatingSchedule.UpdateEntityByDto(dto);
+        }
+        
+        return await _repository.UpdateManyAsync(operatingSchedules);
     }
 
     public async Task<IResponseModel> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
@@ -67,7 +75,7 @@ public class OperatingScheduleService(IOperatingScheduleRepository operatingSche
 
         if (!response.Success)
             return response;
-
+            
         return await _repository.DeleteAsync(response.Data);
     }
 }

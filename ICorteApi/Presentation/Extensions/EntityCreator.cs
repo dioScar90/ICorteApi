@@ -11,11 +11,11 @@ public static class EntityCreator
     {
         return dtoRequest switch
         {
-            UserDtoRegisterRequest registerDto => MapDtoToUser(registerDto) as TEntity,
-            PersonDtoRequest personDto => MapDtoToPerson(personDto) as TEntity,
-            BarberShopDtoRequest barberShopDto => MapDtoToBarberShop(barberShopDto) as TEntity,
-            OperatingScheduleDtoRequest operatingScheduleDto => MapDtoToOperatingSchedule(operatingScheduleDto) as TEntity,
-            AddressDtoRequest addressDto => MapDtoToAddress(addressDto) as TEntity,
+            UserDtoRegisterRequest registerDto          => MapDtoToUser(registerDto) as TEntity,
+            PersonDtoRequest personDto                  => MapDtoToPerson(personDto) as TEntity,
+            BarberShopDtoRequest barberShopDto          => MapDtoToBarberShop(barberShopDto) as TEntity,
+            OperatingScheduleDtoRequest opScheduleDto   => MapDtoToOperatingSchedule(opScheduleDto) as TEntity,
+            AddressDtoRequest addressDto                => MapDtoToAddress(addressDto) as TEntity,
             _ => null
         };
     }

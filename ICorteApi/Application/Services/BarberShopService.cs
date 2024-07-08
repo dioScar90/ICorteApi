@@ -4,6 +4,7 @@ using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
@@ -13,39 +14,34 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
 
     public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
     {
-        var result = await _repository.CreateAsync(barberShop);
-        return new ResponseModel { Success = result.Success};
+        return await _repository.CreateAsync(barberShop);
     }
 
     public async Task<IResponseModel> DeleteAsync(int id)
     {
-        var result = await _repository.DeleteAsync(id);
-        return new ResponseModel { Success = result.Success };
+        return await _repository.DeleteAsync(id);
     }
 
-    public async Task<IResponseDataModel<IEnumerable<BarberShop>>> GetAllAsync(int page, int pageSize)
+    public async Task<IResponseDataModel<ICollection<BarberShop>>> GetAllAsync(int page, int pageSize)
     {
-        var result = await _repository.GetAllAsync(1, 25);
-
-        if (!result.Success)
-            return new ResponseDataModel<IEnumerable<BarberShop>> { Success = false };
-            
-        return new ResponseDataModel<IEnumerable<BarberShop>> { Success = true, Data = result.Data };
+        return await _repository.GetAllAsync(1, 25);
     }
-    
+
     public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
     {
-        var result = await _repository.GetByIdAsync(id);
-
-        if (!result.Success)
-            return new ResponseDataModel<BarberShop> { Success = false };
-            
-        return new ResponseDataModel<BarberShop> { Success = true, Data = result.Data };
+        return await _repository.GetByIdAsync(id);
     }
 
     public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
     {
-        var result = await _repository.UpdateAsync(id, dto);
-        return new ResponseModel { Success = result.Success };
+        var response = await _repository.GetByIdAsync(id);
+
+        if (!response.Success)
+            return new ResponseModel(response.Success, "Barbearia não encontrada");
+
+        var barberShop = response.Data;
+
+        barberShop.UpdateEntityByDto(dto);
+        return await _repository.UpdateAsync(barberShop);
     }
 }

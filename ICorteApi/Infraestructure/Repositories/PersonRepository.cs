@@ -14,60 +14,50 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
     private readonly AppDbContext _context = context;
 
     private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-    
+
     public async Task<IResponseModel> CreateAsync(Person person)
     {
         _context.People.Add(person);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseDataModel<Person>> GetByIdAsync(int userId)
     {
         var person = await _context.People.Include(p => p.OwnedBarberShop).SingleOrDefaultAsync(p => p.UserId == userId);
+        var response = new ResponseDataModel<Person>(person is not null, person);
 
-        if (person is null)
-            return new ResponseDataModel<Person> { Success = false, Message = "Usuário não encontrado" };
-
-        return new ResponseDataModel<Person>
-        {
-            Success = true,
-            Data = person,
-        };
+        if (!response.Success)
+            return response with { Message = "Não há ninguém com esse nome aqui" };
+            
+        return response;
     }
 
-    public async Task<IResponseDataModel<IEnumerable<Person>>> GetAllAsync(
+    public async Task<IResponseDataModel<ICollection<Person>>> GetAllAsync(
         int page, int pageSize, Expression<Func<Person, bool>>? filter)
     {
-        return new ResponseDataModel<IEnumerable<Person>>
-        {
-            Success = true,
-            Data = await _context.People.ToListAsync()
-        };
+        var people = await _context.People.ToListAsync();
+
+        return new ResponseDataModel<ICollection<Person>>(
+            people is not null,
+            people
+        );
     }
 
-    public async Task<IResponseModel> UpdateAsync(int userId, PersonDtoRequest dto)
+    public async Task<IResponseModel> UpdateAsync(Person person)
     {
-        var person = await _context.People.SingleOrDefaultAsync(p => p.UserId == userId);
-
-        if (person is null)
-            return new ResponseModel { Success = false };
-
-        person.FirstName = dto.FirstName;
-        person.LastName = dto.LastName;
-        
-        person.UpdatedAt = DateTime.UtcNow;
-        
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        _context.People.Update(person);
+        return new ResponseModel(await SaveChangesAsync());
     }
 
     public async Task<IResponseModel> DeleteAsync(int userId)
     {
         var person = await _context.People.SingleOrDefaultAsync(p => p.UserId == userId);
+        var response = new ResponseModel(person is not null);
 
-        if (person is null)
-            return new ResponseModel { Success = false, Message = "Barbearia não encontrada" };
-        
-        _context.People.Remove(person);
-        return new ResponseModel { Success = await SaveChangesAsync() };
+        if (!response.Success)
+            return response with { Message = "Usuário não encontrado" };
+
+        _context.People.Remove(person!);
+        return response with { Success = await SaveChangesAsync() };
     }
 }

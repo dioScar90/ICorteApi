@@ -23,7 +23,7 @@ public static class ConfigureEndpoints
         // AuthEndpoint.Map(app);
         PersonEndpoint.Map(app);
         BarberShopEndpoint.Map(app);
-        // OperatingScheduleEndpoint.Map(app);
+        OperatingScheduleEndpoint.Map(app);
         AddressEndpoint.Map(app);
     }
 }
