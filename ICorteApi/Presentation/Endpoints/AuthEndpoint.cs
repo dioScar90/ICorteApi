@@ -1,233 +1,242 @@
-﻿// using Microsoft.AspNetCore.Mvc;
-// using Microsoft.AspNetCore.Identity;
-// using System.Security.Claims;
-// using ICorteApi.Domain.Entities;
-// using ICorteApi.Application.Dtos;
-// using ICorteApi.Infraestructure.Context;
-// using ICorteApi.Presentation.Extensions;
-// using ICorteApi.Domain.Enums;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Infraestructure.Context;
+using ICorteApi.Presentation.Extensions;
+using ICorteApi.Domain.Enums;
+using System.Net;
 
-// namespace ICorteApi.Presentation.Endpoints;
+namespace ICorteApi.Presentation.Endpoints;
 
-// public static class AuthEndpoint
-// {
-//     private const string INDEX = "";
-//     private const string ENDPOINT_PREFIX = "auth";
-//     private const string ENDPOINT_NAME = "Authentication";
+public static class AuthEndpoint
+{
+    private const string INDEX = "";
+    private const string ENDPOINT_PREFIX = "auth";
+    private const string ENDPOINT_NAME = "Authentication";
 
-//     public static void Map(WebApplication app)
-//     {
-//         var group = app.MapGroup(ENDPOINT_PREFIX)
-//             .WithName(ENDPOINT_NAME)
-//             .RequireAuthorization();
+    public static void Map(WebApplication app)
+    {
+        app.MapPost("/logout", LogoutUser);
+        // var group = app.MapGroup(ENDPOINT_PREFIX)
+        //     .WithName(ENDPOINT_NAME)
+        //     .RequireAuthorization();
 
-//         group.MapPost("login", Login).AllowAnonymous();
-//         group.MapPost("register", CreateUser).AllowAnonymous();
+        // group.MapPost("login", Login).AllowAnonymous();
+        // group.MapPost("register", CreateUser).AllowAnonymous();
 
-//         group.MapPost("forgotPassword", ForgotPassword);
-//         group.MapPut("resetPassword", ResetPassword);
-//         group.MapPut("changePassword", ChangePassword);
-//         group.MapPut("confirmEmail", ConfirmEmail);
-//         group.MapGet("me", GetUser);
-//         group.MapPut("update", UpdateProfile);
-//         group.MapPost("logout", Logout);
-//         group.MapDelete("delete", DeleteUser);
-//     }
+        // group.MapPost("forgotPassword", ForgotPassword);
+        // group.MapPut("resetPassword", ResetPassword);
+        // group.MapPut("changePassword", ChangePassword);
+        // group.MapPut("confirmEmail", ConfirmEmail);
+        // group.MapGet("me", GetUser);
+        // group.MapPut("update", UpdateProfile);
+        // group.MapPost("logout", Logout);
+        // group.MapDelete("delete", DeleteUser);
+    }
 
-//     public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
-//     {
-//         var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+    public static async Task<IResult> LogoutUser(
+        SignInManager<User> signInManager, [FromBody] object empty)
+    {
+        await signInManager.SignOutAsync();
+        return Results.StatusCode(205);
+    }
 
-//         if (!result.Succeeded)
-//             return Results.Unauthorized();
+    public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
+    {
+        var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
 
-//         return Results.Ok("Login bem-sucedido");
-//     }
+        if (!result.Succeeded)
+            return Results.Unauthorized();
 
-//     public static async Task<IResult> CreateUser(
-//         UserDtoRegisterRequest dto,
-//         AppDbContext context,
-//         UserManager<User> userManager,
-//         SignInManager<User> signInManager)
-//     {
-//         // Maybe it isn't necessary. Do a future confirmation, because this is
-//         // the only reason why context is here.
-//         using var transaction = await context.Database.BeginTransactionAsync();
+        return Results.Ok("Login bem-sucedido");
+    }
 
-//         try
-//         {
-//             var newUser = dto.CreateEntity<User>()!;
+    // public static async Task<IResult> CreateUser(
+    //     UserDtoRegisterRequest dto,
+    //     AppDbContext context,
+    //     UserManager<User> userManager,
+    //     SignInManager<User> signInManager)
+    // {
+    //     // Maybe it isn't necessary. Do a future confirmation, because this is
+    //     // the only reason why context is here.
+    //     using var transaction = await context.Database.BeginTransactionAsync();
 
-//             newUser.UserName = newUser.Email;
-//             newUser.EmailConfirmed = true;
+    //     try
+    //     {
+    //         var newUser = dto.CreateEntity<User>()!;
 
-//             var userOperation = await userManager.CreateAsync(newUser, dto.Password);
+    //         newUser.UserName = newUser.Email;
+    //         newUser.EmailConfirmed = true;
 
-//             if (!userOperation.Succeeded)
-//                 throw new Exception();
+    //         var userOperation = await userManager.CreateAsync(newUser, dto.Password);
 
-//             var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
+    //         if (!userOperation.Succeeded)
+    //             throw new Exception();
 
-//             if (!roleOperation.Succeeded)
-//                 throw new Exception();
+    //         var roleOperation = await userManager.AddToRoleAsync(newUser, nameof(UserRole.Client));
 
-//             await context.SaveChangesAsync();
-//             await transaction.CommitAsync();
+    //         if (!roleOperation.Succeeded)
+    //             throw new Exception();
 
-//             await signInManager.SignInAsync(newUser, isPersistent: false);
-//             return Results.Created($"/{ENDPOINT_PREFIX}/{newUser.Person!.Id}", new { Message = "Usuário criado com sucesso" });
-//         }
-//         catch (Exception ex)
-//         {
-//             await transaction.RollbackAsync();
-//             return Results.BadRequest(ex.Message);
-//         }
-//     }
+    //         await context.SaveChangesAsync();
+    //         await transaction.CommitAsync();
 
-//     public static async Task<IResult> GetUser(ClaimsPrincipal user, UserManager<User> userManager)
-//     {
-//         var currentUser = await userManager.GetUserAsync(user);
+    //         await signInManager.SignInAsync(newUser, isPersistent: false);
+    //         return Results.Created($"/{ENDPOINT_PREFIX}/{newUser.Person!.Id}", new { Message = "Usuário criado com sucesso" });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await transaction.RollbackAsync();
+    //         return Results.BadRequest(ex.Message);
+    //     }
+    // }
 
-//         if (currentUser is null)
-//             return Results.Unauthorized();
+    // public static async Task<IResult> GetUser(ClaimsPrincipal user, UserManager<User> userManager)
+    // {
+    //     var currentUser = await userManager.GetUserAsync(user);
 
-//         var roles = await userManager.GetRolesAsync(currentUser);
-//         var userDtoResponse = currentUser.CreateDto<UserDtoResponse>();
+    //     if (currentUser is null)
+    //         return Results.Unauthorized();
 
-//         // var roles = rolesAsString
-//         //     .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
-//         //     .Where(role => role.HasValue)
-//         //     .Select(role => role.Value)
-//         //     .ToArray();
+    //     var roles = await userManager.GetRolesAsync(currentUser);
+    //     var userDtoResponse = currentUser.CreateDto<UserDtoResponse>();
 
-//         return Results.Ok(userDtoResponse);
-//         // return Results.Ok(currentUser);
-//     }
+    //     // var roles = rolesAsString
+    //     //     .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
+    //     //     .Where(role => role.HasValue)
+    //     //     .Select(role => role.Value)
+    //     //     .ToArray();
 
-//     public static async Task<IResult> UpdateProfile(
-//         UserManager<User> userManager, ClaimsPrincipal user, UserDtoUpdateProfileRequest request)
-//     {
-//         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-//         var userToUpdate = await userManager.FindByIdAsync(userId);
+    //     return Results.Ok(userDtoResponse);
+    //     // return Results.Ok(currentUser);
+    // }
 
-//         if (userToUpdate is null)
-//             return Results.NotFound(new { Message = "Usuário não encontrado." });
+    // public static async Task<IResult> UpdateProfile(
+    //     UserManager<User> userManager, ClaimsPrincipal user, UserDtoUpdateProfileRequest request)
+    // {
+    //     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     var userToUpdate = await userManager.FindByIdAsync(userId);
 
-//         // Atualize os campos do usuário
-//         userToUpdate.Person.FirstName = request.FirstName;
-//         userToUpdate.Person.LastName = request.LastName;
-//         // Atualize outros campos conforme necessário
+    //     if (userToUpdate is null)
+    //         return Results.NotFound(new { Message = "Usuário não encontrado." });
 
-//         var result = await userManager.UpdateAsync(userToUpdate);
+    //     // Atualize os campos do usuário
+    //     userToUpdate.Person.FirstName = request.FirstName;
+    //     userToUpdate.Person.LastName = request.LastName;
+    //     // Atualize outros campos conforme necessário
 
-//         if (!result.Succeeded)
-//             return Results.BadRequest(new { Message = "Erro ao atualizar perfil." });
+    //     var result = await userManager.UpdateAsync(userToUpdate);
 
-//         return Results.Ok(new { Message = "Perfil atualizado com sucesso." });
-//     }
+    //     if (!result.Succeeded)
+    //         return Results.BadRequest(new { Message = "Erro ao atualizar perfil." });
 
-//     public static async Task<IResult> Logout(SignInManager<User> signInManager, [FromBody] object empty)
-//     {
-//         try
-//         {
-//             // 'empty' must be passed and also must be empty, like => {}
-//             // It was written on documentation. I don't know why.
-//             // It's unnecessary, perhaps.
-//             if (empty is not { })
-//                 return Results.Unauthorized();
+    //     return Results.Ok(new { Message = "Perfil atualizado com sucesso." });
+    // }
 
-//             await signInManager.SignOutAsync();
-//             return Results.Ok();
-//         }
-//         catch (Exception ex)
-//         {
-//             return TypedResults.BadRequest(ex.Message);
-//         }
-//     }
+    // public static async Task<IResult> Logout(SignInManager<User> signInManager, [FromBody] object empty)
+    // {
+    //     try
+    //     {
+    //         // 'empty' must be passed and also must be empty, like => {}
+    //         // It was written on documentation. I don't know why.
+    //         // It's unnecessary, perhaps.
+    //         if (empty is not { })
+    //             return Results.Unauthorized();
 
-//     public static async Task<IResult> ForgotPassword(UserManager<User> userManager, UserDtoForgotPasswordRequest request)
-//     {
-//         var user = await userManager.FindByEmailAsync(request.Email);
-//         string DEFAULT_MESSAGE = "Se o email existir, um link de redefinição de senha será enviado.";
+    //         await signInManager.SignOutAsync();
+    //         return Results.Ok();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         return TypedResults.BadRequest(ex.Message);
+    //     }
+    // }
 
-//         if (user is null) // Não revelar que o usuário não existe ou não está confirmado
-//             return Results.Ok(new { Message = DEFAULT_MESSAGE });
+    // public static async Task<IResult> ForgotPassword(UserManager<User> userManager, UserDtoForgotPasswordRequest request)
+    // {
+    //     var user = await userManager.FindByEmailAsync(request.Email);
+    //     string DEFAULT_MESSAGE = "Se o email existir, um link de redefinição de senha será enviado.";
 
-//         var token = await userManager.GeneratePasswordResetTokenAsync(user);
-//         var resetLink = $"https://yourapp.com/resetPassword?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
+    //     if (user is null) // Não revelar que o usuário não existe ou não está confirmado
+    //         return Results.Ok(new { Message = DEFAULT_MESSAGE });
 
-//         // Envie o link por email. Aqui você pode usar um serviço de email para enviar o link.
-//         Console.WriteLine($"Reset link: {resetLink}"); // Substitua isso pelo serviço de email.
+    //     var token = await userManager.GeneratePasswordResetTokenAsync(user);
+    //     var resetLink = $"https://yourapp.com/resetPassword?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
 
-//         return Results.Ok(new { Message = DEFAULT_MESSAGE });
-//     }
+    //     // Envie o link por email. Aqui você pode usar um serviço de email para enviar o link.
+    //     Console.WriteLine($"Reset link: {resetLink}"); // Substitua isso pelo serviço de email.
 
-//     public static async Task<IResult> ResetPassword(UserManager<User> userManager, UserDtoResetPasswordRequest request)
-//     {
-//         if (request.NewPassword != request.ConfirmNewPassword)
-//             return Results.BadRequest(new { Message = "As senhas não coincidem." });
+    //     return Results.Ok(new { Message = DEFAULT_MESSAGE });
+    // }
 
-//         var user = await userManager.FindByEmailAsync(request.Email);
+    // public static async Task<IResult> ResetPassword(UserManager<User> userManager, UserDtoResetPasswordRequest request)
+    // {
+    //     if (request.NewPassword != request.ConfirmNewPassword)
+    //         return Results.BadRequest(new { Message = "As senhas não coincidem." });
 
-//         if (user is null) // Não revelar que o usuário não existe
-//             return Results.BadRequest(new { Message = "Token inválido." });
+    //     var user = await userManager.FindByEmailAsync(request.Email);
 
-//         var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+    //     if (user is null) // Não revelar que o usuário não existe
+    //         return Results.BadRequest(new { Message = "Token inválido." });
 
-//         if (!result.Succeeded)
-//             return Results.BadRequest(new { Message = "Token inválido ou a senha não atende aos requisitos de segurança." });
+    //     var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
 
-//         return Results.Ok(new { Message = "Senha redefinida com sucesso." });
-//     }
+    //     if (!result.Succeeded)
+    //         return Results.BadRequest(new { Message = "Token inválido ou a senha não atende aos requisitos de segurança." });
 
-//     public static async Task<IResult> ChangePassword(
-//         UserManager<User> userManager, ClaimsPrincipal user, UserDtoChangePasswordRequest request)
-//     {
-//         if (request.NewPassword != request.ConfirmNewPassword)
-//             return Results.BadRequest(new { Message = "As senhas não coincidem." });
+    //     return Results.Ok(new { Message = "Senha redefinida com sucesso." });
+    // }
 
-//         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-//         var userToUpdate = await userManager.FindByIdAsync(userId);
+    // public static async Task<IResult> ChangePassword(
+    //     UserManager<User> userManager, ClaimsPrincipal user, UserDtoChangePasswordRequest request)
+    // {
+    //     if (request.NewPassword != request.ConfirmNewPassword)
+    //         return Results.BadRequest(new { Message = "As senhas não coincidem." });
 
-//         if (userToUpdate is null)
-//             return Results.NotFound(new { Message = "Usuário não encontrado." });
+    //     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     var userToUpdate = await userManager.FindByIdAsync(userId);
 
-//         var result = await userManager.ChangePasswordAsync(userToUpdate, request.CurrentPassword, request.NewPassword);
+    //     if (userToUpdate is null)
+    //         return Results.NotFound(new { Message = "Usuário não encontrado." });
 
-//         if (!result.Succeeded)
-//             return Results.BadRequest(new { Message = "Erro ao alterar senha." });
+    //     var result = await userManager.ChangePasswordAsync(userToUpdate, request.CurrentPassword, request.NewPassword);
 
-//         return Results.Ok(new { Message = "Senha alterada com sucesso." });
-//     }
+    //     if (!result.Succeeded)
+    //         return Results.BadRequest(new { Message = "Erro ao alterar senha." });
 
-//     public static async Task<IResult> ConfirmEmail(UserManager<User> userManager, UserDtoConfirmEmailRequest request)
-//     {
-//         var user = await userManager.FindByEmailAsync(request.Email);
+    //     return Results.Ok(new { Message = "Senha alterada com sucesso." });
+    // }
 
-//         if (user is null)
-//             return Results.BadRequest(new { Message = "Token inválido." });
+    // public static async Task<IResult> ConfirmEmail(UserManager<User> userManager, UserDtoConfirmEmailRequest request)
+    // {
+    //     var user = await userManager.FindByEmailAsync(request.Email);
 
-//         var result = await userManager.ConfirmEmailAsync(user, request.Token);
+    //     if (user is null)
+    //         return Results.BadRequest(new { Message = "Token inválido." });
 
-//         if (!result.Succeeded)
-//             return Results.BadRequest(new { Message = "Erro ao confirmar email." });
+    //     var result = await userManager.ConfirmEmailAsync(user, request.Token);
 
-//         return Results.Ok(new { Message = "Email confirmado com sucesso." });
-//     }
+    //     if (!result.Succeeded)
+    //         return Results.BadRequest(new { Message = "Erro ao confirmar email." });
 
-//     public static async Task<IResult> DeleteUser(UserManager<User> userManager, HttpContext httpContext)
-//     {
-//         var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-//         var user = await userManager.FindByIdAsync(userId);
+    //     return Results.Ok(new { Message = "Email confirmado com sucesso." });
+    // }
 
-//         if (user is null)
-//             return Results.NotFound();
+    // public static async Task<IResult> DeleteUser(UserManager<User> userManager, HttpContext httpContext)
+    // {
+    //     var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     var user = await userManager.FindByIdAsync(userId);
 
-//         var result = await userManager.DeleteAsync(user);
+    //     if (user is null)
+    //         return Results.NotFound();
 
-//         if (!result.Succeeded)
-//             return Results.BadRequest(result.Errors);
+    //     var result = await userManager.DeleteAsync(user);
 
-//         return Results.Ok(new { Message = "Usuário removido com sucesso" });
-//     }
-// }
+    //     if (!result.Succeeded)
+    //         return Results.BadRequest(result.Errors);
+
+    //     return Results.Ok(new { Message = "Usuário removido com sucesso" });
+    // }
+}
