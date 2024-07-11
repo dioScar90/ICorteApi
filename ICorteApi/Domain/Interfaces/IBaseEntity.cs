@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Interfaces;
 
-public interface IBaseEntity : IBaseSoftCrudEntity
+public interface IBaseEntity : IBaseCrudEntity
 {
     int Id { get; set; }
 }

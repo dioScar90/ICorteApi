@@ -20,28 +20,18 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
         foreach (var prop in typeof(TEntity).GetProperties())
         {
-            if (IsPrimitiveType(prop.PropertyType))
-            {
-                string column_name = CamelCaseToSnakeCase(prop.Name);
-                builder.Property(prop.Name).HasColumnName(column_name);
-            }
+            if (!IsPrimitiveType(prop.PropertyType))
+                continue;
+                
+            string column_name = CamelCaseToSnakeCase(prop.Name);
+            builder.Property(prop.Name).HasColumnName(column_name);
         }
 
-        if (TEntityImplementsIBaseSoftCrudEntity())
-        {
-            // var idProperty = builder.Property(nameof(IBaseEntity.Id));
-            // var createdAtProperty = builder.Property(nameof(IBaseEntity.CreatedAt));
-            // var isDeletedProperty = builder.Property(nameof(IBaseEntity.IsDeleted));
-
-            // idProperty.ValueGeneratedOnAdd();
-            // createdAtProperty.HasDefaultValue(DateTime.UtcNow);
-            // isDeletedProperty.HasDefaultValue(true);
-
-            builder.HasQueryFilter(x => !((IBaseSoftCrudEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
-        }
+        if (TEntityImplementsIBaseCrudEntity())
+            builder.HasQueryFilter(x => !((IBaseCrudEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
     }
 
-    private static bool TEntityImplementsIBaseSoftCrudEntity() => typeof(IBaseSoftCrudEntity).IsAssignableFrom(typeof(TEntity));
+    private static bool TEntityImplementsIBaseCrudEntity() => typeof(IBaseCrudEntity).IsAssignableFrom(typeof(TEntity));
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();

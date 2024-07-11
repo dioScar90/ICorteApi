@@ -1,8 +1,8 @@
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public class AppointmentService : IBaseTableEntity
+public class AppointmentService : BaseHardCrudEntity
 {
     public int AppointmentId { get; set; }
     public Appointment Appointment { get; set; }

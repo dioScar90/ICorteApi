@@ -18,6 +18,6 @@ public class Person : BaseCrudEntity
     // public ICollection<Schedule> Schedules { get; set; } = [];
     // public ICollection<Appointment> Appointments { get; set; } = [];
     // public ICollection<Report> Reports { get; set; } = [];
-    // public ICollection<Message> Messages { get; set; } = [];
-    // public ICollection<PersonConversation> PersonConversations { get; set; } = [];
+    public ICollection<Message> Messages { get; set; } = [];
+    public ICollection<PersonConversation> PersonConversations { get; set; } = [];
 }

@@ -1,8 +1,8 @@
 namespace ICorteApi.Domain.Interfaces;
 
-public interface IBaseSoftCrudEntity : IBaseTableEntity
+public interface IBaseHardCrudEntity : IBaseTableEntity
 {
     DateTime CreatedAt { get; set; }
     DateTime? UpdatedAt { get; set; }
-    bool IsDeleted { get; set; }
+    bool IsActive { get; set; }
 }

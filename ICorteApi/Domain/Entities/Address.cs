@@ -13,7 +13,6 @@ public class Address : BaseEntity
     public State State { get; set; }
     public string PostalCode { get; set; }
     public string Country { get; set; } = "Brasil";
-    public AddressType AddressType { get; set; }
     
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }

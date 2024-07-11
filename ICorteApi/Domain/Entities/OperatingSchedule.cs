@@ -5,7 +5,7 @@ using ICorteApi.Application.Validators;
 
 namespace ICorteApi.Domain.Entities;
 
-public class OperatingSchedule : BaseCrudEntity
+public class OperatingSchedule : BaseHardCrudEntity
 {
     [DayOfWeekValidator(ErrorMessage = "DayOfWeek must be between 0 and 6")]
     public DayOfWeek DayOfWeek { get; set; }
