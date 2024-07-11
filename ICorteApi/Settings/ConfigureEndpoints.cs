@@ -1,5 +1,4 @@
 using ICorteApi.Presentation.Endpoints;
-using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Settings;
 
@@ -18,12 +17,16 @@ public static class ConfigureEndpoints
         //     endpoints.MapAddressEndpoint();
         // });
 
-        // app.MapGet("/", () => "Hello World!");
+        app.MapGet("/", () => "Hello World!");
+        
         PersonEndpoint.Map(app);
+
         BarberShopEndpoint.Map(app);
+
         OperatingScheduleEndpoint.Map(app);
+
         AddressEndpoint.Map(app);
-        app.MapIdentityApi<User>();
+
         AuthEndpoint.Map(app);
     }
 }

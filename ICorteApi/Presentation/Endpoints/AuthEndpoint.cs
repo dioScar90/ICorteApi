@@ -18,29 +18,27 @@ public static class AuthEndpoint
 
     public static void Map(WebApplication app)
     {
-        app.MapPost("/logout", LogoutUser);
-        // var group = app.MapGroup(ENDPOINT_PREFIX)
-        //     .WithName(ENDPOINT_NAME)
-        //     .RequireAuthorization();
+        var group = app.MapGroup(ENDPOINT_PREFIX)
+            .WithTags(ENDPOINT_NAME);
 
-        // group.MapPost("login", Login).AllowAnonymous();
-        // group.MapPost("register", CreateUser).AllowAnonymous();
-
-        // group.MapPost("forgotPassword", ForgotPassword);
-        // group.MapPut("resetPassword", ResetPassword);
-        // group.MapPut("changePassword", ChangePassword);
-        // group.MapPut("confirmEmail", ConfirmEmail);
-        // group.MapGet("me", GetUser);
-        // group.MapPut("update", UpdateProfile);
-        // group.MapPost("logout", Logout);
-        // group.MapDelete("delete", DeleteUser);
+        group.MapPost("logout", LogoutUser);
+        group.MapIdentityApi<User>();
     }
 
-    public static async Task<IResult> LogoutUser(
-        SignInManager<User> signInManager, [FromBody] object empty)
+    public static async Task<IResult> LogoutUser(SignInManager<User> signInManager, [FromBody] object? empty)
     {
-        await signInManager.SignOutAsync();
-        return Results.StatusCode(205);
+        try
+        {
+            if (empty is null)
+                return Results.Unauthorized();
+            
+            await signInManager.SignOutAsync();
+            return Results.StatusCode(205);
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(new { ex.Message });
+        }
     }
 
     public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)

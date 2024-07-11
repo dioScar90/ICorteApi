@@ -17,19 +17,19 @@ public static class OperatingScheduleEndpoint
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            // .WithGroupName(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
 
-        group.MapGet("{barberShopId}", GetAllOperatingSchedules);
-        group.MapGet("{barberShopId}-{dayOfWeek}", GetOperatingSchedule);
+        group.MapGet(INDEX, GetAllOperatingSchedules);
+        group.MapGet("{barberShopId}", GetOperatingSchedule);
         group.MapPost("{barberShopId}", CreateOperatingSchedule);
         group.MapPut("{barberShopId}", UpdateOperatingSchedule);
-        group.MapDelete("{barberShopId}-{dayOfWeek}", DeleteOperatingSchedule);
+        group.MapDelete("{barberShopId}", DeleteOperatingSchedule);
     }
     
     public static async Task<IResult> GetOperatingSchedule(
         int barberShopId,
-        DayOfWeek dayOfWeek,
+        [FromQuery] DayOfWeek dayOfWeek,
         IOperatingScheduleService operatingScheduleService)
     {
         try
@@ -97,6 +97,7 @@ public static class OperatingScheduleEndpoint
 
     public static async Task<IResult> UpdateOperatingSchedule(
         int barberShopId,
+        [FromQuery] DayOfWeek dayOfWeek,
         OperatingScheduleDtoRequest dto,
         IOperatingScheduleService operatingScheduleService)
     {
@@ -117,7 +118,7 @@ public static class OperatingScheduleEndpoint
 
     public static async Task<IResult> DeleteOperatingSchedule(
         int barberShopId,
-        DayOfWeek dayOfWeek,
+        [FromQuery] DayOfWeek dayOfWeek,
         IOperatingScheduleService operatingScheduleService)
     {
         try

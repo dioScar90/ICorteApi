@@ -122,6 +122,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 ConfigureEndpoints.MapMyEndpoints(app);
-app.MapGet("/", () => "Hello World!");
 
 app.Run();

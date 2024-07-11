@@ -17,7 +17,7 @@ public static class PersonEndpoint
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            // .WithGroupName(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
 
         // group.MapGet(INDEX, GetAll);
