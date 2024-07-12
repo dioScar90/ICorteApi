@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Mensagem
 public class Message : BaseEntity
 {
     public string Content { get; set; }

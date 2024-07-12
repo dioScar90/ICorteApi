@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Barbearia
 public class BarberShop : BaseEntity
 {
     public string Name { get; set; }

@@ -8,6 +8,7 @@ using ICorteApi.Infraestructure.Interfaces;
 using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Presentation.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,10 @@ builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// After .NET 8 we can use IExceptionHandler interface
+builder.Services.AddExceptionHandler<ExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // After .NET 8 it's not necessary to use `AddAuthentication` here.
 builder.Services.AddAuthorization();
@@ -122,5 +127,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 ConfigureEndpoints.MapMyEndpoints(app);
+
+app.UseExceptionHandler();
 
 app.Run();

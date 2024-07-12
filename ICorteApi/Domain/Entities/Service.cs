@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Serviço
 public class Service : BaseEntity
 {
     public string Title { get; set; }

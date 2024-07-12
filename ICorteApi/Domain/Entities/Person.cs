@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Pessoa
 public class Person : BaseCrudEntity
 {
     public string FirstName { get; set; }
@@ -16,7 +17,7 @@ public class Person : BaseCrudEntity
     
     public BarberShop OwnedBarberShop { get; set; }
     // public ICollection<Schedule> Schedules { get; set; } = [];
-    // public ICollection<Appointment> Appointments { get; set; } = [];
+    public ICollection<Appointment> Appointments { get; set; } = [];
     // public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
     public ICollection<PersonConversation> PersonConversations { get; set; } = [];

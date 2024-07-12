@@ -18,7 +18,7 @@
 //             .WithTags(ENDPOINT_NAME)
 //             .RequireAuthorization();
 
-//         // group.MapGet(INDEX, GetAllSchedules);
+//         group.MapGet(INDEX, GetAllSchedules);
 //         group.MapGet("{id}", GetSchedule);
 //         group.MapGet("{barberId}/availability", GetAvailableTimeSlots);
 //         group.MapPost(INDEX, CreateSchedule);

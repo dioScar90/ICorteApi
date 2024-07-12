@@ -3,14 +3,15 @@ using ICorteApi.Infraestructure.Context;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Extensions;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {
-    private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "address";
-    private const string ENDPOINT_NAME = "Address";
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Address;
+    private static readonly string ENDPOINT_NAME = EndpointNames.Address;
 
     public static void Map(WebApplication app)
     {
@@ -25,7 +26,7 @@ public static class AddressEndpoint
         group.MapDelete("{id}", DeleteAddress);
     }
 
-    public static async Task<IResult> GetAddress(int id, AppDbContext context)
+    public static async Task<IResult> GetAddress(int barberShopId, int id, AppDbContext context)
     {
         var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
 
@@ -36,7 +37,7 @@ public static class AddressEndpoint
         return Results.Ok(addressDto);
     }
 
-    public static async Task<IResult> CreateAddress(AddressDtoRequest dto, AppDbContext context)
+    public static async Task<IResult> CreateAddress(int barberShopId, AddressDtoRequest dto, AppDbContext context)
     {
         try
         {
@@ -53,7 +54,11 @@ public static class AddressEndpoint
         }
     }
 
-    public static async Task<IResult> UpdateAddress(int id, AddressDtoRequest dto, AppDbContext context)
+    public static async Task<IResult> UpdateAddress(
+        int barberShopId,
+        int id,
+        AddressDtoRequest dto,
+        AppDbContext context)
     {
         try
         {
@@ -82,7 +87,7 @@ public static class AddressEndpoint
         }
     }
 
-    public static async Task<IResult> DeleteAddress(int id, AppDbContext context)
+    public static async Task<IResult> DeleteAddress(int barberShopId, int id, AppDbContext context)
     {
         try
         {

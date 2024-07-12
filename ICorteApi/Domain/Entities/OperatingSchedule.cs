@@ -5,17 +5,18 @@ using ICorteApi.Application.Validators;
 
 namespace ICorteApi.Domain.Entities;
 
+// Horário de Funcionamento
 public class OperatingSchedule : BaseHardCrudEntity
 {
     [DayOfWeekValidator(ErrorMessage = "DayOfWeek must be between 0 and 6")]
     public DayOfWeek DayOfWeek { get; set; }
-
-    public int BarberShopId { get; set; }
-    public BarberShop BarberShop { get; set; }
 
     [JsonConverter(typeof(TimeSpanConverter))]
     public TimeSpan OpenTime { get; set; }
 
     [JsonConverter(typeof(TimeSpanConverter))]
     public TimeSpan CloseTime { get; set; }
+
+    public int BarberShopId { get; set; }
+    public BarberShop BarberShop { get; set; }
 }

@@ -1,20 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Infraestructure.Context;
-using ICorteApi.Presentation.Extensions;
-using ICorteApi.Domain.Enums;
-using System.Net;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class AuthEndpoint
 {
-    private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "auth";
-    private const string ENDPOINT_NAME = "Authentication";
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Auth;
+    private static readonly string ENDPOINT_NAME = EndpointNames.Auth;
 
     public static void Map(WebApplication app)
     {
@@ -31,7 +27,7 @@ public static class AuthEndpoint
         {
             if (empty is null)
                 return Results.Unauthorized();
-            
+
             await signInManager.SignOutAsync();
             return Results.StatusCode(205);
         }

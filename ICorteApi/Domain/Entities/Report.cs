@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Comentário/Relato
 public class Report : BaseEntity
 {
     public string? Title { get; set; }

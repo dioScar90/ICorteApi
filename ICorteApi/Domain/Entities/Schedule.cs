@@ -2,6 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
+// Agenda
 public class Schedule : BaseEntity
 {
     public DayOfWeek DayOfWeek { get; set; }
@@ -17,14 +18,3 @@ public class Schedule : BaseEntity
 
     public Appointment Appointment { get; set; }
 }
-
-// Alternative for using RecurringSchedule:
-// public class Schedule
-// {
-//     public int Id { get; set; }
-//     public int BarberId { get; set; }
-//     public DateTime Date { get; set; }
-//     public TimeSpan StartTime { get; set; }
-//     public TimeSpan EndTime { get; set; }
-//     public Barber Barber { get; set; }
-// }

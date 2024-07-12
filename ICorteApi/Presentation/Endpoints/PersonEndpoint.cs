@@ -1,18 +1,17 @@
-﻿// using Microsoft.AspNetCore.Identity;
-// using System.Security.Claims;
-using ICorteApi.Application.Dtos;
+﻿using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Extensions;
 using ICorteApi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class PersonEndpoint
 {
-    private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "person";
-    private const string ENDPOINT_NAME = "Person";
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Person;
+    private static readonly string ENDPOINT_NAME = EndpointNames.Person;
 
     public static void Map(WebApplication app)
     {
@@ -61,10 +60,10 @@ public static class PersonEndpoint
         newPerson!.UserId = userResponse.Data.Id;
 
         var personResponse = await personService.CreateAsync(newPerson);
-    
+
         if (!personResponse.Success)
             return Results.BadRequest(personResponse);
-        
+
         return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Usuário criado com sucesso" });
     }
 
@@ -92,7 +91,7 @@ public static class PersonEndpoint
 
         if (!personResponse.Success)
             return Results.NotFound(personResponse);
-        
+
         var personDto = personResponse.Data.CreateDto<PersonDtoResponse>();
         return Results.Ok(personDto);
     }

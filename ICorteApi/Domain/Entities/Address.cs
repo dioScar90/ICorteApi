@@ -3,6 +3,7 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
+// Endereço
 public class Address : BaseEntity
 {
     public string Street { get; set; }

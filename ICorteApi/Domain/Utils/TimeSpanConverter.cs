@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ICorteApi.Domain.Utils;
 
+// TimeSpan cannot be directly conversion by JSON until .NET v8
 public class TimeSpanConverter : JsonConverter<TimeSpan>
 {
     public override TimeSpan Read(

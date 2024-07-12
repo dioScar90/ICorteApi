@@ -1,18 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
+﻿using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
-using Microsoft.AspNetCore.Mvc;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class OperatingScheduleEndpoint
 {
-    private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "operating-schedule";
-    private const string ENDPOINT_NAME = "Operating Schedule";
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.OperatingSchedule;
+    private static readonly string ENDPOINT_NAME = EndpointNames.OperatingSchedule;
 
     public static void Map(WebApplication app)
     {
@@ -21,15 +18,15 @@ public static class OperatingScheduleEndpoint
             .RequireAuthorization();
 
         group.MapGet(INDEX, GetAllOperatingSchedules);
-        group.MapGet("{barberShopId}", GetOperatingSchedule);
-        group.MapPost("{barberShopId}", CreateOperatingSchedule);
-        group.MapPut("{barberShopId}", UpdateOperatingSchedule);
-        group.MapDelete("{barberShopId}", DeleteOperatingSchedule);
+        group.MapGet("{dayOfWeek}", GetOperatingSchedule);
+        group.MapPost(INDEX, CreateOperatingSchedule);
+        group.MapPut("{dayOfWeek}", UpdateOperatingSchedule);
+        group.MapDelete("{dayOfWeek}", DeleteOperatingSchedule);
     }
-    
+
     public static async Task<IResult> GetOperatingSchedule(
         int barberShopId,
-        [FromQuery] DayOfWeek dayOfWeek,
+        DayOfWeek dayOfWeek,
         IOperatingScheduleService operatingScheduleService)
     {
         try
@@ -47,7 +44,7 @@ public static class OperatingScheduleEndpoint
             return Results.BadRequest(ex.Message);
         }
     }
-    
+
     public static async Task<IResult> GetAllOperatingSchedules(
         int barberShopId,
         IOperatingScheduleService operatingScheduleService)
@@ -97,7 +94,7 @@ public static class OperatingScheduleEndpoint
 
     public static async Task<IResult> UpdateOperatingSchedule(
         int barberShopId,
-        [FromQuery] DayOfWeek dayOfWeek,
+        DayOfWeek dayOfWeek,
         OperatingScheduleDtoRequest dto,
         IOperatingScheduleService operatingScheduleService)
     {
@@ -118,16 +115,16 @@ public static class OperatingScheduleEndpoint
 
     public static async Task<IResult> DeleteOperatingSchedule(
         int barberShopId,
-        [FromQuery] DayOfWeek dayOfWeek,
+        DayOfWeek dayOfWeek,
         IOperatingScheduleService operatingScheduleService)
     {
         try
         {
             var resp = await operatingScheduleService.DeleteAsync(dayOfWeek, barberShopId);
-            
+
             if (!resp.Success)
                 return Results.NotFound(resp);
-            
+
             return Results.NoContent();
         }
         catch (Exception ex)

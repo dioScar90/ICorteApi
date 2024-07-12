@@ -5,15 +5,16 @@ using ICorteApi.Application.Dtos;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberShopEndpoint
 {
-    private const string INDEX = "";
-    private const string ENDPOINT_PREFIX = "barber-shop";
-    private const string ENDPOINT_NAME = "Barber Shop";
-    
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop;
+    private static readonly string ENDPOINT_NAME = EndpointNames.BarberShop;
+
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
@@ -75,7 +76,7 @@ public static class BarberShopEndpoint
 
             if (!response.Data.Any())
                 return Results.NotFound();
-            
+
             var dtos = response.Data
                 .Select(b => b.CreateDto<BarberShopDtoResponse>())
                 .ToList();
@@ -105,7 +106,7 @@ public static class BarberShopEndpoint
 
             if (!respPerson.Success)
                 return Results.BadRequest();
-            
+
             var newBarberShop = dto.CreateEntity<BarberShop>()!;
             newBarberShop.OwnerId = respPerson.Data!.UserId;
 
@@ -113,7 +114,7 @@ public static class BarberShopEndpoint
 
             if (!response.Success)
                 Results.BadRequest(response);
-                
+
             return Results.Created($"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
         }
         catch (Exception ex)
@@ -130,7 +131,7 @@ public static class BarberShopEndpoint
 
             if (!response.Success)
                 return Results.NotFound(response);
-            
+
             return Results.NoContent();
         }
         catch (Exception ex)
