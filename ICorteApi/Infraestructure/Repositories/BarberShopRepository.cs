@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
@@ -16,37 +17,51 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
     private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
 
-    public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
+    public async Task<IResponse> CreateAsync(BarberShop barberShop)
     {
         _context.BarberShops.Add(barberShop);
-        return new ResponseModel(await SaveChangesAsync());
+        return await SaveChangesAsync()
+            ? Response.Success()
+            : Response.Failure(new Error("Nao", "Rolou"));
+        // return new Result(await SaveChangesAsync());
     }
 
-    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
+    public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
     {
         var barberShop = await _context.BarberShops
             .Include(b => b.Address)
             .Include(b => b.OperatingSchedules)
             .SingleOrDefaultAsync(b => b.Id == id);
 
-         var response = new ResponseDataModel<BarberShop>(barberShop is not null, barberShop);
+        if (barberShop is null)
+            return Response.Failure<BarberShop>(new Error("Not", "Found"));
 
-        if (response.Data is null)
-            return response with { Message = "Barbeiro não encontrado" };
-            
-        return response;
+        return Response.Success(barberShop);
+
+        //  var response = new ResponseDataModel<BarberShop>(barberShop is not null, barberShop);
+
+        // if (response.Data is null)
+        //     return response with { Message = "Barbeiro não encontrado" };
+
+        // return response;
     }
 
-    public async Task<IResponseDataModel<ICollection<BarberShop>>> GetAllAsync(
+    public async Task<ICollectionResponse<BarberShop>> GetAllAsync(
         int page, int pageSize, Expression<Func<BarberShop, bool>>? filter)
     {
-        return new ResponseDataModel<ICollection<BarberShop>>(
-            true,
-            await _context.BarberShops.ToListAsync()
-        );
+        var barberShops = await _context.BarberShops.ToListAsync();
+
+        if (barberShops is null)
+            return Response.FailureCollection<BarberShop>(new Error("Found", "Nothing"));
+
+        return Response.Success(barberShops);
+        // return new ResponseDataModel<ICollection<BarberShop>>(
+        //     true,
+        //     await _context.BarberShops.ToListAsync()
+        // );
     }
 
-    // public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
+    // public async Task<IResponse> UpdateAsync(int id, BarberShopDtoRequest dto)
     // {
     //     try
     //     {
@@ -66,21 +81,28 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     //     }
     // }
 
-    public async Task<IResponseModel> UpdateAsync(BarberShop barberShop)
+    public async Task<IResponse> UpdateAsync(BarberShop barberShop)
     {
         _context.BarberShops.Update(barberShop);
-        return new ResponseModel(await SaveChangesAsync());
+        return await SaveChangesAsync()
+            ? Response.Success()
+            : Response.Failure(new Error("Nao", "Rolou"));
+        // return new Result(await SaveChangesAsync());
     }
 
-    public async Task<IResponseModel> DeleteAsync(int id)
+    public async Task<IResponse> DeleteAsync(int id)
     {
         var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
         var response = new ResponseModel(barberShop is not null);
 
         if (!response.Success)
-            return response with { Message = "Barbearia não encontrada" };
+            return Response.Failure(new Error("Nao", "Rolou"));
+        // return response with { Message = "Barbearia não encontrada" };
 
         _context.BarberShops.Remove(barberShop!);
-        return response with { Success = await SaveChangesAsync() };
+        return await SaveChangesAsync()
+            ? Response.Success()
+            : Response.Failure(new Error("Nao", "Rolou"));
+        // return response with { Success = await SaveChangesAsync() };
     }
 }

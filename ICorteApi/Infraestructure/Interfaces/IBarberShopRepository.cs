@@ -7,9 +7,9 @@ namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IBarberShopRepository
 {
-    Task<IResponseModel> CreateAsync(BarberShop barberShop);
-    Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id);
-    Task<IResponseDataModel<ICollection<BarberShop>>> GetAllAsync(int page, int pageSize, Expression<Func<BarberShop, bool>>? filter = null);
-    Task<IResponseModel> UpdateAsync(BarberShop barberShop);
-    Task<IResponseModel> DeleteAsync(int id);
+    Task<IResponse> CreateAsync(BarberShop barberShop);
+    Task<ISingleResponse<BarberShop>> GetByIdAsync(int id);
+    Task<ICollectionResponse<BarberShop>> GetAllAsync(int page, int pageSize, Expression<Func<BarberShop, bool>>? filter = null);
+    Task<IResponse> UpdateAsync(BarberShop barberShop);
+    Task<IResponse> DeleteAsync(int id);
 }

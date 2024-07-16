@@ -4,6 +4,12 @@ using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
+using FluentValidation;
+using ICorteApi.Application.Validators;
+using ICorteApi.Presentation.Exceptions;
+// using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
+using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -37,21 +43,27 @@ public static class AddressEndpoint
         return Results.Ok(addressDto);
     }
 
-    public static async Task<IResult> CreateAddress(int barberShopId, AddressDtoRequest dto, AppDbContext context)
+    public static async Task<IResult> CreateAddress(
+        int barberShopId,
+        AddressDtoRequest dto,
+        IValidator<AddressDtoRequest> validator,
+        AppDbContext context)
     {
-        try
-        {
-            var newAddress = dto.CreateEntity<Address>()!;
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            throw new AddressValidationException(
+                validationResult.Errors
+                    .Select(e => new Error(e.PropertyName, e.ErrorMessage))
+                    .ToArray());
+            // return Results.BadRequest(validationResult.Errors);
+            
+        var newAddress = dto.CreateEntity<Address>()!;
 
-            await context.Addresses.AddAsync(newAddress);
-            await context.SaveChangesAsync();
+        await context.Addresses.AddAsync(newAddress);
+        await context.SaveChangesAsync();
 
-            return Results.Created($"/{ENDPOINT_PREFIX}/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        return Results.Created($"/{ENDPOINT_PREFIX}/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
     }
 
     public static async Task<IResult> UpdateAddress(

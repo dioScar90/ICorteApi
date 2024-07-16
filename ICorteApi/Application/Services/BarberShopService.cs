@@ -1,6 +1,5 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
@@ -12,34 +11,34 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
 {
     private readonly IBarberShopRepository _repository = barberShopRepository;
 
-    public async Task<IResponseModel> CreateAsync(BarberShop barberShop)
+    public async Task<IResponse> CreateAsync(BarberShop barberShop)
     {
         return await _repository.CreateAsync(barberShop);
     }
 
-    public async Task<IResponseModel> DeleteAsync(int id)
+    public async Task<IResponse> DeleteAsync(int id)
     {
         return await _repository.DeleteAsync(id);
     }
 
-    public async Task<IResponseDataModel<ICollection<BarberShop>>> GetAllAsync(int page, int pageSize)
+    public async Task<ICollectionResponse<BarberShop>> GetAllAsync(int page, int pageSize)
     {
         return await _repository.GetAllAsync(1, 25);
     }
 
-    public async Task<IResponseDataModel<BarberShop>> GetByIdAsync(int id)
+    public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
     {
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
+    public async Task<IResponse> UpdateAsync(int id, BarberShopDtoRequest dto)
     {
         var response = await _repository.GetByIdAsync(id);
 
-        if (!response.Success)
-            return new ResponseModel(response.Success, "Barbearia não encontrada");
-
-        var barberShop = response.Data;
+        if (!response.IsSuccess)
+            return response; // "Barbearia não encontrada"
+        
+        var barberShop = response.Value!;
 
         barberShop.UpdateEntityByDto(dto);
         return await _repository.UpdateAsync(barberShop);

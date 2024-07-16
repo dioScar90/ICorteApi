@@ -17,7 +17,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     // public DbSet<Conversation> Conversations { get; set; }
     // public DbSet<Message> Messages { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
-    public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
     // public DbSet<Service> Services { get; set; }
     // public DbSet<AppointmentService> AppointmentServices { get; set; }
     // public DbSet<PersonConversation> PersonConversations { get; set; }

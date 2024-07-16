@@ -34,10 +34,10 @@ public static class BarberShopEndpoint
         {
             var response = await barberShopService.GetByIdAsync(id);
 
-            if (!response.Success)
+            if (!response.IsSuccess)
                 return Results.NotFound();
 
-            var barberShopDto = response.Data.CreateDto<BarberShopDtoResponse>();
+            var barberShopDto = response.Value!.CreateDto<BarberShopDtoResponse>();
             return Results.Ok(barberShopDto);
         }
         catch (Exception ex)
@@ -71,13 +71,13 @@ public static class BarberShopEndpoint
             var (page, pageSize) = SanitizeIndexAndPageSize(pageAux, pageSizeAux);
             var response = await barberShopService.GetAllAsync(page, pageSize);
 
-            if (!response.Success)
-                return Results.BadRequest(response.Message);
+            if (!response.IsSuccess)
+                return Results.BadRequest(response.Error);
 
-            if (!response.Data.Any())
-                return Results.NotFound();
+            // if (!response.Data.Any())
+            //     return Results.NotFound();
 
-            var dtos = response.Data
+            var dtos = response.Values!
                 .Select(b => b.CreateDto<BarberShopDtoResponse>())
                 .ToList();
 
@@ -112,8 +112,8 @@ public static class BarberShopEndpoint
 
             var response = await barberShopService.CreateAsync(newBarberShop);
 
-            if (!response.Success)
-                Results.BadRequest(response);
+            if (!response.IsSuccess)
+                Results.BadRequest(response.Error);
 
             return Results.Created($"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
         }
@@ -129,8 +129,8 @@ public static class BarberShopEndpoint
         {
             var response = await barberShopService.UpdateAsync(id, dto);
 
-            if (!response.Success)
-                return Results.NotFound(response);
+            if (!response.IsSuccess)
+                return Results.NotFound(response.Error);
 
             return Results.NoContent();
         }

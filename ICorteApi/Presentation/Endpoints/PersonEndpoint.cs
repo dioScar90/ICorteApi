@@ -4,6 +4,8 @@ using ICorteApi.Presentation.Extensions;
 using ICorteApi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using ICorteApi.Presentation.Enums;
+using ICorteApi.Presentation.Exceptions;
+using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -78,21 +80,19 @@ public static class PersonEndpoint
         var userResponse = await userService.GetAsync();
 
         if (!userResponse.Success)
+            // throw new UserNotFoundException();
             return Results.BadRequest(userResponse);
 
         // if (!int.TryParse(userManager.GetUserId(user), out int userId))
         //     return Results.Unauthorized();
-
-        Console.WriteLine("\n\n\n");
-        Console.WriteLine(userResponse.Data.Id);
-        Console.WriteLine("\n\n\n");
-
+        
         var personResponse = await personService.GetByIdAsync(userResponse.Data.Id);
 
         if (!personResponse.Success)
-            return Results.NotFound(personResponse);
+            throw new PersonNotFoundException();
+            // return Results.NotFound(personResponse);
 
-        var personDto = personResponse.Data.CreateDto<PersonDtoResponse>();
+        var personDto = personResponse.Data!.CreateDto<PersonDtoResponse>();
         return Results.Ok(personDto);
     }
 

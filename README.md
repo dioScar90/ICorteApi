@@ -19,6 +19,7 @@ This is my personal repository about my TCC (Final Paper) project. It is a barbe
 - `dotnet add package Microsoft.AspNetCore.Authentication`
 - `dotnet add package Microsoft.AspNetCore.Identity`
 - `dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore`
+- `dotnet add package FluentValidation.AspNetCore`
 - `dotnet add package Swashbuckle.AspNetCore`
 
 ### Migrations:

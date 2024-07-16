@@ -20,70 +20,69 @@ public class ScheduleService(IScheduleRepository scheduleRepository) : ISchedule
         throw new NotImplementedException();
     }
 
-    public List<Schedule> GenerateSchedulesForWeek(int barberId, DateTime startDate)
-    {
-        var recurringSchedules = _context.RecurringSchedules
-            .Where(rs => rs.BarberId == barberId)
-            .ToList();
+    // public List<Schedule> GenerateSchedulesForWeek(int barberId, DateTime startDate)
+    // {
+    //     var recurringSchedules = _context.RecurringSchedules
+    //         .Where(rs => rs.BarberId == barberId)
+    //         .ToList();
 
-        var schedules = new List<Schedule>();
+    //     var schedules = new List<Schedule>();
 
-        for (int i = 0; i < 7; i++)
-        {
-            var date = startDate.AddDays(i);
-            var dayOfWeek = date.DayOfWeek;
+    //     for (int i = 0; i < 7; i++)
+    //     {
+    //         var date = startDate.AddDays(i);
+    //         var dayOfWeek = date.DayOfWeek;
 
-            var dailySchedules = recurringSchedules
-                .Where(rs => rs.DayOfWeek == dayOfWeek)
-                .Select(rs => new Schedule
-                {
-                    BarberId = barberId,
-                    Date = date,
-                    StartTime = rs.StartTime,
-                    EndTime = rs.EndTime
-                })
-                .ToList();
+    //         var dailySchedules = recurringSchedules
+    //             .Where(rs => rs.DayOfWeek == dayOfWeek)
+    //             .Select(rs => new Schedule
+    //             {
+    //                 BarberId = barberId,
+    //                 Date = date,
+    //                 StartTime = rs.StartTime,
+    //                 EndTime = rs.EndTime
+    //             })
+    //             .ToList();
 
-            schedules.AddRange(dailySchedules);
-        }
+    //         schedules.AddRange(dailySchedules);
+    //     }
 
-        return schedules;
-    }
+    //     return schedules;
+    // }
 
-    public List<TimeSlot> GetAvailableTimeSlots(int barberId, DateTime date)
-    {
-        var recurringSchedules = _context.RecurringSchedules
-            .Where(rs => rs.BarberId == barberId && rs.DayOfWeek == date.DayOfWeek)
-            .ToList();
+    // public List<TimeSlot> GetAvailableTimeSlots(int barberId, DateTime date)
+    // {
+    //     var recurringSchedules = _context.OperatingSchedules
+    //         .Where(rs => rs.BarberId == barberId && rs.DayOfWeek == date.DayOfWeek)
+    //         .ToList();
 
-        var appointments = _context.Appointments
-            .Where(a => a.BarberId == barberId && a.AppointmentDate.Date == date.Date)
-            .ToList();
+    //     var appointments = _context.Appointments
+    //         .Where(a => a.BarberId == barberId && a.AppointmentDate.Date == date.Date)
+    //         .ToList();
 
-        var availableTimeSlots = new List<TimeSlot>();
+    //     var availableTimeSlots = new List<TimeSlot>();
 
-        foreach (var schedule in recurringSchedules)
-        {
-            var startTime = schedule.StartTime;
-            while (startTime < schedule.EndTime)
-            {
-                var endTime = startTime.Add(TimeSpan.FromMinutes(30)); // Assume 30 minutes per appointment
+    //     foreach (var schedule in recurringSchedules)
+    //     {
+    //         var startTime = schedule.StartTime;
+    //         while (startTime < schedule.EndTime)
+    //         {
+    //             var endTime = startTime.Add(TimeSpan.FromMinutes(30)); // Assume 30 minutes per appointment
 
-                if (!appointments.Any(a => a.StartTime < endTime && a.EndTime > startTime))
-                {
-                    availableTimeSlots.Add(new TimeSlot
-                    {
-                        StartTime = startTime,
-                        EndTime = endTime
-                    });
-                }
+    //             if (!appointments.Any(a => a.StartTime < endTime && a.EndTime > startTime))
+    //             {
+    //                 availableTimeSlots.Add(new TimeSlot(
+    //                     startTime,
+    //                     endTime
+    //                 ));
+    //             }
 
-                startTime = endTime;
-            }
-        }
+    //             startTime = endTime;
+    //         }
+    //     }
 
-        return availableTimeSlots;
-    }
+    //     return availableTimeSlots;
+    // }
 
     public Task<IResponseDataModel<ICollection<Schedule>>> GetAllAsync()
     {
@@ -100,3 +99,8 @@ public class ScheduleService(IScheduleRepository scheduleRepository) : ISchedule
         throw new NotImplementedException();
     }
 }
+
+public record TimeSlot(
+    TimeSpan StartTime,
+    TimeSpan EndTime
+);
