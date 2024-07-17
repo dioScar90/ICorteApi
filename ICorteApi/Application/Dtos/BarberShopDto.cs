@@ -11,7 +11,6 @@ public record BarberShopDtoRequest(
     // string OperatingSchedule, // TimeSpan cannot be directly conversion by JSON until .NET v8
     // string ClosingHours, // TimeSpan cannot be directly conversion by JSON until .NET v8
     // string DaysOpen,
-    double? Rating,
     AddressDtoRequest? Address,
     OperatingScheduleDtoRequest[]? OperatingSchedules,
     PersonDtoRequest[]? Barbers

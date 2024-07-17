@@ -15,32 +15,38 @@ public class EmailValidatorAttribute : ValidationAttribute
     
     private bool ValidateEmail(string value)
     {
-        if (string.IsNullOrWhiteSpace(value)) {
+        if (string.IsNullOrWhiteSpace(value))
+        {
             ErrorMessage = "Email não pode estar vazio";
             return false;
         }
         
         string trimmedLowerEmail = value.Trim().ToLower();
         
-        if (trimmedLowerEmail.EndsWith('.')) {
+        if (trimmedLowerEmail.EndsWith('.'))
+        {
             ErrorMessage = "Email incompleto ou com formato inválido";
             return false;
         }
 
-        try {
+        try
+        {
             var addr = new MailAddress(trimmedLowerEmail);
 
-            if (!string.Equals(addr.Address, trimmedLowerEmail, StringComparison.CurrentCultureIgnoreCase)) {
+            if (!string.Equals(addr.Address, trimmedLowerEmail, StringComparison.CurrentCultureIgnoreCase))
+            {
                 ErrorMessage = "Email com formato inválido";
                 return false;
             }
             
             return true;
         }
-        catch (FormatException) {
+        catch (FormatException)
+        {
             ErrorMessage = "Email incompleto ou com formato inválido";
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             ErrorMessage = ex.Message;
         }
 

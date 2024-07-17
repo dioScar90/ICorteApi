@@ -67,7 +67,6 @@ public static class EntityCreator
             Description = barberShopDto.Description ?? default,
             ComercialNumber = barberShopDto.ComercialNumber,
             ComercialEmail = barberShopDto.ComercialEmail,
-            Rating = barberShopDto.Rating ?? default,
 
             Address = barberShopDto.Address?.CreateEntity<Address>(),
             OperatingSchedules = barberShopDto.OperatingSchedules?.Select(oh => oh.CreateEntity<OperatingSchedule>()).ToList(),

@@ -3,8 +3,7 @@ using ICorteApi.Application.Interfaces;
 namespace ICorteApi.Application.Dtos;
 
 public record MessageDtoRequest(
-    string Content,
-    DateTime Timestamp
+    string Content
 ) : IDtoRequest;
 
 public record MessageDtoResponse(
