@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public class ServiceMap : BaseMap<Service>
+public class SpecialScheduleMap : BaseMap<SpecialSchedule>
 {
-    public override void Configure(EntityTypeBuilder<Service> builder)
+    public override void Configure(EntityTypeBuilder<SpecialSchedule> builder)
     {
         base.Configure(builder);
 
         builder.HasOne(s => s.BarberShop)
-            .WithMany(b => b.Services)
+            .WithMany(b => b.SpecialSchedules)
             .HasForeignKey(s => s.BarberShopId);
     }
 }

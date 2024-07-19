@@ -4,17 +4,17 @@ namespace ICorteApi.Application.Dtos;
 
 public record SpecialScheduleDtoRequest(
     DateOnly Date,
-    TimeSpan? OpenTime,
-    TimeSpan? CloseTime,
-    bool IsClosed,
-    string? Notes
+    string? Notes,
+    TimeOnly? OpenTime,
+    TimeOnly? CloseTime,
+    bool IsClosed
 ) : IDtoRequest;
 
 public record SpecialScheduleDtoResponse(
     int Id,
+    string? Notes,
     DateOnly Date,
-    TimeSpan? OpenTime,
-    TimeSpan? CloseTime,
-    bool IsClosed,
-    string? Notes
+    TimeOnly? OpenTime,
+    TimeOnly? CloseTime,
+    bool IsClosed
 ) : IDtoResponse;

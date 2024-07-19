@@ -3,7 +3,7 @@ using ICorteApi.Application.Interfaces;
 namespace ICorteApi.Application.Dtos;
 
 public record ServiceDtoRequest(
-    string Title,
+    string Name,
     string Description,
     decimal Price,
     TimeSpan Duration
@@ -11,7 +11,7 @@ public record ServiceDtoRequest(
 
 public record ServiceDtoResponse(
     int Id,
-    string Title,
+    string Name,
     string Description,
     decimal Price,
     TimeSpan Duration

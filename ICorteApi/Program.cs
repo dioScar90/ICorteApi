@@ -17,18 +17,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         // .UseSqlite(
         //     builder.Configuration.GetConnectionString("SqliteConnection"),
         //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // .UseNpgsql(
-        //     builder.Configuration.GetConnectionString("PostgreSqlConnection"),
-        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        .UseInMemoryDatabase("AppDb")
+        .UseNpgsql(
+            builder.Configuration.GetConnectionString("PostgreSqlConnection"),
+            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+    // .UseInMemoryDatabase("AppDb")
     );
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IBarberShopService, BarberShopService>();
 builder.Services.AddScoped<IBarberShopRepository, BarberShopRepository>();
-builder.Services.AddScoped<IOperatingScheduleService, OperatingScheduleService>();
-builder.Services.AddScoped<IOperatingScheduleRepository, OperatingScheduleRepository>();
+builder.Services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
+builder.Services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
 builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IUserService, UserService>();

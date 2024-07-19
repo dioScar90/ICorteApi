@@ -5,11 +5,11 @@ using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
-public static class OperatingScheduleEndpoint
+public static class RecurringScheduleEndpoint
 {
     private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.OperatingSchedule;
-    private static readonly string ENDPOINT_NAME = EndpointNames.OperatingSchedule;
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.RecurringSchedule;
+    private static readonly string ENDPOINT_NAME = EndpointNames.RecurringSchedule;
 
     public static void Map(WebApplication app)
     {
@@ -17,27 +17,27 @@ public static class OperatingScheduleEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
 
-        group.MapGet(INDEX, GetAllOperatingSchedules);
-        group.MapGet("{dayOfWeek}", GetOperatingSchedule);
-        group.MapPost(INDEX, CreateOperatingSchedule);
-        group.MapPut("{dayOfWeek}", UpdateOperatingSchedule);
-        group.MapDelete("{dayOfWeek}", DeleteOperatingSchedule);
+        group.MapGet(INDEX, GetAllRecurringSchedules);
+        group.MapGet("{dayOfWeek}", GetRecurringSchedule);
+        group.MapPost(INDEX, CreateRecurringSchedule);
+        group.MapPut("{dayOfWeek}", UpdateRecurringSchedule);
+        group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule);
     }
 
-    public static async Task<IResult> GetOperatingSchedule(
+    public static async Task<IResult> GetRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IOperatingScheduleService operatingScheduleService)
+        IRecurringScheduleService recurringScheduleService)
     {
         try
         {
-            var response = await operatingScheduleService.GetByIdAsync(dayOfWeek, barberShopId);
+            var response = await recurringScheduleService.GetByIdAsync(dayOfWeek, barberShopId);
 
             if (!response.Success)
                 return Results.NotFound();
 
-            var operatingScheduleDto = response.Data!.CreateDto<OperatingScheduleDtoResponse>();
-            return Results.Ok(operatingScheduleDto);
+            var recurringScheduleDto = response.Data!.CreateDto<RecurringScheduleDtoResponse>();
+            return Results.Ok(recurringScheduleDto);
         }
         catch (Exception ex)
         {
@@ -45,13 +45,13 @@ public static class OperatingScheduleEndpoint
         }
     }
 
-    public static async Task<IResult> GetAllOperatingSchedules(
+    public static async Task<IResult> GetAllRecurringSchedules(
         int barberShopId,
-        IOperatingScheduleService operatingScheduleService)
+        IRecurringScheduleService recurringScheduleService)
     {
         try
         {
-            var response = await operatingScheduleService.GetAllAsync(barberShopId);
+            var response = await recurringScheduleService.GetAllAsync(barberShopId);
 
             if (!response.Success)
                 return Results.BadRequest(response.Message);
@@ -60,7 +60,7 @@ public static class OperatingScheduleEndpoint
                 return Results.NotFound();
 
             var dtos = response.Data
-                .Select(b => b.CreateDto<OperatingScheduleDtoResponse>())
+                .Select(b => b.CreateDto<RecurringScheduleDtoResponse>())
                 .ToList();
 
             return Results.Ok(dtos);
@@ -71,14 +71,14 @@ public static class OperatingScheduleEndpoint
         }
     }
 
-    public static async Task<IResult> CreateOperatingSchedule(
+    public static async Task<IResult> CreateRecurringSchedule(
         int barberShopId,
-        OperatingScheduleDtoRequest dto,
-        IOperatingScheduleService operatingScheduleService)
+        RecurringScheduleDtoRequest dto,
+        IRecurringScheduleService recurringScheduleService)
     {
         try
         {
-            var response = await operatingScheduleService.CreateAsync(barberShopId, dto);
+            var response = await recurringScheduleService.CreateAsync(barberShopId, dto);
 
             if (!response.Success)
                 Results.BadRequest(response);
@@ -92,15 +92,15 @@ public static class OperatingScheduleEndpoint
         }
     }
 
-    public static async Task<IResult> UpdateOperatingSchedule(
+    public static async Task<IResult> UpdateRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        OperatingScheduleDtoRequest dto,
-        IOperatingScheduleService operatingScheduleService)
+        RecurringScheduleDtoRequest dto,
+        IRecurringScheduleService recurringScheduleService)
     {
         try
         {
-            var response = await operatingScheduleService.UpdateAsync(barberShopId, dto);
+            var response = await recurringScheduleService.UpdateAsync(barberShopId, dto);
 
             if (!response.Success)
                 return Results.NotFound(response);
@@ -113,14 +113,14 @@ public static class OperatingScheduleEndpoint
         }
     }
 
-    public static async Task<IResult> DeleteOperatingSchedule(
+    public static async Task<IResult> DeleteRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IOperatingScheduleService operatingScheduleService)
+        IRecurringScheduleService recurringScheduleService)
     {
         try
         {
-            var resp = await operatingScheduleService.DeleteAsync(dayOfWeek, barberShopId);
+            var resp = await recurringScheduleService.DeleteAsync(dayOfWeek, barberShopId);
 
             if (!resp.Success)
                 return Results.NotFound(resp);

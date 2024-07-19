@@ -14,7 +14,7 @@ public class MessageMap : BaseMap<Message>
             .HasForeignKey(m => m.ConversationId);
 
         builder.HasOne(m => m.Sender)
-            .WithMany(s => s.Messages)
+            .WithMany()
             .HasForeignKey(m => m.SenderId);
     }
 }

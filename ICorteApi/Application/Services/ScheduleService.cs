@@ -52,7 +52,7 @@ public class ScheduleService(IScheduleRepository scheduleRepository) : ISchedule
 
     // public List<TimeSlot> GetAvailableTimeSlots(int barberId, DateTime date)
     // {
-    //     var recurringSchedules = _context.OperatingSchedules
+    //     var recurringSchedules = _context.RecurringSchedules
     //         .Where(rs => rs.BarberId == barberId && rs.DayOfWeek == date.DayOfWeek)
     //         .ToList();
 

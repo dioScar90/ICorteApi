@@ -2,11 +2,11 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-// Mensagem
 public class Message : BaseEntity
 {
     public string Content { get; set; }
-    public DateTime Timestamp { get; set; }
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public bool IsRead { get; set; } = false;
 
     public int ConversationId { get; set; }
     public Conversation Conversation { get; set; }

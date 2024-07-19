@@ -9,32 +9,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class OperatingScheduleRepository(AppDbContext context) : IOperatingScheduleRepository
+public class RecurringScheduleRepository(AppDbContext context) : IRecurringScheduleRepository
 {
     private readonly AppDbContext _context = context;
 
     private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
 
-    public async Task<IResponseModel> CreateAsync(OperatingSchedule operatingSchedule)
+    public async Task<IResponseModel> CreateAsync(RecurringSchedule recurringSchedule)
     {
-        _context.OperatingSchedules.Add(operatingSchedule);
+        _context.RecurringSchedules.Add(recurringSchedule);
         return new ResponseModel(await SaveChangesAsync());
     }
 
-    public async Task<IResponseModel> CreateManyAsync(OperatingSchedule[] operatingSchedule)
+    public async Task<IResponseModel> CreateManyAsync(RecurringSchedule[] recurringSchedule)
     {
-        _context.OperatingSchedules.AddRange(operatingSchedule);
+        _context.RecurringSchedules.AddRange(recurringSchedule);
         return new ResponseModel(await SaveChangesAsync());
     }
 
-    public async Task<IResponseDataModel<OperatingSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
+    public async Task<IResponseDataModel<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var operatingSchedule = await _context.OperatingSchedules
+        var recurringSchedule = await _context.RecurringSchedules
             .SingleOrDefaultAsync(oh => oh.DayOfWeek == dayOfWeek && oh.BarberShopId == barberShopId);
 
-        var response = new ResponseDataModel<OperatingSchedule>(
-            operatingSchedule is not null,
-            operatingSchedule
+        var response = new ResponseDataModel<RecurringSchedule>(
+            recurringSchedule is not null,
+            recurringSchedule
         );
 
         if (!response.Success)
@@ -43,32 +43,32 @@ public class OperatingScheduleRepository(AppDbContext context) : IOperatingSched
         return response;
     }
 
-    public async Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId)
+    public async Task<IResponseDataModel<ICollection<RecurringSchedule>>> GetAllAsync(int barberShopId)
     {
-        var operatingSchedules = await _context.OperatingSchedules
+        var recurringSchedules = await _context.RecurringSchedules
             .Where(oh => oh.BarberShopId == barberShopId).ToListAsync();
-        
-        return new ResponseDataModel<ICollection<OperatingSchedule>>(
-            operatingSchedules is not null,
-            operatingSchedules
+
+        return new ResponseDataModel<ICollection<RecurringSchedule>>(
+            recurringSchedules is not null,
+            recurringSchedules
         );
     }
 
-    public async Task<IResponseModel> UpdateAsync(OperatingSchedule operatingSchedule)
+    public async Task<IResponseModel> UpdateAsync(RecurringSchedule recurringSchedule)
     {
-        _context.OperatingSchedules.Update(operatingSchedule);
+        _context.RecurringSchedules.Update(recurringSchedule);
         return new ResponseModel(await SaveChangesAsync());
     }
 
-    public async Task<IResponseModel> UpdateManyAsync(OperatingSchedule[] operatingSchedule)
+    public async Task<IResponseModel> UpdateManyAsync(RecurringSchedule[] recurringSchedule)
     {
-        _context.OperatingSchedules.UpdateRange(operatingSchedule);
+        _context.RecurringSchedules.UpdateRange(recurringSchedule);
         return new ResponseModel(await SaveChangesAsync());
     }
 
-    public async Task<IResponseModel> DeleteAsync(OperatingSchedule operatingSchedule)
+    public async Task<IResponseModel> DeleteAsync(RecurringSchedule recurringSchedule)
     {
-        _context.OperatingSchedules.Remove(operatingSchedule);
+        _context.RecurringSchedules.Remove(recurringSchedule);
         return new ResponseModel(await SaveChangesAsync());
     }
 }

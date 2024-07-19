@@ -31,7 +31,7 @@ public class ScheduleRepository(AppDbContext context) : IScheduleRepository
 
         if (!response.Success)
             return response with { Message = "Agenda não encontrada" };
-            
+
         return response;
     }
 
@@ -48,8 +48,8 @@ public class ScheduleRepository(AppDbContext context) : IScheduleRepository
     // {
     //     try
     //     {
-    //         var schedule = dto.OperatingSchedules.Length > 0
-    //             ? await _context.Schedules.Include(bs => bs.OperatingSchedules).SingleOrDefaultAsync(b => b.Id == id)
+    //         var schedule = dto.RecurringSchedules.Length > 0
+    //             ? await _context.Schedules.Include(bs => bs.RecurringSchedules).SingleOrDefaultAsync(b => b.Id == id)
     //             : await _context.Schedules.SingleOrDefaultAsync(b => b.Id == id);
 
     //         if (schedule is null)

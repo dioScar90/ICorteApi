@@ -6,10 +6,10 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IPersonService
 {
-       Task<IResponseModel> CreateAsync(Person person);
-       Task<IResponseDataModel<Person>> GetByIdAsync(int userId);
-       Task<IResponseDataModel<BarberShop>> GetMyBarberShopAsync();
-       Task<IResponseDataModel<ICollection<Person>>> GetAllAsync(int page, int pageSize);
-       Task<IResponseModel> UpdateAsync(int userId, PersonDtoRequest dto);
-       Task<IResponseModel> DeleteAsync(int userId);
+       Task<IResponse> CreateAsync(Person person);
+       Task<ISingleResponse<Person>> GetByIdAsync(int userId);
+       Task<ISingleResponse<BarberShop>> GetMyBarberShopAsync();
+       Task<ICollectionResponse<Person>> GetAllAsync(int page, int pageSize);
+       Task<IResponse> UpdateAsync(int userId, PersonDtoRequest dto);
+       Task<IResponse> DeleteAsync(int userId);
 }

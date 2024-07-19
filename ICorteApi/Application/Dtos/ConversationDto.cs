@@ -3,11 +3,10 @@ using ICorteApi.Application.Interfaces;
 namespace ICorteApi.Application.Dtos;
 
 public record ConversationDtoRequest(
-    int BarberId,
-    int ClientId
+    DateTime? LastMessageAt
 ) : IDtoRequest;
 
 public record ConversationDtoResponse(
-    int BarberId,
-    int ClientId
+    int Id,
+    DateTime? LastMessageAt
 ) : IDtoResponse;

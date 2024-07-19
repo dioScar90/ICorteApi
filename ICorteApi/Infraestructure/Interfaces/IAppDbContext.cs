@@ -15,6 +15,6 @@ public interface IAppDbContext
     // DbSet<RecurringSchedule> RecurringSchedules { get; set; }
     // DbSet<Service> Services { get; set; }
     // DbSet<AppointmentService> AppointmentServices { get; set; }
-    // DbSet<PersonConversation> PersonConversations { get; set; }
+    // DbSet<ConversationParticipant> ConversationParticipants { get; set; }
     // DbSet<Report> Reports { get; set; }
 }

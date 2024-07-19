@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class OperatingScheduleDtoRequestValidator : AbstractValidator<OperatingScheduleDtoRequest>
+public class RecurringScheduleDtoRequestValidator : AbstractValidator<RecurringScheduleDtoRequest>
 {
-    public OperatingScheduleDtoRequestValidator()
+    public RecurringScheduleDtoRequestValidator()
     {
         RuleFor(x => x.DayOfWeek)
             .NotEmpty().WithMessage("Dia da semana é obrigatório")

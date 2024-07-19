@@ -20,8 +20,8 @@ public static class EntityUpdater
             case (BarberShop barberShop, BarberShopDtoRequest barberShopDto):
                 UpdateBarberShopByDto(barberShop, barberShopDto, utcNow);
                 break;
-            case (OperatingSchedule opSchedule, OperatingScheduleDtoRequest opScheduleDto):
-                UpdateOperatingScheduleByDto(opSchedule, opScheduleDto, utcNow);
+            case (RecurringSchedule opSchedule, RecurringScheduleDtoRequest opScheduleDto):
+                UpdateRecurringScheduleByDto(opSchedule, opScheduleDto, utcNow);
                 break;
             case (Address address, AddressDtoRequest addressDto):
                 UpdateAddressByDto(address, addressDto, utcNow);
@@ -49,7 +49,7 @@ public static class EntityUpdater
 
         person.UpdatedAt = utcNow;
     }
-    
+
     private static void UpdateBarberShopByDto(BarberShop barberShop, BarberShopDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
@@ -59,27 +59,27 @@ public static class EntityUpdater
         barberShop.ComercialNumber = dto.ComercialNumber;
         barberShop.ComercialEmail = dto.ComercialEmail;
 
-        var itemsToUpdateByOperatingSchedules =
-            from os in dto.OperatingSchedules
-            join bs in barberShop.OperatingSchedules on os.DayOfWeek equals bs.DayOfWeek
+        var itemsToUpdateByRecurringSchedules =
+            from os in dto.RecurringSchedules
+            join bs in barberShop.RecurringSchedules on os.DayOfWeek equals bs.DayOfWeek
             select new { bs, os };
 
-        foreach (var updatingItems in itemsToUpdateByOperatingSchedules)
+        foreach (var updatingItems in itemsToUpdateByRecurringSchedules)
             updatingItems.bs.UpdateEntityByDto(updatingItems.os, utcNow);
 
         if (dto.Address is not null)
             barberShop.Address?.UpdateEntityByDto(dto.Address, utcNow);
-        
+
         barberShop.UpdatedAt = utcNow;
     }
 
-    private static void UpdateOperatingScheduleByDto(OperatingSchedule opSchedule, OperatingScheduleDtoRequest dto, DateTime? utcNow = null)
+    private static void UpdateRecurringScheduleByDto(RecurringSchedule opSchedule, RecurringScheduleDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
         opSchedule.OpenTime = dto.OpenTime;
         opSchedule.CloseTime = dto.CloseTime;
-        
+
         opSchedule.UpdatedAt = utcNow;
     }
 

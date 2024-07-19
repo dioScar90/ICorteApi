@@ -16,7 +16,7 @@
 //             UserDtoRegisterRequest registerDto          => MapDtoToUser(registerDto) as TEntity!,
 //             PersonDtoRequest personDto                  => MapDtoToPerson(personDto) as TEntity!,
 //             BarberShopDtoRequest barberShopDto          => MapDtoToBarberShop(barberShopDto) as TEntity!,
-//             OperatingScheduleDtoRequest opScheduleDto   => MapDtoToOperatingSchedule(opScheduleDto) as TEntity!,
+//             RecurringScheduleDtoRequest opScheduleDto   => MapDtoToRecurringSchedule(opScheduleDto) as TEntity!,
 //             AddressDtoRequest addressDto                => MapDtoToAddress(addressDto) as TEntity!,
 //             _ => null
 //         };
@@ -42,12 +42,12 @@
 //     private static TimeSpan GetTimeSpanValue(string value) =>
 //         TimeSpan.TryParse(value, out TimeSpan timeSpan) ? timeSpan : default;
 
-//     // private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetOperatingScheduleDictionary(
-//     //     Dictionary<DayOfWeek, (string, string)> operatingSchedule)
+//     // private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetRecurringScheduleDictionary(
+//     //     Dictionary<DayOfWeek, (string, string)> recurringSchedule)
 //     // {
 //     //     var newDict = new Dictionary<DayOfWeek, (TimeSpan, TimeSpan)>();
 
-//     //     foreach (var item in operatingSchedule)
+//     //     foreach (var item in recurringSchedule)
 //     //     {
 //     //         newDict.Add(item.Key, (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item1)));
 //     //     }
@@ -55,9 +55,9 @@
 //     //     return newDict;
 //     // }
 
-//     private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetOperatingScheduleDictionary(
-//         Dictionary<DayOfWeek, (string, string)> operatingSchedule) =>
-//         operatingSchedule.ToDictionary(
+//     private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetRecurringScheduleDictionary(
+//         Dictionary<DayOfWeek, (string, string)> recurringSchedule) =>
+//         recurringSchedule.ToDictionary(
 //             item => item.Key,
 //             item => (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item2))
 //         );
@@ -71,22 +71,22 @@
 //             ComercialEmail = barberShopDto.ComercialEmail,
 
 //             Address = barberShopDto.Address?.CreateEntity<Address>(),
-//             OperatingSchedules = barberShopDto.OperatingSchedules?.Select(oh => oh.CreateEntity<OperatingSchedule>()).ToList(),
+//             RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity<RecurringSchedule>()).ToList(),
 //             Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
 //         };
 
-//     private static OperatingSchedule MapDtoToOperatingSchedule(OperatingScheduleDtoRequest operatingScheduleDto) =>
+//     private static RecurringSchedule MapDtoToRecurringSchedule(RecurringScheduleDtoRequest recurringScheduleDto) =>
 //         new()
 //         {
-//             DayOfWeek = operatingScheduleDto.DayOfWeek,
+//             DayOfWeek = recurringScheduleDto.DayOfWeek,
 
-//             // OpenTime = GetTimeSpanValue(operatingScheduleDto.OpenTime),
-//             // CloseTime = GetTimeSpanValue(operatingScheduleDto.CloseTime),
+//             // OpenTime = GetTimeSpanValue(recurringScheduleDto.OpenTime),
+//             // CloseTime = GetTimeSpanValue(recurringScheduleDto.CloseTime),
 
-//             OpenTime = operatingScheduleDto.OpenTime,
-//             CloseTime = operatingScheduleDto.CloseTime,
+//             OpenTime = recurringScheduleDto.OpenTime,
+//             CloseTime = recurringScheduleDto.CloseTime,
 
-//             IsActive = operatingScheduleDto.IsActive,
+//             IsActive = recurringScheduleDto.IsActive,
 //         };
 
 //     private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>

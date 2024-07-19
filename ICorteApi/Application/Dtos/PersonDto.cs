@@ -4,17 +4,12 @@ namespace ICorteApi.Application.Dtos;
 
 public record PersonDtoRequest(
     string FirstName,
-    string LastName,
-    AddressDtoRequest[] Addresses
+    string LastName
 ) : IDtoRequest;
 
 public record PersonDtoResponse(
     int UserId,
     string FirstName,
     string LastName,
-    DateOnly? LastVisitDate,
-    string[] Roles,
     BarberShopDtoResponse? OwnedBarberShop
-// UserRole[] Roles
-// AddressDtoResponse[] Addresses
 ) : IDtoResponse;

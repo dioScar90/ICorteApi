@@ -8,14 +8,9 @@ public record BarberShopDtoRequest(
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    // string OperatingSchedule, // TimeSpan cannot be directly conversion by JSON until .NET v8
-    // string ClosingHours, // TimeSpan cannot be directly conversion by JSON until .NET v8
-    // string DaysOpen,
     AddressDtoRequest? Address,
-    OperatingScheduleDtoRequest[]? OperatingSchedules,
+    RecurringScheduleDtoRequest[]? RecurringSchedules,
     PersonDtoRequest[]? Barbers
-// Schedule[]? Schedules,
-// Service[]? Services
 ) : IDtoRequest;
 
 public record BarberShopDtoResponse(
@@ -24,11 +19,7 @@ public record BarberShopDtoResponse(
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    double? Rating,
-
     AddressDtoResponse? Address,
-    OperatingScheduleDtoResponse[]? OperatingSchedules,
+    RecurringScheduleDtoResponse[]? RecurringSchedules,
     PersonDtoResponse[]? Barbers
-// Schedule[]? Schedules,
-// Service[]? Services
 ) : IDtoResponse;

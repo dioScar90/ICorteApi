@@ -30,7 +30,7 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     {
         var barberShop = await _context.BarberShops
             .Include(b => b.Address)
-            .Include(b => b.OperatingSchedules)
+            .Include(b => b.RecurringSchedules)
             .SingleOrDefaultAsync(b => b.Id == id);
 
         if (barberShop is null)
@@ -65,8 +65,8 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
     // {
     //     try
     //     {
-    //         var barberShop = dto.OperatingSchedules.Length > 0
-    //             ? await _context.BarberShops.Include(bs => bs.OperatingSchedules).SingleOrDefaultAsync(b => b.Id == id)
+    //         var barberShop = dto.RecurringSchedules.Length > 0
+    //             ? await _context.BarberShops.Include(bs => bs.RecurringSchedules).SingleOrDefaultAsync(b => b.Id == id)
     //             : await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
 
     //         if (barberShop is null)

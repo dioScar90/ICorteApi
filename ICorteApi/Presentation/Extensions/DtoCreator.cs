@@ -12,11 +12,11 @@ public static class DtoCreator
     {
         return entity switch
         {
-            User user                       => MapUserToDto(user) as TDto,
-            Person person                   => MapPersonToDto(person) as TDto,
-            BarberShop barberShop           => MapBarberShopToDto(barberShop) as TDto,
-            OperatingSchedule opSchedule    => MapOperatingScheduleToDto(opSchedule) as TDto,
-            Address address                 => MapAddressToDto(address) as TDto,
+            User user => MapUserToDto(user) as TDto,
+            Person person => MapPersonToDto(person) as TDto,
+            BarberShop barberShop => MapBarberShopToDto(barberShop) as TDto,
+            RecurringSchedule opSchedule => MapRecurringScheduleToDto(opSchedule) as TDto,
+            Address address => MapAddressToDto(address) as TDto,
             _ => null
         };
     }
@@ -56,17 +56,17 @@ public static class DtoCreator
             barberShop.ComercialEmail,
             barberShop.Rating,
             barberShop.Address?.CreateDto<AddressDtoResponse>(),
-            barberShop.OperatingSchedules?.Select(b => b.CreateDto<OperatingScheduleDtoResponse>()).ToArray(),
+            barberShop.RecurringSchedules?.Select(b => b.CreateDto<RecurringScheduleDtoResponse>()).ToArray(),
             barberShop.Barbers?.Select(b => b.CreateDto<PersonDtoResponse>()).ToArray()
         );
 
-    private static OperatingScheduleDtoResponse MapOperatingScheduleToDto(OperatingSchedule operatingSchedule) =>
+    private static RecurringScheduleDtoResponse MapRecurringScheduleToDto(RecurringSchedule recurringSchedule) =>
         new(
-            operatingSchedule.DayOfWeek,
-            operatingSchedule.BarberShopId,
-            operatingSchedule.OpenTime,
-            operatingSchedule.CloseTime,
-            operatingSchedule.IsActive
+            recurringSchedule.DayOfWeek,
+            recurringSchedule.BarberShopId,
+            recurringSchedule.OpenTime,
+            recurringSchedule.CloseTime,
+            recurringSchedule.IsActive
         );
 
     private static AddressDtoResponse MapAddressToDto(Address address) =>

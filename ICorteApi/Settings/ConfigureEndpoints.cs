@@ -13,17 +13,17 @@ public static class ConfigureEndpoints
         //     // endpoints.MapAuthEndpoint();
         //     endpoints.MapPersonEndpoint();
         //     endpoints.MapBarberShopEndpoint();
-        //     // endpoints.MapOperatingScheduleEndpoint();
+        //     // endpoints.MapRecurringScheduleEndpoint();
         //     endpoints.MapAddressEndpoint();
         // });
 
         app.MapGet("/", () => "Hello World!");
-        
+
         PersonEndpoint.Map(app);
 
         BarberShopEndpoint.Map(app);
 
-        OperatingScheduleEndpoint.Map(app);
+        RecurringScheduleEndpoint.Map(app);
 
         AddressEndpoint.Map(app);
 

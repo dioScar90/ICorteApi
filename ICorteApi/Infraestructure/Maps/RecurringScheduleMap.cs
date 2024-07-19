@@ -3,14 +3,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public class ServiceMap : BaseMap<Service>
+public class RecurringScheduleMap : BaseMap<RecurringSchedule>
 {
-    public override void Configure(EntityTypeBuilder<Service> builder)
+    public override void Configure(EntityTypeBuilder<RecurringSchedule> builder)
     {
         base.Configure(builder);
 
+        builder.HasKey(pcv => new { pcv.DayOfWeek, pcv.BarberShopId });
+
         builder.HasOne(s => s.BarberShop)
-            .WithMany(b => b.Services)
+            .WithMany(b => b.RecurringSchedules)
             .HasForeignKey(s => s.BarberShopId);
     }
 }

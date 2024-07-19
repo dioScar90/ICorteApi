@@ -5,13 +5,13 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Interfaces;
 
-public interface IOperatingScheduleRepository
+public interface IRecurringScheduleRepository
 {
-    Task<IResponseModel> CreateAsync(OperatingSchedule operatingSchedule);
-    Task<IResponseModel> CreateManyAsync(OperatingSchedule[] operatingSchedule);
-    Task<IResponseDataModel<OperatingSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
-    Task<IResponseDataModel<ICollection<OperatingSchedule>>> GetAllAsync(int barberShopId);
-    Task<IResponseModel> UpdateAsync(OperatingSchedule operatingSchedule);
-    Task<IResponseModel> UpdateManyAsync(OperatingSchedule[] operatingSchedule);
-    Task<IResponseModel> DeleteAsync(OperatingSchedule operatingSchedule);
+    Task<IResponseModel> CreateAsync(RecurringSchedule recurringSchedule);
+    Task<IResponseModel> CreateManyAsync(RecurringSchedule[] recurringSchedule);
+    Task<IResponseDataModel<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
+    Task<IResponseDataModel<ICollection<RecurringSchedule>>> GetAllAsync(int barberShopId);
+    Task<IResponseModel> UpdateAsync(RecurringSchedule recurringSchedule);
+    Task<IResponseModel> UpdateManyAsync(RecurringSchedule[] recurringSchedule);
+    Task<IResponseModel> DeleteAsync(RecurringSchedule recurringSchedule);
 }

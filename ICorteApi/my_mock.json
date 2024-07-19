@@ -2,13 +2,11 @@
     {
         "email": "lionel@messi.com.br",
         "password": "Dunno#2024"
-    }
-    ,
+    },
     {
         "firstName": "Lionel",
         "lastName": "Messi"
-    }
-    ,
+    },
     {
         "name": "Barbearia de Messi",
         "description": "Que, bobo!?",
@@ -23,7 +21,7 @@
             "postalCode": "19167000",
             "country": "Brasil"
         },
-        "operatingSchedules": [
+        "recurringSchedules": [
             {
                 "dayOfWeek": 1,
                 "openTime": "09:00:00",

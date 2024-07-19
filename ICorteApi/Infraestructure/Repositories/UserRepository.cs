@@ -23,7 +23,7 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
 
         if (!response.Success || !int.TryParse(_userManager.GetUserId(user), out int userId))
             return response with { Message = "Unauthorized" };
-            
+
         var userEntity = await _userManager.FindByIdAsync(userId.ToString());
 
         if (userEntity is null)
@@ -59,7 +59,7 @@ public class UserRepository(AppDbContext context, IHttpContextAccessor httpConte
     //         barberShop.PhoneNumber = dto.PhoneNumber;
     //         barberShop.ComercialNumber = dto.ComercialNumber;
     //         barberShop.ComercialEmail = dto.ComercialEmail;
-    //         barberShop.OperatingSchedule = dto.OperatingSchedule;
+    //         barberShop.RecurringSchedule = dto.RecurringSchedule;
     //         barberShop.ClosingHours = dto.ClosingHours;
     //         barberShop.DaysOpen = dto.DaysOpen;
 
