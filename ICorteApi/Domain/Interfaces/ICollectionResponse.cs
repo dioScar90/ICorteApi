@@ -5,6 +5,12 @@ namespace ICorteApi.Domain.Interfaces;
 public interface ICollectionResponse<T> : IResponse where T : IBaseTableEntity
 {
     ICollection<T>? Values { get; }
-    // ICollectionResponse<TValue> Success<TValue>(ICollection<TValue> values) where TValue : IBaseTableEntity;
-    // ICollectionResponse<TValue> FailureCollection<TValue>(Error error) where TValue : IBaseTableEntity;
+}
+
+public interface ICollectionResponseWithPagination<T> : ICollectionResponse<T> where T : IBaseTableEntity
+{
+    int TotalItems { get; }
+    int TotalPages { get; }
+    int CurrentPage { get; }
+    int PageSize { get; }
 }

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
@@ -36,7 +37,7 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
     }
 
     public async Task<ICollectionResponse<Person>> GetAllAsync(
-        int page, int pageSize, Expression<Func<Person, bool>>? filter)
+        int page, int pageSize, Func<Person, bool>? filter)
     {
         var people = await _context.People
             .AsNoTracking()

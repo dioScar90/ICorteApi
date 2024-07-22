@@ -23,7 +23,6 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
         return await SaveChangesAsync()
             ? Response.Success()
             : Response.Failure(new Error("Nao", "Rolou"));
-        // return new Result(await SaveChangesAsync());
     }
 
     public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
@@ -60,25 +59,6 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
         // );
     }
 
-    // public async Task<IResponse> UpdateAsync(int id, BarberShopDtoRequest dto)
-    // {
-    //     try
-    //     {
-    //         var barberShop = dto.RecurringSchedules.Length > 0
-    //             ? await _context.BarberShops.Include(bs => bs.RecurringSchedules).SingleOrDefaultAsync(b => b.Id == id)
-    //             : await _context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
-
-    //         if (barberShop is null)
-    //             return new ResponseModel { Success = false };
-
-    //         barberShop.UpdateEntityByDto(dto);
-    //         return new ResponseModel { Success = await SaveChangesAsync() };
-    //     }
-    //     catch (Exception)
-    //     {
-    //         throw;
-    //     }
-    // }
 
     public async Task<IResponse> UpdateAsync(BarberShop barberShop)
     {
@@ -86,7 +66,6 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
         return await SaveChangesAsync()
             ? Response.Success()
             : Response.Failure(new Error("Nao", "Rolou"));
-        // return new Result(await SaveChangesAsync());
     }
 
     public async Task<IResponse> DeleteAsync(int id)
@@ -96,12 +75,10 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
 
         if (!response.Success)
             return Response.Failure(new Error("Nao", "Rolou"));
-        // return response with { Message = "Barbearia não encontrada" };
 
         _context.BarberShops.Remove(barberShop!);
         return await SaveChangesAsync()
             ? Response.Success()
             : Response.Failure(new Error("Nao", "Rolou"));
-        // return response with { Success = await SaveChangesAsync() };
     }
 }

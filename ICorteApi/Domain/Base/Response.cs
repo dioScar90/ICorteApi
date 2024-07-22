@@ -28,6 +28,10 @@ public abstract record Response : IResponse
 
     public static CollectionResponse<TValue> Success<TValue>(ICollection<TValue> values)
         where TValue : IBaseTableEntity => new(values, true, Error.None);
+    
+    public static CollectionResponseWithPagination<TValue> Success<TValue>(
+        ICollection<TValue> values, int totalItems, int totalPages, int currentPage, int pageSize)
+        where TValue : IBaseTableEntity => new(values, true, Error.None, int totalItems, int totalPages, int currentPage, int pageSize);
 
     public static Response Failure(Error error) => new FailureResponse(error);
 
@@ -43,23 +47,27 @@ public record SingleResponse<TValue>(TValue? Value, bool IsSuccess, Error Error)
 {
     [NotNull]
     public TValue? Value { get; } = Value;
-
-    // public static implicit operator SingleResponse<TValue>(TValue? value) =>
-    //     value is not null
-    //         ? new SingleResponse<TValue>(value, true, Error.None)
-    //         : new SingleResponse<TValue>(default, false, Error.NullValue);
 }
 
-public record CollectionResponse<TValue>(ICollection<TValue>? Values, bool IsSuccess, Error Error)
+public record CollectionResponseWithPagination<TValue>(
+    ICollection<TValue> Values, bool IsSuccess, Error Error,
+    int TotalItems, int TotalPages, int CurrentPage, int PageSize)
+    : Response(IsSuccess, Error), ICollectionResponseWithPagination<TValue> where TValue : IBaseTableEntity
+{
+    [NotNull]
+    public ICollection<TValue> Values { get; } = Values;
+    public int TotalItems { get; } = TotalItems;
+    public int TotalPages { get; } = TotalPages;
+    public int CurrentPage { get; } = CurrentPage;
+    public int PageSize { get; } = PageSize;
+}
+
+public record CollectionResponse<TValue>(
+    ICollection<TValue> Values, bool IsSuccess, Error Error)
     : Response(IsSuccess, Error), ICollectionResponse<TValue> where TValue : IBaseTableEntity
 {
     [NotNull]
-    public ICollection<TValue>? Values { get; } = Values;
-
-    // public static CollectionResponse<TValue> FromValues(ICollection<TValue>? values) =>
-    //     values is not null
-    //         ? new CollectionResponse<TValue>(values, true, Error.None)
-    //         : new CollectionResponse<TValue>(default, false, Error.NullValue);
+    public ICollection<TValue> Values { get; } = Values;
 }
 
 public record SuccessResponse()
