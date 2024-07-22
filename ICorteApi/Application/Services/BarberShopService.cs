@@ -1,15 +1,18 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class BarberShopService(IBarberShopRepository barberShopRepository) : IBarberShopService
+public class BarberShopService(IBarberShopRepository barberShopRepository, IUserService userService) : IBarberShopService
 {
     private readonly IBarberShopRepository _repository = barberShopRepository;
+    private readonly IUserService _userService = userService;
 
     public async Task<IResponse> CreateAsync(BarberShop barberShop)
     {
@@ -29,6 +32,16 @@ public class BarberShopService(IBarberShopRepository barberShopRepository) : IBa
     public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
     {
         return await _repository.GetByIdAsync(id);
+    }
+
+    public async Task<ISingleResponse<BarberShop>> GetMyBarberShopAsync()
+    {
+        var myUserId = await _userService.GetUserIdAsync();
+
+        if (myUserId is null)
+            return Response.Failure<BarberShop>(Error.UserNotFound);
+        
+        return await _repository.GetMyBarberShopAsync((int)myUserId);
     }
 
     public async Task<IResponse> UpdateAsync(int id, BarberShopDtoRequest dto)

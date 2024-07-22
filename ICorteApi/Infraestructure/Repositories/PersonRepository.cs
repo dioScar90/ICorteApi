@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
@@ -15,49 +16,52 @@ public class PersonRepository(AppDbContext context) : IPersonRepository
 
     private async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
 
-    public async Task<IResponseModel> CreateAsync(Person person)
+    private async Task<IResponse> GetResponseBySaveChangesAsyn() =>
+        await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.BadSave);
+
+    public async Task<IResponse> CreateAsync(Person person)
     {
         _context.People.Add(person);
-        return new ResponseModel(await SaveChangesAsync());
+        return await GetResponseBySaveChangesAsyn();
     }
 
-    public async Task<IResponseDataModel<Person>> GetByIdAsync(int userId)
+    public async Task<ISingleResponse<Person>> GetByIdAsync(int userId)
     {
         var person = await _context.People.Include(p => p.OwnedBarberShop).SingleOrDefaultAsync(p => p.UserId == userId);
-        var response = new ResponseDataModel<Person>(person is not null, person);
 
-        if (!response.Success)
-            return response with { Message = "Não há ninguém com esse nome aqui" };
-            
-        return response;
+        if (person is null)
+            return Response.Failure<Person>(Error.PersonNotFound);
+        
+        return Response.Success(person);
     }
 
-    public async Task<IResponseDataModel<ICollection<Person>>> GetAllAsync(
+    public async Task<ICollectionResponse<Person>> GetAllAsync(
         int page, int pageSize, Expression<Func<Person, bool>>? filter)
     {
-        var people = await _context.People.ToListAsync();
+        var people = await _context.People
+            .AsNoTracking()
+            .ToListAsync();
 
-        return new ResponseDataModel<ICollection<Person>>(
-            people is not null,
-            people
-        );
+        if (people is null)
+            return Response.FailureCollection<Person>(Error.PersonNotFound);
+        
+        return Response.Success(people);
     }
 
-    public async Task<IResponseModel> UpdateAsync(Person person)
+    public async Task<IResponse> UpdateAsync(Person person)
     {
         _context.People.Update(person);
-        return new ResponseModel(await SaveChangesAsync());
+        return await GetResponseBySaveChangesAsyn();
     }
 
-    public async Task<IResponseModel> DeleteAsync(int userId)
+    public async Task<IResponse> DeleteAsync(int userId)
     {
         var person = await _context.People.SingleOrDefaultAsync(p => p.UserId == userId);
-        var response = new ResponseModel(person is not null);
 
-        if (!response.Success)
-            return response with { Message = "Usuário não encontrado" };
-
+        if (person is null)
+            return Response.Failure(Error.PersonNotFound);
+        
         _context.People.Remove(person!);
-        return response with { Success = await SaveChangesAsync() };
+        return await GetResponseBySaveChangesAsyn();
     }
 }

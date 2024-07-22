@@ -5,7 +5,6 @@ using ICorteApi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Presentation.Exceptions;
-using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -40,19 +39,9 @@ public static class PersonEndpoint
 
     public static async Task<IResult> CreatePerson(
         PersonDtoRequest dto,
-        // ClaimsPrincipal user,
-        // UserManager<User> userManager,
         [FromServices] IUserService userService,
         [FromServices] IPersonService personService)
     {
-        // if (!int.TryParse(userManager.GetUserId(user), out int userId))
-        //     return Results.NotFound(new { Message = "Paranoid" });
-
-        // var userToUpdate = await userManager.FindByIdAsync(userId.ToString());
-
-        // if (userToUpdate is null)
-        //     return Results.NotFound(new { Message = "Sua mãe é minha" });
-
         var userResponse = await userService.GetAsync();
 
         if (!userResponse.Success)
@@ -63,15 +52,13 @@ public static class PersonEndpoint
 
         var personResponse = await personService.CreateAsync(newPerson);
 
-        if (!personResponse.Success)
-            return Results.BadRequest(personResponse);
+        if (!personResponse.IsSuccess)
+            return Results.BadRequest(personResponse.Error);
 
         return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Usuário criado com sucesso" });
     }
 
     public static async Task<IResult> GetMe(
-        // ClaimsPrincipal user,
-        // UserManager<User> userManager,
         [FromServices] IUserService userService,
         [FromServices] IPersonService personService)
     {
@@ -88,11 +75,11 @@ public static class PersonEndpoint
         
         var personResponse = await personService.GetByIdAsync(userResponse.Data.Id);
 
-        if (!personResponse.Success)
+        if (!personResponse.IsSuccess)
             throw new PersonNotFoundException();
             // return Results.NotFound(personResponse);
 
-        var personDto = personResponse.Data!.CreateDto<PersonDtoResponse>();
+        var personDto = personResponse.Value!.CreateDto<PersonDtoResponse>();
         return Results.Ok(personDto);
     }
 

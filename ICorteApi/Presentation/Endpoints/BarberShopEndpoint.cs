@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ICorteApi.Application.Interfaces;
+﻿using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using ICorteApi.Presentation.Enums;
@@ -104,11 +102,11 @@ public static class BarberShopEndpoint
 
             var respPerson = await personService.GetByIdAsync((int)ownerId);
 
-            if (!respPerson.Success)
+            if (!respPerson.IsSuccess)
                 return Results.BadRequest();
 
             var newBarberShop = dto.CreateEntity<BarberShop>()!;
-            newBarberShop.OwnerId = respPerson.Data!.UserId;
+            newBarberShop.OwnerId = respPerson.Value!.UserId;
 
             var response = await barberShopService.CreateAsync(newBarberShop);
 
@@ -140,19 +138,15 @@ public static class BarberShopEndpoint
         }
     }
 
-    public static async Task<IResult> DeleteBarberShop(int id, AppDbContext context)
+    public static async Task<IResult> DeleteBarberShop(int id, IBarberShopService barberShopService)
     {
         try
         {
-            var barberShop = await context.BarberShops.SingleOrDefaultAsync(b => b.Id == id);
+            var response = await barberShopService.DeleteAsync(id);
 
-            if (barberShop is null)
-                return Results.NotFound();
+            if (!response.IsSuccess)
+                return Results.BadRequest(response.Error);
 
-            barberShop.UpdatedAt = DateTime.UtcNow;
-            barberShop.IsDeleted = true;
-
-            await context.SaveChangesAsync();
             return Results.NoContent();
         }
         catch (Exception ex)

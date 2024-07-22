@@ -34,16 +34,15 @@ public class BarberShopRepository(AppDbContext context) : IBarberShopRepository
             .SingleOrDefaultAsync(b => b.Id == id);
 
         if (barberShop is null)
-            return Response.Failure<BarberShop>(new Error("Not", "Found"));
+            return Response.Failure<BarberShop>(Error.BarberShopNotFound);
 
         return Response.Success(barberShop);
+    }
 
-        //  var response = new ResponseDataModel<BarberShop>(barberShop is not null, barberShop);
-
-        // if (response.Data is null)
-        //     return response with { Message = "Barbeiro não encontrado" };
-
-        // return response;
+    public async Task<ISingleResponse<BarberShop>> GetMyBarberShopAsync(int ownerId)
+    {
+        var barberShop = await _context.BarberShops.SingleOrDefaultAsync(b => b.OwnerId == ownerId);
+        return barberShop is null ? Response.Failure<BarberShop>(Error.BarberShopNotFound) : Response.Success(barberShop);
     }
 
     public async Task<ICollectionResponse<BarberShop>> GetAllAsync(
