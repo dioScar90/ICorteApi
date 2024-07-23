@@ -50,7 +50,7 @@ public abstract class BaseRepository<TEntity, TKey>(AppDbContext context, DbSet<
         IQueryable<TEntity> query = _table.AsNoTracking();
 
         if (filter is not null)
-            query = query.Where(filter);
+            _ = query.Where(filter);
         
         // Aplica paginação
         var totalItems = await query.CountAsync();

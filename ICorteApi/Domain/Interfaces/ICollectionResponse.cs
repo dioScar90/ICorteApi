@@ -1,13 +1,11 @@
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Interfaces;
 
-public interface ICollectionResponse<T> : IResponse where T : IBaseTableEntity
+public interface ICollectionResponse<T> : IResponse where T : class, IBaseTableEntity
 {
     ICollection<T>? Values { get; }
 }
 
-public interface ICollectionResponseWithPagination<T> : ICollectionResponse<T> where T : IBaseTableEntity
+public interface ICollectionResponseWithPagination<T> : ICollectionResponse<T> where T : class, IBaseTableEntity
 {
     int TotalItems { get; }
     int TotalPages { get; }
