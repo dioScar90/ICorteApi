@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -11,7 +12,7 @@ public record BarberShopDtoRequest(
     AddressDtoRequest? Address,
     RecurringScheduleDtoRequest[]? RecurringSchedules,
     PersonDtoRequest[]? Barbers
-) : IDtoRequest;
+) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoResponse(
     int Id,
@@ -22,4 +23,4 @@ public record BarberShopDtoResponse(
     AddressDtoResponse? Address,
     RecurringScheduleDtoResponse[]? RecurringSchedules,
     PersonDtoResponse[]? Barbers
-) : IDtoResponse;
+) : IDtoResponse<BarberShop>;

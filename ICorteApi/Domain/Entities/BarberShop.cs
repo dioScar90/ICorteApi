@@ -1,8 +1,9 @@
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class BarberShop : BaseEntity
+public class BarberShop : BaseEntity, IPrimaryKeyEntity<int>
 {
     public string Name { get; set; }
     public string? Description { get; set; }
@@ -20,4 +21,6 @@ public class BarberShop : BaseEntity
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Service> Services { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
+    
+    public int Key => Id;
 }

@@ -9,15 +9,15 @@
 
 // public static class DtoValidator
 // {
-//     public static Error[] ValidateDto<TEntity>(this IDtoRequest? dtoRequest) where TEntity : class, IBaseTableEntity
+//     public static Error[] ValidateDto<TEntity>(this IDtoRequest<TEntity>? dtoRequest) where TEntity : class, IBaseTableEntity
 //     {
 //         return dtoRequest switch
 //         {
-//             UserDtoRegisterRequest registerDto          => MapDtoToUser(registerDto) as TEntity!,
-//             PersonDtoRequest personDto                  => MapDtoToPerson(personDto) as TEntity!,
-//             BarberShopDtoRequest barberShopDto          => MapDtoToBarberShop(barberShopDto) as TEntity!,
-//             RecurringScheduleDtoRequest opScheduleDto   => MapDtoToRecurringSchedule(opScheduleDto) as TEntity!,
-//             AddressDtoRequest addressDto                => MapDtoToAddress(addressDto) as TEntity!,
+//             UserDtoRegisterRequest registerDto          => MapDtoToUser(registerDto) as Error[],
+//             PersonDtoRequest personDto                  => MapDtoToPerson(personDto) as Error[],
+//             BarberShopDtoRequest barberShopDto          => MapDtoToBarberShop(barberShopDto) as Error[],
+//             RecurringScheduleDtoRequest opScheduleDto   => MapDtoToRecurringSchedule(opScheduleDto) as Error[],
+//             AddressDtoRequest addressDto                => MapDtoToAddress(addressDto) as Error[],
 //             _ => null
 //         };
 //     }
@@ -28,7 +28,7 @@
 //             UserName = userDto.Email,
 //             Email = userDto.Email,
 //             PhoneNumber = userDto.PhoneNumber,
-//             Person = userDto.PersonDto.CreateEntity<Person>(),
+//             Person = userDto.PersonDto.CreateEntity(),
 //         };
 
 //     private static Person MapDtoToPerson(PersonDtoRequest personDto) =>
@@ -36,7 +36,7 @@
 //         {
 //             FirstName = personDto.FirstName,
 //             LastName = personDto.LastName,
-//             // Addresses = personDto.Addresses?.Select(a => a.CreateEntity<Address>()).ToList(),
+//             // Addresses = personDto.Addresses?.Select(a => a.CreateEntity()).ToList(),
 //         };
 
 //     private static TimeSpan GetTimeSpanValue(string value) =>
@@ -70,9 +70,9 @@
 //             ComercialNumber = barberShopDto.ComercialNumber,
 //             ComercialEmail = barberShopDto.ComercialEmail,
 
-//             Address = barberShopDto.Address?.CreateEntity<Address>(),
-//             RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity<RecurringSchedule>()).ToList(),
-//             Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
+//             Address = barberShopDto.Address?.CreateEntity(),
+//             RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity()).ToList(),
+//             Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity()).ToList()
 //         };
 
 //     private static RecurringSchedule MapDtoToRecurringSchedule(RecurringScheduleDtoRequest recurringScheduleDto) =>

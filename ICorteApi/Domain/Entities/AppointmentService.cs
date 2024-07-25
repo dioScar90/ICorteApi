@@ -1,14 +1,18 @@
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class AppointmentService : BaseHardCrudEntity
+public class AppointmentService : BaseHardCrudEntity, ICompositeKeyEntity<int, int>
 {
     public int AppointmentId { get; set; }
     public Appointment Appointment { get; set; }
 
     public int ServiceId { get; set; }
     public Service Service { get; set; }
+    
+    public int Key1 => AppointmentId;
+    public int Key2 => ServiceId;
 }
 
 /*

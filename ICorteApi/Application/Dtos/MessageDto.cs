@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -7,7 +8,7 @@ public record MessageDtoRequest(
     DateTime SentAt,
     bool IsRead,
     PersonDtoRequest Sender
-) : IDtoRequest;
+) : IDtoRequest<Message>;
 
 public record MessageDtoResponse(
     int Id,
@@ -15,4 +16,4 @@ public record MessageDtoResponse(
     DateTime SentAt,
     bool IsRead,
     PersonDtoResponse Sender
-) : IDtoResponse;
+) : IDtoResponse<Message>;

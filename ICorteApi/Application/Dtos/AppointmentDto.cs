@@ -10,9 +10,9 @@ public record AppointmentDtoRequest(
     TimeOnly EndTime,
     string? Notes,
     decimal TotalPrice,
-    AppointmentStatus Status,
-    AppointmentServicesDtoResponse[]? AppointmentServices
-) : IDtoRequest;
+    AppointmentStatus Status
+    // AppointmentServicesDtoResponse[]? AppointmentServices
+) : IDtoRequest<Appointment>;
 
 public record AppointmentDtoResponse(
     int Id,
@@ -21,6 +21,6 @@ public record AppointmentDtoResponse(
     TimeOnly EndTime,
     string? Notes,
     decimal TotalPrice,
-    AppointmentStatus Status,
-    AppointmentServicesDtoResponse[]? AppointmentServices
-) : IDtoResponse;
+    AppointmentStatus Status
+    // AppointmentServicesDtoResponse[]? AppointmentServices
+) : IDtoResponse<Appointment>;

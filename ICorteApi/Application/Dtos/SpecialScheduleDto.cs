@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -8,7 +9,7 @@ public record SpecialScheduleDtoRequest(
     TimeOnly? OpenTime,
     TimeOnly? CloseTime,
     bool IsClosed
-) : IDtoRequest;
+) : IDtoRequest<SpecialSchedule>;
 
 public record SpecialScheduleDtoResponse(
     int Id,
@@ -17,4 +18,4 @@ public record SpecialScheduleDtoResponse(
     TimeOnly? OpenTime,
     TimeOnly? CloseTime,
     bool IsClosed
-) : IDtoResponse;
+) : IDtoResponse<SpecialSchedule>;

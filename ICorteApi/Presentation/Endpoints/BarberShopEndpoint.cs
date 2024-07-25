@@ -105,7 +105,7 @@ public static class BarberShopEndpoint
             if (!respPerson.IsSuccess)
                 return Results.BadRequest();
 
-            var newBarberShop = dto.CreateEntity<BarberShop>()!;
+            var newBarberShop = dto.CreateEntity()!;
             newBarberShop.OwnerId = respPerson.Value!.UserId;
 
             var response = await barberShopService.CreateAsync(newBarberShop);

@@ -31,7 +31,7 @@ public static class AddressEndpoint
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
     }
-
+    
     public static async Task<IResult> GetAddress(int barberShopId, int id, AppDbContext context)
     {
         var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
@@ -39,7 +39,7 @@ public static class AddressEndpoint
         if (address is null)
             return Results.NotFound("Agendamento não encontrado");
 
-        var addressDto = address.CreateDto<AddressDtoResponse>();
+        var addressDto = address.CreateDto();
         return Results.Ok(addressDto);
     }
 
@@ -58,7 +58,7 @@ public static class AddressEndpoint
                     .ToArray());
             // return Results.BadRequest(validationResult.Errors);
             
-        var newAddress = dto.CreateEntity<Address>()!;
+        var newAddress = dto.CreateEntity()!;
 
         await context.Addresses.AddAsync(newAddress);
         await context.SaveChangesAsync();

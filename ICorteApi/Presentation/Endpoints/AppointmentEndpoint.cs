@@ -41,7 +41,7 @@
 //     {
 //         try
 //         {
-//             var newAppointment = dto.CreateEntity<Appointment>()!;
+//             var newAppointment = dto.CreateEntity()!;
 
 //             await context.Appointments.AddAsync(newAppointment);
 //             await context.SaveChangesAsync();

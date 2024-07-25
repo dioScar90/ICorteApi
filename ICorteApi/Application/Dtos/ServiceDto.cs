@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -7,7 +8,7 @@ public record ServiceDtoRequest(
     string Description,
     decimal Price,
     TimeSpan Duration
-) : IDtoRequest;
+) : IDtoRequest<Service>;
 
 public record ServiceDtoResponse(
     int Id,
@@ -15,4 +16,4 @@ public record ServiceDtoResponse(
     string Description,
     decimal Price,
     TimeSpan Duration
-) : IDtoResponse;
+) : IDtoResponse<Service>;

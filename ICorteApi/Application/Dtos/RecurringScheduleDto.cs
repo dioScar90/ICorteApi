@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -7,7 +8,7 @@ public record RecurringScheduleDtoRequest(
     TimeOnly OpenTime,
     TimeOnly CloseTime,
     bool IsActive
-) : IDtoRequest;
+) : IDtoRequest<RecurringSchedule>;
 
 public record RecurringScheduleDtoResponse(
     DayOfWeek DayOfWeek,
@@ -15,4 +16,4 @@ public record RecurringScheduleDtoResponse(
     TimeOnly OpenTime,
     TimeOnly CloseTime,
     bool IsActive
-) : IDtoResponse;
+) : IDtoResponse<RecurringSchedule>;

@@ -37,7 +37,7 @@ public static class EntityUpdater
         user.UserName = dto.Email;
         user.Email = dto.Email;
         user.PhoneNumber = dto.PhoneNumber;
-        user.Person = dto.PersonDto.CreateEntity<Person>();
+        user.Person = dto.PersonDto.CreateEntity();
     }
 
     private static void UpdatePersonByDto(Person person, PersonDtoRequest dto, DateTime? utcNow = null)

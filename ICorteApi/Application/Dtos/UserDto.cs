@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
@@ -8,7 +9,7 @@ public record UserDtoRequest(
     string Password,
     UserRole Role,
     PersonDtoRequest? PersonDto
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoResponse(
     int Id,
@@ -18,43 +19,43 @@ public record UserDtoResponse(
     // UserRole[] Roles,
     string[] Roles,
     PersonDtoResponse? PersonDto
-) : IDtoResponse;
+) : IDtoResponse<User>;
 
 public record UserDtoRegisterRequest(
     string Email,
     string Password,
     string PhoneNumber,
     PersonDtoRequest PersonDto
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoLoginRequest(
     string Email,
     string Password
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoForgotPasswordRequest(
     string Email
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoResetPasswordRequest(
     string Email,
     string Token,
     string NewPassword,
     string ConfirmNewPassword
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoUpdateProfileRequest(
     string FirstName,
     string LastName
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoChangePasswordRequest(
     string CurrentPassword,
     string NewPassword,
     string ConfirmNewPassword
-) : IDtoRequest;
+) : IDtoRequest<User>;
 
 public record UserDtoConfirmEmailRequest(
     string Email,
     string Token
-) : IDtoRequest;
+) : IDtoRequest<User>;

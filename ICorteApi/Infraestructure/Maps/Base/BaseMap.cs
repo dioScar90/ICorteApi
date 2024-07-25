@@ -19,9 +19,9 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
         foreach (var prop in typeof(TEntity).GetProperties())
         {
-            if (!IsPrimitiveType(prop.PropertyType))
+            if (prop.Name.StartsWith("Key") || !IsPrimitiveType(prop.PropertyType))
                 continue;
-                
+            
             string column_name = CamelCaseToSnakeCase(prop.Name);
             builder.Property(prop.Name).HasColumnName(column_name);
         }

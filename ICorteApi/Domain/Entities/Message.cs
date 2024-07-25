@@ -1,8 +1,9 @@
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Message : BaseEntity
+public class Message : BaseEntity, IPrimaryKeyEntity<int>
 {
     public string Content { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
@@ -13,4 +14,6 @@ public class Message : BaseEntity
 
     public int SenderId { get; set; }
     public Person Sender { get; set; }
+    
+    public int Key => Id;
 }

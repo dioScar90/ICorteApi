@@ -94,7 +94,7 @@
 //     {
 //         try
 //         {
-//             var newSchedule = dto.CreateEntity<Schedule>();
+//             var newSchedule = dto.CreateEntity();
 
 //             await context.Schedules.AddAsync(newSchedule!);
 //             await context.SaveChangesAsync();

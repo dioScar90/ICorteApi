@@ -47,7 +47,7 @@ public static class PersonEndpoint
         if (!userResponse.Success)
             return Results.BadRequest(userResponse);
 
-        var newPerson = dto.CreateEntity<Person>();
+        var newPerson = dto.CreateEntity();
         newPerson!.UserId = userResponse.Data.Id;
 
         var personResponse = await personService.CreateAsync(newPerson);

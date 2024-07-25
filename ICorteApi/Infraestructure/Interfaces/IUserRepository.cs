@@ -5,7 +5,6 @@ namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IUserRepository
 {
-    Task<IResponseDataModel<User>> GetAsync();
+    Task<ISingleResponse<User>> GetAsync();
     Task<int?> GetUserIdAsync();
-    // Task<IResponseModel> UpdateAsync(int userId, PersonDtoRequest dto);
 }

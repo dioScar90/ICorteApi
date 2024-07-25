@@ -1,9 +1,10 @@
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Enums;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Appointment : BaseEntity
+public class Appointment : BaseEntity, IPrimaryKeyEntity<int>
 {
     public DateOnly Date { get; set; }
     public TimeOnly StartTime { get; set; }
@@ -11,12 +12,14 @@ public class Appointment : BaseEntity
     public string? Notes { get; set; }
     public decimal TotalPrice { get; set; }
     public AppointmentStatus Status { get; set; }
-    
+
     public int ClientId { get; set; }
     public Person Client { get; set; }
-    
+
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
-    
+
     public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
+    
+    public int Key => Id;
 }

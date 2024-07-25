@@ -14,7 +14,7 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
 
     public async Task<IResponseModel> CreateAsync(int barberShopId, RecurringScheduleDtoRequest dto)
     {
-        var newRecurringSchedule = dto.CreateEntity<RecurringSchedule>();
+        var newRecurringSchedule = dto.CreateEntity();
         newRecurringSchedule!.BarberShopId = barberShopId;
 
         return await _repository.CreateAsync(newRecurringSchedule);
@@ -22,7 +22,7 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
 
     public async Task<IResponseModel> CreateManyAsync(RecurringScheduleDtoRequest[] dtoArr)
     {
-        var recurringScheduleArr = dtoArr.Select(dto => dto.CreateEntity<RecurringSchedule>()).ToArray();
+        var recurringScheduleArr = dtoArr.Select(dto => dto.CreateEntity()).ToArray();
         return await _repository.CreateManyAsync(recurringScheduleArr!);
     }
 

@@ -7,15 +7,26 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class EntityCreator
 {
-    public static TEntity? CreateEntity<TEntity>(this IDtoRequest? dtoRequest) where TEntity : class, IBaseTableEntity
+    public static TEntity? CreateEntity<TEntity>(this IDtoRequest<TEntity> dtoRequest)
+        where TEntity : class, IBaseTableEntity
     {
         return dtoRequest switch
         {
-            UserDtoRegisterRequest registerDto => MapDtoToUser(registerDto) as TEntity,
-            PersonDtoRequest personDto => MapDtoToPerson(personDto) as TEntity,
-            BarberShopDtoRequest barberShopDto => MapDtoToBarberShop(barberShopDto) as TEntity,
-            RecurringScheduleDtoRequest opScheduleDto => MapDtoToRecurringSchedule(opScheduleDto) as TEntity,
-            AddressDtoRequest addressDto => MapDtoToAddress(addressDto) as TEntity,
+            UserDtoRegisterRequest registerDto
+                => MapDtoToUser(registerDto) as TEntity,
+            
+            PersonDtoRequest personDto
+                => MapDtoToPerson(personDto) as TEntity,
+            
+            BarberShopDtoRequest barberShopDto
+                => MapDtoToBarberShop(barberShopDto) as TEntity,
+            
+            RecurringScheduleDtoRequest opScheduleDto
+                => MapDtoToRecurringSchedule(opScheduleDto) as TEntity,
+            
+            AddressDtoRequest addressDto
+                => MapDtoToAddress(addressDto) as TEntity,
+            
             _ => null
         };
     }
@@ -26,7 +37,7 @@ public static class EntityCreator
             UserName = userDto.Email,
             Email = userDto.Email,
             PhoneNumber = userDto.PhoneNumber,
-            Person = userDto.PersonDto.CreateEntity<Person>(),
+            Person = userDto.PersonDto.CreateEntity(),
         };
 
     private static Person MapDtoToPerson(PersonDtoRequest personDto) =>
@@ -34,32 +45,9 @@ public static class EntityCreator
         {
             FirstName = personDto.FirstName,
             LastName = personDto.LastName,
-            // Addresses = personDto.Addresses?.Select(a => a.CreateEntity<Address>()).ToList(),
+            // Addresses = personDto.Addresses?.Select(a => a.CreateEntity()).ToList(),
         };
-
-    private static TimeSpan GetTimeSpanValue(string value) =>
-        TimeSpan.TryParse(value, out TimeSpan timeSpan) ? timeSpan : default;
-
-    // private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetRecurringScheduleDictionary(
-    //     Dictionary<DayOfWeek, (string, string)> recurringSchedule)
-    // {
-    //     var newDict = new Dictionary<DayOfWeek, (TimeSpan, TimeSpan)>();
-
-    //     foreach (var item in recurringSchedule)
-    //     {
-    //         newDict.Add(item.Key, (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item1)));
-    //     }
-
-    //     return newDict;
-    // }
-
-    private static Dictionary<DayOfWeek, (TimeSpan, TimeSpan)> GetRecurringScheduleDictionary(
-        Dictionary<DayOfWeek, (string, string)> recurringSchedule) =>
-        recurringSchedule.ToDictionary(
-            item => item.Key,
-            item => (GetTimeSpanValue(item.Value.Item1), GetTimeSpanValue(item.Value.Item2))
-        );
-
+        
     private static BarberShop MapDtoToBarberShop(BarberShopDtoRequest barberShopDto) =>
         new()
         {
@@ -68,9 +56,9 @@ public static class EntityCreator
             ComercialNumber = barberShopDto.ComercialNumber,
             ComercialEmail = barberShopDto.ComercialEmail,
 
-            Address = barberShopDto.Address?.CreateEntity<Address>(),
-            RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity<RecurringSchedule>()).ToList(),
-            Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity<Person>()).ToList()
+            Address = barberShopDto.Address?.CreateEntity(),
+            RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity()).ToList(),
+            Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity()).ToList()
         };
 
     private static RecurringSchedule MapDtoToRecurringSchedule(RecurringScheduleDtoRequest recurringScheduleDto) =>

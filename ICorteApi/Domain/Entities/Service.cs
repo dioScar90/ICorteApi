@@ -1,14 +1,16 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Service : BaseEntity
+public class Service : BaseEntity, IPrimaryKeyEntity<int>
 {
     public string Name { get; set; }
     public string? Description { get; set; }
     public decimal Price { get; set; }
+
     [JsonConverter(typeof(TimeSpanConverter))]
     public TimeSpan Duration { get; set; }
 
@@ -16,4 +18,6 @@ public class Service : BaseEntity
     public BarberShop BarberShop { get; set; }
 
     public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
+    
+    public int Key => Id;
 }

@@ -59,7 +59,7 @@ public static class AuthEndpoint
 
     //     try
     //     {
-    //         var newUser = dto.CreateEntity<User>()!;
+    //         var newUser = dto.CreateEntity()!;
 
     //         newUser.UserName = newUser.Email;
     //         newUser.EmailConfirmed = true;

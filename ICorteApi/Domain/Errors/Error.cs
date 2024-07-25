@@ -14,4 +14,5 @@ public sealed record Error(string Code, string Description)
     public static readonly Error SpecialScheduleNotFound = new("Not Found", "Horário de funcionamento não encontrado");
     public static readonly Error TEntityNotFound = new("Not Found", "Item não encontrado");
     public static readonly Error BadSave = new("Bad Request", "Não foi possível concluir a operação, tente novamente");
+    public static readonly Error Unauthorized = new("Unauthorized", "Não autorizado");
 }

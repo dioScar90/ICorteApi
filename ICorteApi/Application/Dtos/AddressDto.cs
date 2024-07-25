@@ -1,4 +1,5 @@
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
@@ -12,7 +13,7 @@ public record AddressDtoRequest(
     State State,
     string PostalCode,
     string Country
-) : IDtoRequest;
+) : IDtoRequest<Address>;
 
 public record AddressDtoResponse(
     int Id,
@@ -24,4 +25,4 @@ public record AddressDtoResponse(
     State State,
     string PostalCode,
     string Country
-) : IDtoResponse;
+) : IDtoResponse<Address>;

@@ -25,13 +25,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IBarberShopService, BarberShopService>();
+// builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+// builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+// builder.Services.AddScoped<IAppointmentServiceService, AppointmentServiceService>();
+builder.Services.AddScoped<IAppointmentServiceRepository, AppointmentServiceRepository>();
+// builder.Services.AddScoped<IBarberShopService, BarberShopService>();
 builder.Services.AddScoped<IBarberShopRepository, BarberShopRepository>();
-builder.Services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
-builder.Services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
-builder.Services.AddScoped<IPersonService, PersonService>();
+// builder.Services.AddScoped<IConversationParticipantService, ConversationParticipantService>();
+builder.Services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
+// builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+// builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+// builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
+// builder.Services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
+builder.Services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
+// builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+// builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+// builder.Services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
+builder.Services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
+// builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Register validator with service provider (or use one of the automatic registration methods)

@@ -1,66 +1,64 @@
 using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Extensions;
 
 public static class DtoCreator
 {
-    public static TDto? CreateDto<TDto>(this IBaseTableEntity entity) where TDto : class, IDtoResponse
-    {
-        return entity switch
-        {
-            User user => MapUserToDto(user) as TDto,
-            Person person => MapPersonToDto(person) as TDto,
-            BarberShop barberShop => MapBarberShopToDto(barberShop) as TDto,
-            RecurringSchedule opSchedule => MapRecurringScheduleToDto(opSchedule) as TDto,
-            Address address => MapAddressToDto(address) as TDto,
-            _ => null
-        };
-    }
+    // public static TDto? CreateDto<TDto, TEntity>(this TEntity entity)
+    //     where TEntity : class, IBaseTableEntity
+    //     where TDto : class, IDtoResponse<TEntity>
+    // {
+    //     return entity switch
+    //     {
+    //         User user
+    //             => MapUserToDto(user) as TDto,
+            
+    //         Person person
+    //             => MapPersonToDto(person) as TDto,
+            
+    //         BarberShop barberShop
+    //             => MapBarberShopToDto(barberShop) as TDto,
+            
+    //         RecurringSchedule opSchedule
+    //             => MapRecurringScheduleToDto(opSchedule) as TDto,
+            
+    //         Address address
+    //             => MapAddressToDto(address) as TDto,
 
-    private static UserRole[] GetRolesAsEnumArray(string[] roles) =>
-        roles
-            .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
-            .Where(role => role.HasValue)
-            .Select(role => role.Value)
-            .ToArray();
+    //         _   => default
+    //     };
+    // }
 
-    private static UserDtoResponse MapUserToDto(User user) =>
+    public static UserDtoResponse CreateDto(this User user) =>
         new(
             user.Id,
             user.Email,
             [],
-            // user.Person is null ? default : user.Person.CreateDto<PersonDtoResponse>()
-            user.Person?.CreateDto<PersonDtoResponse>()
+            user.Person?.CreateDto()
         );
-
-    private static PersonDtoResponse MapPersonToDto(Person person) =>
+        
+    public static PersonDtoResponse CreateDto(this Person person) =>
         new(
             person.UserId,
             person.FirstName,
             person.LastName,
-            person.LastVisitDate,
-            [],
-            person.OwnedBarberShop?.CreateDto<BarberShopDtoResponse>()
+            person.OwnedBarberShop?.CreateDto()
         );
-
-    private static BarberShopDtoResponse MapBarberShopToDto(BarberShop barberShop) =>
+        
+    public static BarberShopDtoResponse CreateDto(this BarberShop barberShop) =>
         new(
             barberShop.Id,
             barberShop.Name,
             barberShop.Description,
             barberShop.ComercialNumber,
             barberShop.ComercialEmail,
-            barberShop.Rating,
-            barberShop.Address?.CreateDto<AddressDtoResponse>(),
-            barberShop.RecurringSchedules?.Select(b => b.CreateDto<RecurringScheduleDtoResponse>()).ToArray(),
-            barberShop.Barbers?.Select(b => b.CreateDto<PersonDtoResponse>()).ToArray()
+            barberShop.Address?.CreateDto(),
+            barberShop.RecurringSchedules?.Select(b => b.CreateDto()).ToArray(),
+            barberShop.Barbers?.Select(b => b.CreateDto()).ToArray()
         );
 
-    private static RecurringScheduleDtoResponse MapRecurringScheduleToDto(RecurringSchedule recurringSchedule) =>
+    public static RecurringScheduleDtoResponse CreateDto(this RecurringSchedule recurringSchedule) =>
         new(
             recurringSchedule.DayOfWeek,
             recurringSchedule.BarberShopId,
@@ -69,7 +67,7 @@ public static class DtoCreator
             recurringSchedule.IsActive
         );
 
-    private static AddressDtoResponse MapAddressToDto(Address address) =>
+    public static AddressDtoResponse CreateDto(this Address address) =>
         new(
             address.Id,
             address.Street,
@@ -81,4 +79,5 @@ public static class DtoCreator
             address.PostalCode,
             address.Country
         );
+
 }
