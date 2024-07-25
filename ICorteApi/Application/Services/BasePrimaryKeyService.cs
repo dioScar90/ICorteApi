@@ -29,7 +29,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
         return await UpdateEntityAsync(entity);
     }
 
-    public async Task<IResponse> DeleteAsync(TKey key, IDtoRequest<TEntity> dto)
+    public async Task<IResponse> DeleteAsync(TKey key)
     {
         var resp = await GetByIdAsync(key);
 

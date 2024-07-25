@@ -9,5 +9,5 @@ public interface IBaseCompositeKeyService<TEntity, TKey1, TKey2> : IBaseService<
 
     Task<IResponse> UpdateAsync(TKey1 key1, TKey2 key2, IDtoRequest<TEntity> dto);
 
-    Task<IResponse> DeleteAsync(TKey1 key1, TKey2 key2, IDtoRequest<TEntity> dto);
+    Task<IResponse> DeleteAsync(TKey1 key1, TKey2 key2);
 }

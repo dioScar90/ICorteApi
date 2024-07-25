@@ -12,9 +12,9 @@ public record SpecialScheduleDtoRequest(
 ) : IDtoRequest<SpecialSchedule>;
 
 public record SpecialScheduleDtoResponse(
-    int Id,
-    string? Notes,
     DateOnly Date,
+    int BarberShopId,
+    string? Notes,
     TimeOnly? OpenTime,
     TimeOnly? CloseTime,
     bool IsClosed

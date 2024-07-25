@@ -9,10 +9,10 @@ public class RecurringScheduleMap : BaseMap<RecurringSchedule>
     {
         base.Configure(builder);
 
-        builder.HasKey(pcv => new { pcv.DayOfWeek, pcv.BarberShopId });
+        builder.HasKey(rs => new { rs.DayOfWeek, rs.BarberShopId });
 
-        builder.HasOne(s => s.BarberShop)
+        builder.HasOne(rs => rs.BarberShop)
             .WithMany(b => b.RecurringSchedules)
-            .HasForeignKey(s => s.BarberShopId);
+            .HasForeignKey(rs => rs.BarberShopId);
     }
 }

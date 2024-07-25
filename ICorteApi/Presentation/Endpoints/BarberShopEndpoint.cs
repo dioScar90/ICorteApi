@@ -35,7 +35,7 @@ public static class BarberShopEndpoint
             if (!response.IsSuccess)
                 return Results.NotFound();
 
-            var barberShopDto = response.Value!.CreateDto<BarberShopDtoResponse>();
+            var barberShopDto = response.Value!.CreateDto();
             return Results.Ok(barberShopDto);
         }
         catch (Exception ex)
@@ -76,7 +76,7 @@ public static class BarberShopEndpoint
             //     return Results.NotFound();
 
             var dtos = response.Values!
-                .Select(b => b.CreateDto<BarberShopDtoResponse>())
+                .Select(b => b.CreateDto())
                 .ToList();
 
             return Results.Ok(dtos);
@@ -108,7 +108,7 @@ public static class BarberShopEndpoint
             var newBarberShop = dto.CreateEntity()!;
             newBarberShop.OwnerId = respPerson.Value!.UserId;
 
-            var response = await barberShopService.CreateAsync(newBarberShop);
+            var response = await barberShopService.CreateAsync(respPerson.Value!.UserId, dto);
 
             if (!response.IsSuccess)
                 Results.BadRequest(response.Error);
@@ -123,35 +123,21 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, IBarberShopService barberShopService)
     {
-        try
-        {
-            var response = await barberShopService.UpdateAsync(id, dto);
+        var response = await barberShopService.UpdateAsync(id, dto);
 
-            if (!response.IsSuccess)
-                return Results.NotFound(response.Error);
+        if (!response.IsSuccess)
+            return Results.NotFound(response.Error);
 
-            return Results.NoContent();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteBarberShop(int id, IBarberShopService barberShopService)
     {
-        try
-        {
-            var response = await barberShopService.DeleteAsync(id);
+        var response = await barberShopService.DeleteAsync(id);
 
-            if (!response.IsSuccess)
-                return Results.BadRequest(response.Error);
+        if (!response.IsSuccess)
+            return Results.BadRequest(response.Error);
 
-            return Results.NoContent();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        return Results.NoContent();
     }
 }

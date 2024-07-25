@@ -2,11 +2,13 @@
     {
         "email": "lionel@messi.com.br",
         "password": "Dunno#2024"
-    },
+    }
+    ,
     {
         "firstName": "Lionel",
         "lastName": "Messi"
-    },
+    }
+    ,
     {
         "name": "Barbearia de Messi",
         "description": "Que, bobo!?",

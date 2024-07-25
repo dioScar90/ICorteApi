@@ -29,7 +29,7 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
         return await UpdateEntityAsync(entity);
     }
 
-    public async Task<IResponse> DeleteAsync(TKey1 key1, TKey2 key2, IDtoRequest<TEntity> dto)
+    public async Task<IResponse> DeleteAsync(TKey1 key1, TKey2 key2)
     {
         var resp = await GetByIdAsync(key1, key2);
 

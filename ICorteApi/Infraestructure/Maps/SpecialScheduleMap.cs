@@ -9,8 +9,10 @@ public class SpecialScheduleMap : BaseMap<SpecialSchedule>
     {
         base.Configure(builder);
 
-        builder.HasOne(s => s.BarberShop)
+        builder.HasKey(ss => new { ss.Date, ss.BarberShopId });
+
+        builder.HasOne(ss => ss.BarberShop)
             .WithMany(b => b.SpecialSchedules)
-            .HasForeignKey(s => s.BarberShopId);
+            .HasForeignKey(ss => ss.BarberShopId);
     }
 }

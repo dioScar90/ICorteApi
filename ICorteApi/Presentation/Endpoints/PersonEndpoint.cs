@@ -44,13 +44,13 @@ public static class PersonEndpoint
     {
         var userResponse = await userService.GetAsync();
 
-        if (!userResponse.Success)
+        if (!userResponse.IsSuccess)
             return Results.BadRequest(userResponse);
 
         var newPerson = dto.CreateEntity();
-        newPerson!.UserId = userResponse.Data.Id;
+        newPerson!.UserId = userResponse.Value.Id;
 
-        var personResponse = await personService.CreateAsync(newPerson);
+        var personResponse = await personService.CreateAsync(userResponse.Value.Id, dto);
 
         if (!personResponse.IsSuccess)
             return Results.BadRequest(personResponse.Error);
@@ -66,20 +66,20 @@ public static class PersonEndpoint
         // var userId = userManager.GetUserId(user);
         var userResponse = await userService.GetAsync();
 
-        if (!userResponse.Success)
+        if (!userResponse.IsSuccess)
             // throw new UserNotFoundException();
             return Results.BadRequest(userResponse);
 
         // if (!int.TryParse(userManager.GetUserId(user), out int userId))
         //     return Results.Unauthorized();
         
-        var personResponse = await personService.GetByIdAsync(userResponse.Data.Id);
+        var personResponse = await personService.GetByIdAsync(userResponse.Value.Id);
 
         if (!personResponse.IsSuccess)
             throw new PersonNotFoundException();
             // return Results.NotFound(personResponse);
 
-        var personDto = personResponse.Value!.CreateDto<PersonDtoResponse>();
+        var personDto = personResponse.Value!.CreateDto();
         return Results.Ok(personDto);
     }
 

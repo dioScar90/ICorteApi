@@ -9,5 +9,5 @@ public interface IBasePrimaryKeyService<TEntity, TKey> : IBaseService<TEntity>
 
     Task<IResponse> UpdateAsync(TKey key, IDtoRequest<TEntity> dto);
 
-    Task<IResponse> DeleteAsync(TKey key, IDtoRequest<TEntity> dto);
+    Task<IResponse> DeleteAsync(TKey key);
 }
