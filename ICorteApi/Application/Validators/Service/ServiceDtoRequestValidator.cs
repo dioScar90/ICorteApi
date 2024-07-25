@@ -7,7 +7,7 @@ public class ServiceDtoRequestValidator : AbstractValidator<ServiceDtoRequest>
 {
     public ServiceDtoRequestValidator()
     {
-        RuleFor(x => x.Title)
+        RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Título não pode estar vazio")
             .MinimumLength(3).WithMessage("Título precisa ter pelo menos 3 caracteres");
         

@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public class PersonService(IPersonRepository personRepository)
-    : BasePrimaryKeyService<Person, int>(personRepository), IPersonService
+public class MessageService(IMessageRepository messageRepository)
+    : BasePrimaryKeyService<Message, int>(messageRepository), IMessageService
 {
 }

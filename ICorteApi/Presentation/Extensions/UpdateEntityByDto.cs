@@ -7,7 +7,10 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class EntityUpdater
 {
-    public static void UpdateEntityByDto(this IBaseTableEntity entity, IDtoRequest? dtoRequest, DateTime? utcNow = null)
+    public static void UpdateEntityByDto<TEntity>(
+        this TEntity entity, IDtoRequest<TEntity>? dtoRequest, DateTime? utcNow = null)
+        where TEntity : class, IBaseTableEntity
+    // public static void UpdateEntityByDto(this IBaseTableEntity entity, IDtoRequest? dtoRequest, DateTime? utcNow = null)
     {
         switch (entity, dtoRequest)
         {
@@ -28,16 +31,20 @@ public static class EntityUpdater
                 break;
             default:
                 // Opção para caso nenhum dos padrões acima seja atingido.
-                break;
+                throw new ArgumentException("", nameof(dtoRequest));
         }
     }
-
+    
     private static void UpdateUserByDto(User user, UserDtoRegisterRequest dto, DateTime? utcNow = null)
     {
+        utcNow ??= DateTime.UtcNow;
+
         user.UserName = dto.Email;
         user.Email = dto.Email;
         user.PhoneNumber = dto.PhoneNumber;
         user.Person = dto.PersonDto.CreateEntity();
+
+        user.UpdatedAt = utcNow;
     }
 
     private static void UpdatePersonByDto(Person person, PersonDtoRequest dto, DateTime? utcNow = null)
@@ -98,4 +105,72 @@ public static class EntityUpdater
 
         address.UpdatedAt = utcNow;
     }
+
+    
+    // public static void UpdateEntityByDto(this User user, UserDtoRegisterRequest dto, DateTime? utcNow = null)
+    // {
+    //     user.UserName = dto.Email;
+    //     user.Email = dto.Email;
+    //     user.PhoneNumber = dto.PhoneNumber;
+    //     user.Person = dto.PersonDto.CreateEntity();
+    // }
+        
+    // public static void UpdateEntityByDto(this Person person, PersonDtoRequest dto, DateTime? utcNow = null)
+    // {
+    //     utcNow ??= DateTime.UtcNow;
+
+    //     person.FirstName = dto.FirstName;
+    //     person.LastName = dto.LastName;
+
+    //     person.UpdatedAt = utcNow;
+    // }
+        
+    // public static void UpdateEntityByDto(this BarberShop barberShop, BarberShopDtoRequest dto, DateTime? utcNow = null)
+    // {
+    //     utcNow ??= DateTime.UtcNow;
+
+    //     barberShop.Name = dto.Name;
+    //     barberShop.Description = dto.Description ?? null;
+    //     barberShop.ComercialNumber = dto.ComercialNumber;
+    //     barberShop.ComercialEmail = dto.ComercialEmail;
+
+    //     var itemsToUpdateByRecurringSchedules =
+    //         from os in dto.RecurringSchedules
+    //         join bs in barberShop.RecurringSchedules on os.DayOfWeek equals bs.DayOfWeek
+    //         select new { bs, os };
+
+    //     foreach (var updatingItems in itemsToUpdateByRecurringSchedules)
+    //         updatingItems.bs.UpdateEntityByDto(updatingItems.os, utcNow);
+
+    //     if (dto.Address is not null)
+    //         barberShop.Address?.UpdateEntityByDto(dto.Address, utcNow);
+
+    //     barberShop.UpdatedAt = utcNow;
+    // }
+
+    // public static void UpdateEntityByDto(this RecurringSchedule recurringSchedule, RecurringScheduleDtoRequest dto, DateTime? utcNow = null)
+    // {
+    //     utcNow ??= DateTime.UtcNow;
+
+    //     recurringSchedule.OpenTime = dto.OpenTime;
+    //     recurringSchedule.CloseTime = dto.CloseTime;
+
+    //     recurringSchedule.UpdatedAt = utcNow;
+    // }
+
+    // public static void UpdateEntityByDto(this Address address, AddressDtoRequest dto, DateTime? utcNow = null)
+    // {
+    //     utcNow ??= DateTime.UtcNow;
+
+    //     address.Street = dto.Street;
+    //     address.Number = dto.Number;
+    //     address.Complement = dto.Complement;
+    //     address.Neighborhood = dto.Neighborhood;
+    //     address.City = dto.City;
+    //     address.State = dto.State;
+    //     address.PostalCode = dto.PostalCode;
+    //     address.Country = dto.Country;
+
+    //     address.UpdatedAt = utcNow;
+    // }
 }

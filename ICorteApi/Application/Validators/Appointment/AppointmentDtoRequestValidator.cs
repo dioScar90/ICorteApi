@@ -7,9 +7,9 @@ public class AppointmentDtoRequestValidator : AbstractValidator<AppointmentDtoRe
 {
     public AppointmentDtoRequestValidator()
     {
-        RuleFor(x => x.AppointmentDate)
+        RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Data do agendamento é obrigatória")
-            .GreaterThan(DateTime.UtcNow)
-                .WithMessage($"Data do agendamento precisa ser maior ou igual a {DateTime.UtcNow.ToString()}");
+            .GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow))
+                .WithMessage($"Data do agendamento precisa ser maior ou igual a {DateTime.UtcNow}");
     }
 }

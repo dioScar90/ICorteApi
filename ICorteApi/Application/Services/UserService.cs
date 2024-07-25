@@ -1,5 +1,4 @@
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
@@ -10,7 +9,7 @@ public class UserService(IUserRepository userRepository) : IUserService
 {
     private readonly IUserRepository _repository = userRepository;
     
-    public async Task<IResponseDataModel<User>> GetAsync()
+    public async Task<ISingleResponse<User>> GetAsync()
     {
         return await _repository.GetAsync();
     }
@@ -19,17 +18,4 @@ public class UserService(IUserRepository userRepository) : IUserService
     {
         return await _repository.GetUserIdAsync();
     }
-
-    // public async Task<IResponseModel> UpdateAsync(int id, BarberShopDtoRequest dto)
-    // {
-    //     try
-    //     {
-    //         var result = await _repository.UpdateAsync(id, dto);
-    //         return new ResponseModel { Success = result.Success };
-    //     }
-    //     catch (Exception)
-    //     {
-    //         throw;
-    //     }
-    // }
 }

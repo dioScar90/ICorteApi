@@ -2,12 +2,11 @@ using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Context;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<User, IdentityRole<int>, int>(options), IAppDbContext
+    : IdentityDbContext<User, IdentityRole<int>, int>(options)
 {
     public DbSet<Person> People { get; set; }
     public DbSet<BarberShop> BarberShops { get; set; }

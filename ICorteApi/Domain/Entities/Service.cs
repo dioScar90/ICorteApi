@@ -18,6 +18,6 @@ public class Service : BaseEntity, IPrimaryKeyEntity<int>
     public BarberShop BarberShop { get; set; }
 
     public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
-    
+
     public int Key => Id;
 }

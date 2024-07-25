@@ -10,7 +10,7 @@ public class AppointmentService : BaseHardCrudEntity, ICompositeKeyEntity<int, i
 
     public int ServiceId { get; set; }
     public Service Service { get; set; }
-    
+
     public int Key1 => AppointmentId;
     public int Key2 => ServiceId;
 }

@@ -9,7 +9,6 @@ public class BarberShop : BaseEntity, IPrimaryKeyEntity<int>
     public string? Description { get; set; }
     public string ComercialNumber { get; set; }
     public string ComercialEmail { get; set; }
-    // public double? Rating { get; set; }
 
     public int OwnerId { get; set; }
     public Person Owner { get; set; }
@@ -21,6 +20,6 @@ public class BarberShop : BaseEntity, IPrimaryKeyEntity<int>
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Service> Services { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
-    
+
     public int Key => Id;
 }
