@@ -3,7 +3,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class BarberShop : BaseEntity, IPrimaryKeyEntity<int>
+public class BarberShop : BasePrimaryKeyEntity<int>
 {
     public string Name { get; set; }
     public string? Description { get; set; }
@@ -21,5 +21,5 @@ public class BarberShop : BaseEntity, IPrimaryKeyEntity<int>
     public ICollection<Service> Services { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
 
-    public int Key => Id;
+    // public int Key => Id;
 }

@@ -26,11 +26,11 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             builder.Property(prop.Name).HasColumnName(column_name);
         }
 
-        if (TEntityImplementsIBaseCrudEntity())
-            builder.HasQueryFilter(x => !((IBaseCrudEntity)x).IsDeleted); // same as 'x => !x.IsDeleted'
+        if (TEntityImplementsIPrimaryKeyEntity())
+            builder.HasQueryFilter(x => !((IPrimaryKeyEntity<int>)x).IsDeleted); // same as 'x => !x.IsDeleted'
     }
 
-    private static bool TEntityImplementsIBaseCrudEntity() => typeof(IBaseCrudEntity).IsAssignableFrom(typeof(TEntity));
+    private static bool TEntityImplementsIPrimaryKeyEntity() => typeof(IPrimaryKeyEntity<int>).IsAssignableFrom(typeof(TEntity));
 
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();

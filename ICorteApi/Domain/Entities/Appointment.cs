@@ -4,7 +4,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Appointment : BaseEntity, IPrimaryKeyEntity<int>
+public class Appointment : BasePrimaryKeyEntity<int>
 {
     public DateOnly Date { get; set; }
     public TimeOnly StartTime { get; set; }
@@ -21,5 +21,5 @@ public class Appointment : BaseEntity, IPrimaryKeyEntity<int>
 
     public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
 
-    public int Key => Id;
+    // public int Key => Id;
 }

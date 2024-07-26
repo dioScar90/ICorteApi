@@ -5,6 +5,7 @@ namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IBasePrimaryKeyRepository<TEntity, TKey> : IBaseRepository<TEntity>
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
+    where TKey : IEquatable<TKey>
 {
-    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey key, params Expression<Func<TEntity, object>>[]? includes);
+    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id, params Expression<Func<TEntity, object>>[]? includes);
 }

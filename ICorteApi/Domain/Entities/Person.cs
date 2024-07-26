@@ -3,7 +3,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Person : BaseCrudEntity, IPrimaryKeyEntity<int>
+public class Person : BasePrimaryKeyEntity<int>
 {
     public string FirstName { get; set; }
     public string LastName { get; set; }
@@ -19,6 +19,4 @@ public class Person : BaseCrudEntity, IPrimaryKeyEntity<int>
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
     public ICollection<ConversationParticipant> ConversationParticipants { get; set; } = [];
-    
-    public int Key => UserId;
 }

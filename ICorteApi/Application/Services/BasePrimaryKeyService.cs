@@ -8,17 +8,18 @@ namespace ICorteApi.Application.Services;
 public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyRepository<TEntity, TKey> baseRepository)
     : BaseService<TEntity>(baseRepository), IBasePrimaryKeyService<TEntity, TKey>
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
+    where TKey : IEquatable<TKey>
 {
     protected readonly IBasePrimaryKeyRepository<TEntity, TKey> _primaryKeyRepository = baseRepository;
     
-    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey key)
+    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id)
     {
-        return await _primaryKeyRepository.GetByIdAsync(key);
+        return await _primaryKeyRepository.GetByIdAsync(id);
     }
 
-    public async Task<IResponse> UpdateAsync(TKey key, IDtoRequest<TEntity> dto)
+    public async Task<IResponse> UpdateAsync(TKey id, IDtoRequest<TEntity> dto)
     {
-        var resp = await GetByIdAsync(key);
+        var resp = await GetByIdAsync(id);
 
         if (!resp.IsSuccess)
             return resp;
@@ -29,9 +30,9 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
         return await UpdateEntityAsync(entity);
     }
 
-    public async Task<IResponse> DeleteAsync(TKey key)
+    public async Task<IResponse> DeleteAsync(TKey id)
     {
-        var resp = await GetByIdAsync(key);
+        var resp = await GetByIdAsync(id);
 
         if (!resp.IsSuccess)
             return resp;

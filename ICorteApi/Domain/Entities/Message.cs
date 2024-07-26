@@ -3,7 +3,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Message : BaseEntity, IPrimaryKeyEntity<int>
+public class Message : BasePrimaryKeyEntity<int>
 {
     public string Content { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
@@ -15,5 +15,5 @@ public class Message : BaseEntity, IPrimaryKeyEntity<int>
     public int SenderId { get; set; }
     public Person Sender { get; set; }
     
-    public int Key => Id;
+    // public int Key => Id;
 }

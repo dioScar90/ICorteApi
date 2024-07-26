@@ -11,8 +11,9 @@ namespace ICorteApi.Infraestructure.Repositories;
 public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext context)
     : BaseRepository<TEntity>(context), IBasePrimaryKeyRepository<TEntity, TKey>
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
+    where TKey : IEquatable<TKey>
 {
-    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey key, params Expression<Func<TEntity, object>>[] includes)
+    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id, params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
@@ -20,8 +21,8 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
             foreach (var include in includes)
                 query  = query.Include(include);
                 
-        var entity = await query.SingleOrDefaultAsync(x => x.Key!.Equals(key));
-        // var entity = await query.SingleOrDefaultAsync(x => x.Key == key);
+        var entity = await query.SingleOrDefaultAsync(x => x.Id.Equals(id));
+        // var entity = await query.SingleOrDefaultAsync(x => x.Id == id);
 
         if (entity is null)
             return Response.Failure<TEntity>(Error.TEntityNotFound);

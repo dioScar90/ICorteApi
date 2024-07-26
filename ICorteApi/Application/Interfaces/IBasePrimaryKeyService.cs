@@ -4,10 +4,11 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IBasePrimaryKeyService<TEntity, TKey> : IBaseService<TEntity>
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
+    where TKey : IEquatable<TKey>
 {
-    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey key);
+    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id);
 
-    Task<IResponse> UpdateAsync(TKey key, IDtoRequest<TEntity> dto);
+    Task<IResponse> UpdateAsync(TKey id, IDtoRequest<TEntity> dto);
 
-    Task<IResponse> DeleteAsync(TKey key);
+    Task<IResponse> DeleteAsync(TKey id);
 }

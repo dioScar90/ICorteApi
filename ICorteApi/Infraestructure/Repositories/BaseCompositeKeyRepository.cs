@@ -13,7 +13,7 @@ public abstract class BaseCompositeKeyRepository<TEntity, TKey1, TKey2>(AppDbCon
     where TEntity : class, ICompositeKeyEntity<TKey1, TKey2>, IBaseTableEntity
 {
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(
-        TKey1 key1, TKey2 key2,
+        TKey1 id1, TKey2 id2,
         params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
@@ -22,7 +22,7 @@ public abstract class BaseCompositeKeyRepository<TEntity, TKey1, TKey2>(AppDbCon
             foreach (var include in includes)
                 query  = query.Include(include);
                 
-        var entity = await query.SingleOrDefaultAsync(x => x.Key1!.Equals(key1) && x.Key2!.Equals(key2));
+        var entity = await query.SingleOrDefaultAsync(x => x.Id1!.Equals(id1) && x.Id2!.Equals(id2));
 
         if (entity is null)
             return Response.Failure<TEntity>(Error.TEntityNotFound);

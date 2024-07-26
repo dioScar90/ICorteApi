@@ -5,7 +5,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Service : BaseEntity, IPrimaryKeyEntity<int>
+public class Service : BasePrimaryKeyEntity<int>
 {
     public string Name { get; set; }
     public string? Description { get; set; }
@@ -19,5 +19,5 @@ public class Service : BaseEntity, IPrimaryKeyEntity<int>
 
     public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
 
-    public int Key => Id;
+    // public int Key => Id;
 }

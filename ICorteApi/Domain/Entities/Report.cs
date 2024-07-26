@@ -4,7 +4,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Report : BaseEntity, IPrimaryKeyEntity<int>
+public class Report : BasePrimaryKeyEntity<int>
 {
     public string? Title { get; set; }
     public string? Content { get; set; }
@@ -16,5 +16,5 @@ public class Report : BaseEntity, IPrimaryKeyEntity<int>
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
     
-    public int Key => Id;
+    // public int Key => Id;
 }

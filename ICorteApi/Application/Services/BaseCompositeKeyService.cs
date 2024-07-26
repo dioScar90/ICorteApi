@@ -11,14 +11,14 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
 {
     protected readonly IBaseCompositeKeyRepository<TEntity, TKey1, TKey2> _compositeKeyRepository = baseRepository;
     
-    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey1 key1, TKey2 key2)
+    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey1 id1, TKey2 id2)
     {
-        return await _compositeKeyRepository.GetByIdAsync(key1, key2);
+        return await _compositeKeyRepository.GetByIdAsync(id1, id2);
     }
     
-    public async Task<IResponse> UpdateAsync(TKey1 key1, TKey2 key2, IDtoRequest<TEntity> dto)
+    public async Task<IResponse> UpdateAsync(TKey1 id1, TKey2 id2, IDtoRequest<TEntity> dto)
     {
-        var resp = await GetByIdAsync(key1, key2);
+        var resp = await GetByIdAsync(id1, id2);
 
         if (!resp.IsSuccess)
             return resp;
@@ -29,9 +29,9 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
         return await UpdateEntityAsync(entity);
     }
 
-    public async Task<IResponse> DeleteAsync(TKey1 key1, TKey2 key2)
+    public async Task<IResponse> DeleteAsync(TKey1 id1, TKey2 id2)
     {
-        var resp = await GetByIdAsync(key1, key2);
+        var resp = await GetByIdAsync(id1, id2);
 
         if (!resp.IsSuccess)
             return resp;

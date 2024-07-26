@@ -1,10 +1,10 @@
-using ICorteApi.Domain.Interfaces;
+// using ICorteApi.Domain.Interfaces;
 
-namespace ICorteApi.Domain.Base;
+// namespace ICorteApi.Domain.Base;
 
-public abstract class BaseCrudEntity : IBaseCrudEntity
-{
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
-}
+// public abstract class BaseCrudEntity : IBaseCrudEntity
+// {
+//     public DateTime CreatedAt { get; set; }
+//     public DateTime? UpdatedAt { get; set; }
+//     public bool IsDeleted { get; set; } = false;
+// }
