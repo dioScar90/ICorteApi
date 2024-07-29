@@ -1,5 +1,4 @@
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -15,7 +14,4 @@ public class SpecialSchedule : CompositeKeyEntity<DateOnly, int>
     // public int BarberShopId => Id2;
     public int BarberShopId { get => Id2; set => Id2 = value; }
     public BarberShop BarberShop { get; set; }
-    
-    // public DateOnly Key1 => Date;
-    // public int Key2 => BarberShopId;
 }

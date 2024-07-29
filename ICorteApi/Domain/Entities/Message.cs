@@ -1,5 +1,4 @@
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -14,6 +13,4 @@ public class Message : BasePrimaryKeyEntity<int>
 
     public int SenderId { get; set; }
     public Person Sender { get; set; }
-    
-    // public int Key => Id;
 }

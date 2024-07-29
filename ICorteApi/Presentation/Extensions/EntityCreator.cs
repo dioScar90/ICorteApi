@@ -72,6 +72,8 @@ public static class EntityCreator
             OpenTime = recurringScheduleDto.OpenTime,
             CloseTime = recurringScheduleDto.CloseTime,
 
+            BarberShopId = recurringScheduleDto.BarberShopId ?? default,
+
             IsActive = recurringScheduleDto.IsActive,
         };
 

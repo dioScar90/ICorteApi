@@ -1,6 +1,5 @@
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -15,6 +14,4 @@ public class Report : BasePrimaryKeyEntity<int>
 
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
-    
-    // public int Key => Id;
 }

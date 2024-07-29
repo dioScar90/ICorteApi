@@ -63,7 +63,7 @@ public static class RecurringScheduleEndpoint
         RecurringScheduleDtoRequest dto,
         IRecurringScheduleService recurringScheduleService)
     {
-        var response = await recurringScheduleService.CreateAsync(dto);
+        var response = await recurringScheduleService.CreateAsync(dto with { BarberShopId = barberShopId });
 
         if (!response.IsSuccess)
             Results.BadRequest(response.Error);

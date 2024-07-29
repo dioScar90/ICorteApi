@@ -1,5 +1,4 @@
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 

@@ -20,6 +20,8 @@ public interface ICompositeKeyEntity<TKey1, TKey2> : IBaseTableEntity
     DateTime CreatedAt { get; set; }
     DateTime? UpdatedAt { get; set; }
     bool IsActive { get; set; }
+
+    // Dictionary<(TKey1, string[2]), (TKey2, string[2])> GetCorrelatedKeys();
 }
 
 public interface IBaseTableEntity {}

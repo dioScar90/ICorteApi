@@ -1,5 +1,4 @@
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -12,9 +11,6 @@ public class AppointmentService : CompositeKeyEntity<int, int>
     // public int ServiceId => Id2;
     public int ServiceId { get => Id2; set => Id2 = value; }
     public Service Service { get; set; }
-
-    // public int Key1 => AppointmentId;
-    // public int Key2 => ServiceId;
 }
 
 /*
