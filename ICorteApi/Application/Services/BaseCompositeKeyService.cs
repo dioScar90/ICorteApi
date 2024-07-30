@@ -11,32 +11,34 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
 {
     protected readonly IBaseCompositeKeyRepository<TEntity, TKey1, TKey2> _compositeKeyRepository = baseRepository;
     
-    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey1 id1, TKey2 id2)
+    public virtual Task<ISingleResponse<TEntity>> GetByIdAsync(TKey1 id1, TKey2 id2)
     {
-        return await _compositeKeyRepository.GetByIdAsync(id1, id2);
+        throw new NotImplementedException();
     }
     
-    public async Task<IResponse> UpdateAsync(TKey1 id1, TKey2 id2, IDtoRequest<TEntity> dto)
+    public virtual Task<IResponse> UpdateAsync(TKey1 id1, TKey2 id2, IDtoRequest<TEntity> dto)
     {
-        var resp = await GetByIdAsync(id1, id2);
+        // var resp = await GetByIdAsync(id1, id2);
 
-        if (!resp.IsSuccess)
-            return resp;
+        // if (!resp.IsSuccess)
+        //     return resp;
         
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dto);
+        // var entity = resp.Value!;
+        // entity.UpdateEntityByDto(dto);
         
-        return await UpdateEntityAsync(entity);
+        // return await UpdateEntityAsync(entity);
+        throw new NotImplementedException();
     }
 
-    public async Task<IResponse> DeleteAsync(TKey1 id1, TKey2 id2)
+    public virtual Task<IResponse> DeleteAsync(TKey1 id1, TKey2 id2)
     {
-        var resp = await GetByIdAsync(id1, id2);
+        // var resp = await GetByIdAsync(id1, id2);
 
-        if (!resp.IsSuccess)
-            return resp;
+        // if (!resp.IsSuccess)
+        //     return resp;
         
-        var entity = resp.Value!;
-        return await DeleteEntityAsync(entity);
+        // var entity = resp.Value!;
+        // return await DeleteEntityAsync(entity);
+        throw new NotImplementedException();
     }
 }

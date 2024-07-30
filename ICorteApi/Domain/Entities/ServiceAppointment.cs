@@ -2,7 +2,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public class AppointmentService : CompositeKeyEntity<int, int>
+public class ServiceAppointment : CompositeKeyEntity<int, int>
 {
     // public int AppointmentId => Id1;
     public int AppointmentId { get => Id1; set => Id1 = value; }
@@ -14,8 +14,8 @@ public class AppointmentService : CompositeKeyEntity<int, int>
 }
 
 /*
-    INCLUIR ESSE MÉTODO NO SERVICE DE (AppointmentService) AppointmentServiceService,
-    OU TALVEZ NO SERVICE DE Appointment (AppointmentService)
+    INCLUIR ESSE MÉTODO NO SERVICE DE (ServiceAppointment) ServiceAppointmentService,
+    OU TALVEZ NO SERVICE DE Appointment (ServiceAppointment)
 */
 
 // public bool IsTimeSlotAvailable(int barberShopId, DateOnly desiredDate, TimeOnly desiredStartTime, TimeSpan duration)
