@@ -5,16 +5,16 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyRepository<TEntity, TKey> baseRepository)
-    : BaseService<TEntity>(baseRepository), IBasePrimaryKeyService<TEntity, TKey>
+public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyRepository<TEntity, TKey> repository)
+    : BaseService<TEntity>(repository), IBasePrimaryKeyService<TEntity, TKey>
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    protected readonly IBasePrimaryKeyRepository<TEntity, TKey> _primaryKeyRepository = baseRepository;
+    protected readonly IBasePrimaryKeyRepository<TEntity, TKey> _repository = repository;
     
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id)
     {
-        return await _primaryKeyRepository.GetByIdAsync(id);
+        return await _repository.GetByIdAsync(id);
     }
 
     public async Task<IResponse> UpdateAsync(TKey id, IDtoRequest<TEntity> dto)

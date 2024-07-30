@@ -11,7 +11,7 @@ public class ConversationParticipantService(IConversationParticipantRepository c
 {
     public override async Task<ISingleResponse<ConversationParticipant>> GetByIdAsync(int conversationId, int participantId)
     {
-        return await conversationParticipantRepository.GetByIdAsync(x => x.ConversationId == conversationId && x.ParticipantId == participantId);
+        return await _repository.GetByIdAsync(x => x.ConversationId == conversationId && x.ParticipantId == participantId);
     }
     
     public override async Task<IResponse> UpdateAsync(int conversationId, int participantId, IDtoRequest<ConversationParticipant> dto)

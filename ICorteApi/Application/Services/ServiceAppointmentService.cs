@@ -11,7 +11,7 @@ public class ServiceAppointmentService(IServiceAppointmentRepository serviceAppo
 {
     public override async Task<ISingleResponse<ServiceAppointment>> GetByIdAsync(int appointmentId, int serviceId)
     {
-        return await serviceAppointmentRepository.GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
+        return await _repository.GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
     }
     
     public override async Task<IResponse> UpdateAsync(int appointmentId, int serviceId, IDtoRequest<ServiceAppointment> dto)

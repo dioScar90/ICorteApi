@@ -11,7 +11,7 @@ public class SpecialScheduleService(ISpecialScheduleRepository specialScheduleRe
 {
     public override async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return await specialScheduleRepository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+        return await _repository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
     }
     
     public override async Task<IResponse> UpdateAsync(DateOnly date, int barberShopId, IDtoRequest<SpecialSchedule> dto)

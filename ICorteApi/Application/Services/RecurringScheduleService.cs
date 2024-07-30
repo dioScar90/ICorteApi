@@ -11,7 +11,7 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
 {
     public override async Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return await recurringScheduleRepository.GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
+        return await _repository.GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
     }
     
     public override async Task<IResponse> UpdateAsync(DayOfWeek dayOfWeek, int barberShopId, IDtoRequest<RecurringSchedule> dto)

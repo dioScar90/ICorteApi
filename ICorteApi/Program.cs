@@ -27,10 +27,10 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-builder.Services.AddScoped<IAppointmentService, ICorteApi.Application.Services.AppointmentService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<IAppointmentServiceService, AppointmentServiceService>();
-builder.Services.AddScoped<IAppointmentServiceRepository, AppointmentServiceRepository>();
+builder.Services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
+builder.Services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
 builder.Services.AddScoped<IBarberShopService, BarberShopService>();
 builder.Services.AddScoped<IBarberShopRepository, BarberShopRepository>();
 builder.Services.AddScoped<IConversationParticipantService, ConversationParticipantService>();

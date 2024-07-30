@@ -16,5 +16,5 @@ public class Service : BasePrimaryKeyEntity<int>
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }
 
-    public ICollection<AppointmentService> AppointmentServices { get; set; } = [];
+    public ICollection<ServiceAppointment> ServiceAppointments { get; set; } = [];
 }
