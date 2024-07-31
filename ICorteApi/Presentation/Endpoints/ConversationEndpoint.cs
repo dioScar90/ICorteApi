@@ -72,7 +72,7 @@ public static class ConversationEndpoint
         ConversationDtoRequest dto,
         IConversationService conversationService)
     {
-        var response = await conversationService.UpdateAsync(id, dto);
+        var response = await conversationService.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
             return Results.NotFound(response.Error);

@@ -14,7 +14,7 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
         return await _repository.GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
     }
     
-    public override async Task<IResponse> UpdateAsync(DayOfWeek dayOfWeek, int barberShopId, IDtoRequest<RecurringSchedule> dto)
+    public override async Task<IResponse> UpdateAsync(IDtoRequest<RecurringSchedule> dto, DayOfWeek dayOfWeek, int barberShopId)
     {
         var resp = await GetByIdAsync(dayOfWeek, barberShopId);
 
@@ -24,7 +24,7 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dto);
         
-        return await UpdateEntityAsync(entity);
+        return await _repository.UpdateAsync(entity);
     }
 
     public override async Task<IResponse> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
@@ -35,6 +35,6 @@ public class RecurringScheduleService(IRecurringScheduleRepository recurringSche
             return resp;
         
         var entity = resp.Value!;
-        return await DeleteEntityAsync(entity);
+        return await _repository.DeleteAsync(entity);
     }
 }

@@ -14,7 +14,7 @@ public class ServiceAppointmentService(IServiceAppointmentRepository serviceAppo
         return await _repository.GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
     }
     
-    public override async Task<IResponse> UpdateAsync(int appointmentId, int serviceId, IDtoRequest<ServiceAppointment> dto)
+    public override async Task<IResponse> UpdateAsync(IDtoRequest<ServiceAppointment> dto, int appointmentId, int serviceId)
     {
         var resp = await GetByIdAsync(appointmentId, serviceId);
 
@@ -24,7 +24,7 @@ public class ServiceAppointmentService(IServiceAppointmentRepository serviceAppo
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dto);
         
-        return await UpdateEntityAsync(entity);
+        return await _repository.UpdateAsync(entity);
     }
 
     public override async Task<IResponse> DeleteAsync(int appointmentId, int serviceId)
@@ -35,6 +35,6 @@ public class ServiceAppointmentService(IServiceAppointmentRepository serviceAppo
             return resp;
         
         var entity = resp.Value!;
-        return await DeleteEntityAsync(entity);
+        return await _repository.DeleteAsync(entity);
     }
 }

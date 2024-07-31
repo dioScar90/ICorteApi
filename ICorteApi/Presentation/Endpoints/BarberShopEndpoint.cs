@@ -102,7 +102,7 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, IBarberShopService barberShopService)
     {
-        var response = await barberShopService.UpdateAsync(id, dto);
+        var response = await barberShopService.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
             return Results.NotFound(response.Error);

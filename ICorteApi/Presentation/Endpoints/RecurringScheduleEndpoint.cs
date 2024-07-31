@@ -78,7 +78,7 @@ public static class RecurringScheduleEndpoint
         RecurringScheduleDtoRequest dto,
         IRecurringScheduleService recurringScheduleService)
     {
-        var response = await recurringScheduleService.UpdateAsync(dayOfWeek, barberShopId, dto);
+        var response = await recurringScheduleService.UpdateAsync(dto, dayOfWeek, barberShopId);
 
         if (!response.IsSuccess)
             return Results.NotFound(response.Error);

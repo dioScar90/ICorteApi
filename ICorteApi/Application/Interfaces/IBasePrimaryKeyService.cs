@@ -7,8 +7,6 @@ public interface IBasePrimaryKeyService<TEntity, TKey> : IBaseService<TEntity>
     where TKey : IEquatable<TKey>
 {
     Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id);
-
-    Task<IResponse> UpdateAsync(TKey id, IDtoRequest<TEntity> dto);
-
+    Task<IResponse> UpdateAsync(IDtoRequest<TEntity> dto, TKey id);
     Task<IResponse> DeleteAsync(TKey id);
 }

@@ -16,12 +16,6 @@ public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) 
         return await _repository.CreateAsync(entity);
     }
     
-    public async Task<ICollectionResponse<TEntity>> CreateAsync(IDtoRequest<TEntity>[] dtos)
-    {
-        var entities = dtos.Select(dto => dto.CreateEntity()!).ToArray();
-        return await _repository.CreateAsync(entities);
-    }
-    
     public async Task<ICollectionResponse<TEntity>> GetAllAsync(
         int page,
         int pageSize)
@@ -50,18 +44,19 @@ public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) 
         // return Response.Success(entities, totalItems, totalPages, page, pageSize);
     }
     
-    public async Task<IResponse> UpdateEntityAsync(TEntity entity)
-    {
-        return await _repository.UpdateAsync(entity);
-    }
+    // public async Task<IResponse> UpdateAsync(IDtoRequest<TEntity> dto)
+    // {
+    //     var entity = dto.CreateEntity()!;
+    //     return await _repository.UpdateAsync(entity);
+    // }
 
-    public async Task<IResponse> UpdateEntityAsync(TEntity[] entities)
-    {
-        return await _repository.UpdateAsync(entities);
-    }
+    // public async Task<IResponse> UpdateAsync(TEntity[] entities)
+    // {
+    //     return await _repository.UpdateAsync(entities);
+    // }
     
-    public async Task<IResponse> DeleteEntityAsync(TEntity entity)
-    {
-        return await _repository.DeleteAsync(entity);
-    }
+    // public async Task<IResponse> DeleteAsync(IDtoRequest<TEntity> dto)
+    // {
+    //     return await _repository.DeleteAsync(entity);
+    // }
 }

@@ -78,7 +78,7 @@ public static class SpecialScheduleEndpoint
         SpecialScheduleDtoRequest dto,
         ISpecialScheduleService specialScheduleService)
     {
-        var response = await specialScheduleService.UpdateAsync(date, barberShopId, dto);
+        var response = await specialScheduleService.UpdateAsync(dto, date, barberShopId);
 
         if (!response.IsSuccess)
             return Results.NotFound(response.Error);

@@ -15,7 +15,7 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
         throw new NotImplementedException();
     }
     
-    public virtual Task<IResponse> UpdateAsync(TKey1 id1, TKey2 id2, IDtoRequest<TEntity> dto)
+    public virtual Task<IResponse> UpdateAsync(IDtoRequest<TEntity> dto, TKey1 id1, TKey2 id2)
     {
         throw new NotImplementedException();
     }

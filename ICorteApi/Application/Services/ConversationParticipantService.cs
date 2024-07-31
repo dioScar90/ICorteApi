@@ -14,7 +14,7 @@ public class ConversationParticipantService(IConversationParticipantRepository c
         return await _repository.GetByIdAsync(x => x.ConversationId == conversationId && x.ParticipantId == participantId);
     }
     
-    public override async Task<IResponse> UpdateAsync(int conversationId, int participantId, IDtoRequest<ConversationParticipant> dto)
+    public override async Task<IResponse> UpdateAsync(IDtoRequest<ConversationParticipant> dto, int conversationId, int participantId)
     {
         var resp = await GetByIdAsync(conversationId, participantId);
 
@@ -24,7 +24,7 @@ public class ConversationParticipantService(IConversationParticipantRepository c
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dto);
         
-        return await UpdateEntityAsync(entity);
+        return await _repository.UpdateAsync(entity);
     }
 
     public override async Task<IResponse> DeleteAsync(int conversationId, int participantId)
@@ -35,6 +35,6 @@ public class ConversationParticipantService(IConversationParticipantRepository c
             return resp;
         
         var entity = resp.Value!;
-        return await DeleteEntityAsync(entity);
+        return await _repository.DeleteAsync(entity);
     }
 }

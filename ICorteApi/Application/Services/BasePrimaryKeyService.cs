@@ -17,7 +17,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<IResponse> UpdateAsync(TKey id, IDtoRequest<TEntity> dto)
+    public async Task<IResponse> UpdateAsync(IDtoRequest<TEntity> dto, TKey id)
     {
         var resp = await GetByIdAsync(id);
 
@@ -27,7 +27,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dto);
         
-        return await UpdateEntityAsync(entity);
+        return await _repository.UpdateAsync(entity);
     }
 
     public async Task<IResponse> DeleteAsync(TKey id)
@@ -38,6 +38,6 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
             return resp;
         
         var entity = resp.Value!;
-        return await DeleteEntityAsync(entity);
+        return await _repository.DeleteAsync(entity);
     }
 }
