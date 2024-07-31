@@ -1,7 +1,6 @@
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
@@ -9,7 +8,7 @@ public abstract class BaseCompositeKeyService<TEntity, TKey1, TKey2>(IBaseCompos
     : BaseService<TEntity>(repository), IBaseCompositeKeyService<TEntity, TKey1, TKey2>
     where TEntity : class, ICompositeKeyEntity<TKey1, TKey2>, IBaseTableEntity
 {
-    protected readonly IBaseCompositeKeyRepository<TEntity, TKey1, TKey2> _repository = repository;
+    protected new readonly IBaseCompositeKeyRepository<TEntity, TKey1, TKey2> _repository = repository;
     
     public virtual Task<ISingleResponse<TEntity>> GetByIdAsync(TKey1 id1, TKey2 id2)
     {

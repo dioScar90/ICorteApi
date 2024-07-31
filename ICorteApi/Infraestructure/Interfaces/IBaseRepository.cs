@@ -5,9 +5,9 @@ namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IBaseRepository<TEntity> where TEntity : class, IBaseTableEntity
 {
-    Task<IResponse> CreateAsync(TEntity entity);
+    Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity);
 
-    Task<IResponse> CreateAsync(TEntity[] entities);
+    Task<ICollectionResponse<TEntity>> CreateAsync(TEntity[] entities);
     
     Task<ICollectionResponse<TEntity>> GetAllAsync(
         int page,

@@ -22,7 +22,6 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
                 query  = query.Include(include);
                 
         var entity = await query.SingleOrDefaultAsync(x => x.Id.Equals(id));
-        // var entity = await query.SingleOrDefaultAsync(x => x.Id == id);
 
         if (entity is null)
             return Response.Failure<TEntity>(Error.TEntityNotFound);

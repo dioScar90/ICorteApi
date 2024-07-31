@@ -5,6 +5,7 @@ using ICorteApi.Domain.Enums;
 namespace ICorteApi.Application.Dtos;
 
 public record AddressDtoRequest(
+    int BarberShopId,
     string Street,
     string Number,
     string? Complement,

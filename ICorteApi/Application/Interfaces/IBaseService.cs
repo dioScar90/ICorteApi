@@ -4,9 +4,9 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IBaseService<TEntity> where TEntity : class, IBaseTableEntity
 {
-    Task<IResponse> CreateAsync(IDtoRequest<TEntity> dto);
+    Task<ISingleResponse<TEntity>> CreateAsync(IDtoRequest<TEntity> dto);
 
-    Task<IResponse> CreateAsync(IDtoRequest<TEntity>[] dtos);
+    Task<ICollectionResponse<TEntity>> CreateAsync(IDtoRequest<TEntity>[] dtos);
     
     Task<ICollectionResponse<TEntity>> GetAllAsync(int page, int pageSize);
     Task<IResponse> UpdateEntityAsync(TEntity entity);

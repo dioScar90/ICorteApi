@@ -28,20 +28,13 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> GetBarberShop(int id, IBarberShopService barberShopService)
     {
-        try
-        {
-            var response = await barberShopService.GetByIdAsync(id);
+        var response = await barberShopService.GetByIdAsync(id);
 
-            if (!response.IsSuccess)
-                return Results.NotFound();
+        if (!response.IsSuccess)
+            return Results.NotFound();
 
-            var barberShopDto = response.Value!.CreateDto();
-            return Results.Ok(barberShopDto);
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        var barberShopDto = response.Value!.CreateDto();
+        return Results.Ok(barberShopDto);
     }
 
     private static (int, int) SanitizeIndexAndPageSize(int page, int? pageSize)
@@ -60,31 +53,23 @@ public static class BarberShopEndpoint
     }
 
     public static async Task<IResult> GetAllBarberShops(
-        [FromQuery(Name = "page")] int pageAux,
-        [FromQuery(Name = "pageSize")] int pageSizeAux,
+        int page,
+        int pageSize,
         IBarberShopService barberShopService)
     {
-        try
-        {
-            var (page, pageSize) = SanitizeIndexAndPageSize(pageAux, pageSizeAux);
-            var response = await barberShopService.GetAllAsync(page, pageSize);
+        var response = await barberShopService.GetAllAsync(page, pageSize);
 
-            if (!response.IsSuccess)
-                return Results.BadRequest(response.Error);
+        if (!response.IsSuccess)
+            return Results.BadRequest(response.Error);
 
-            // if (!response.Data.Any())
-            //     return Results.NotFound();
+        // if (!response.Data.Any())
+        //     return Results.NotFound();
 
-            var dtos = response.Values!
-                .Select(b => b.CreateDto())
-                .ToList();
+        var dtos = response.Values!
+            .Select(b => b.CreateDto())
+            .ToList();
 
-            return Results.Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        return Results.Ok(dtos);
     }
 
     public static async Task<IResult> CreateBarberShop(
@@ -93,32 +78,26 @@ public static class BarberShopEndpoint
         IPersonService personService,
         IUserService userService)
     {
-        try
-        {
-            var ownerId = await userService.GetUserIdAsync();
+        var ownerId = await userService.GetUserIdAsync();
 
-            if (ownerId is null)
-                return Results.Unauthorized();
+        if (ownerId is null)
+            return Results.Unauthorized();
 
-            var respPerson = await personService.GetByIdAsync((int)ownerId);
+        var respPerson = await personService.GetByIdAsync((int)ownerId);
 
-            if (!respPerson.IsSuccess)
-                return Results.BadRequest();
+        if (!respPerson.IsSuccess)
+            return Results.BadRequest();
 
-            var newBarberShop = dto.CreateEntity()!;
-            newBarberShop.OwnerId = respPerson.Value!.UserId;
+        var newBarberShop = dto.CreateEntity()!;
+        newBarberShop.OwnerId = respPerson.Value!.UserId;
 
-            var response = await barberShopService.CreateAsync(respPerson.Value!.UserId, dto);
+        var response = await barberShopService.CreateAsync(respPerson.Value!.UserId, dto);
 
-            if (!response.IsSuccess)
-                Results.BadRequest(response.Error);
+        if (!response.IsSuccess)
+            Results.BadRequest(response.Error);
 
-            return Results.Created($"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}", new { Message = "Barbearia criada com sucesso" });
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        string uri = $"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}";
+        return Results.Created(uri, new { Message = "Barbearia criada com sucesso" });
     }
 
     public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, IBarberShopService barberShopService)

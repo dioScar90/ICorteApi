@@ -10,13 +10,13 @@ public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) 
 {
     protected readonly IBaseRepository<TEntity> _repository = repository;
     
-    public async Task<IResponse> CreateAsync(IDtoRequest<TEntity> dto)
+    public async Task<ISingleResponse<TEntity>> CreateAsync(IDtoRequest<TEntity> dto)
     {
         var entity = dto.CreateEntity()!;
         return await _repository.CreateAsync(entity);
     }
     
-    public async Task<IResponse> CreateAsync(IDtoRequest<TEntity>[] dtos)
+    public async Task<ICollectionResponse<TEntity>> CreateAsync(IDtoRequest<TEntity>[] dtos)
     {
         var entities = dtos.Select(dto => dto.CreateEntity()!).ToArray();
         return await _repository.CreateAsync(entities);

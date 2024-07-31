@@ -19,14 +19,6 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
         foreach (var prop in typeof(TEntity).GetProperties())
         {
-            if (!TEntityImplementsIPrimaryKeyEntity())
-            {
-                Console.WriteLine("\n\n\n");
-                Console.WriteLine(currentTableName);
-                Console.WriteLine(prop.Name);
-                Console.WriteLine(IsCompositeKeyName(prop.Name));
-            }
-
             if (!IsPrimitiveType(prop.PropertyType))
                 continue;
 

@@ -87,6 +87,7 @@ public static class EntityCreator
             City = addressDto.City,
             State = addressDto.State,
             PostalCode = addressDto.PostalCode,
-            Country = addressDto.Country
+            Country = addressDto.Country,
+            BarberShopId = addressDto.BarberShopId
         };
 }

@@ -10,7 +10,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    protected readonly IBasePrimaryKeyRepository<TEntity, TKey> _repository = repository;
+    protected new readonly IBasePrimaryKeyRepository<TEntity, TKey> _repository = repository;
     
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id)
     {

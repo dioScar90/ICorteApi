@@ -16,16 +16,18 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 
     protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     
-    public async Task<IResponse> CreateAsync(TEntity entity)
+    public async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
     {
         _dbSet.Add(entity);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.CreateError);
+        return await SaveChangesAsync() ? Response.Success(entity) : Response.Failure<TEntity>(Error.CreateError);
     }
     
-    public async Task<IResponse> CreateAsync(TEntity[] entities)
+    public async Task<ICollectionResponse<TEntity>> CreateAsync(TEntity[] entities)
     {
         _dbSet.AddRange(entities);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.CreateError);
+        return await SaveChangesAsync()
+            ? Response.Success(entities)
+            : Response.FailureCollection<TEntity>(Error.CreateError);
     }
     
     public async Task<ICollectionResponse<TEntity>> GetAllAsync(

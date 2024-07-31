@@ -10,6 +10,7 @@ using ICorteApi.Presentation.Exceptions;
 // using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Base;
+using ICorteApi.Application.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -47,7 +48,7 @@ public static class AddressEndpoint
         int barberShopId,
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
-        AppDbContext context)
+        IAddressService addressService)
     {
         var validationResult = validator.Validate(dto);
         
@@ -57,13 +58,14 @@ public static class AddressEndpoint
                     .Select(e => new Error(e.PropertyName, e.ErrorMessage))
                     .ToArray());
             // return Results.BadRequest(validationResult.Errors);
+
+        var response = await addressService.CreateAsync(dto with { BarberShopId = barberShopId });
+
+        if (!response.IsSuccess)
+            return Results.BadRequest(Error.BadSave);
             
-        var newAddress = dto.CreateEntity()!;
-
-        await context.Addresses.AddAsync(newAddress);
-        await context.SaveChangesAsync();
-
-        return Results.Created($"/{ENDPOINT_PREFIX}/{newAddress.Id}", new { Message = "Endereço criado com sucesso" });
+        string uri = $"/{ENDPOINT_PREFIX}/{response.Value!.Id}";
+        return Results.Created(uri, new { Message = "Endereço criado com sucesso" });
     }
 
     public static async Task<IResult> UpdateAddress(
