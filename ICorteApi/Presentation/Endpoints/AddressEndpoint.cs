@@ -36,12 +36,20 @@ public static class AddressEndpoint
         return Results.Created(uri, value);
     }
     
-    public static async Task<IResult> GetAddress(int barberShopId, int id, AppDbContext context)
+    public static async Task<IResult> GetAddress(
+        int barberShopId,
+        int id,
+        IAddressService service)
     {
-        var address = await context.Addresses.SingleOrDefaultAsync(a => a.Id == id);
+        var res = await service.GetByIdAsync(id);
 
-        if (address is null)
+        if (!res.IsSuccess)
             return Results.NotFound("Agendamento não encontrado");
+
+        var address = res.Value!;
+
+        if (address.BarberShopId != barberShopId)
+            return Results.BadRequest();
 
         var addressDto = address.CreateDto();
         return Results.Ok(addressDto);

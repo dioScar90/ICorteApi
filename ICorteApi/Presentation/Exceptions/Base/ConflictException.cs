@@ -2,15 +2,15 @@ using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Presentation.Exceptions;
 
-public abstract class BadRequestException : Exception
+public abstract class ConflictException : Exception
 {
-    public BadRequestException(string message, Error[]? errors = null)
+    public ConflictException(string message, Error[]? errors = null)
         : base(message)
     {
         Errors = GetDictionaryByArrayOfErrors(errors);
     }
     
-    public BadRequestException(string message, IDictionary<string, string[]> errors)
+    public ConflictException(string message, IDictionary<string, string[]> errors)
         : base(message)
     {
         Errors = errors;
