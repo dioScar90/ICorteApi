@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class ReportRepository(AppDbContext context)
+public sealed class ReportRepository(AppDbContext context)
     : BasePrimaryKeyRepository<Report, int>(context), IReportRepository
 {
 }

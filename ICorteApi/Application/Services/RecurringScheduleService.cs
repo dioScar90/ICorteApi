@@ -6,7 +6,7 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class RecurringScheduleService(IRecurringScheduleRepository recurringScheduleRepository)
+public sealed class RecurringScheduleService(IRecurringScheduleRepository recurringScheduleRepository)
     : BaseCompositeKeyService<RecurringSchedule, DayOfWeek, int>(recurringScheduleRepository), IRecurringScheduleService
 {
     public override async Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)

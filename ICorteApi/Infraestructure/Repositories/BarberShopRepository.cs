@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class BarberShopRepository(AppDbContext context)
+public sealed class BarberShopRepository(AppDbContext context)
     : BasePrimaryKeyRepository<BarberShop, int>(context), IBarberShopRepository
 {
 }

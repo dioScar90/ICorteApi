@@ -7,7 +7,7 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class PersonService(IPersonRepository personRepository)
+public sealed class PersonService(IPersonRepository personRepository)
     : BasePrimaryKeyService<Person, int>(personRepository), IPersonService
 {
     private readonly IPersonRepository _primaryPersonRepository = personRepository;

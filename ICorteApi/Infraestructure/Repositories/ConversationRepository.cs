@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class ConversationRepository(AppDbContext context)
+public sealed class ConversationRepository(AppDbContext context)
     : BasePrimaryKeyRepository<Conversation, int>(context), IConversationRepository
 {
 }

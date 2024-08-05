@@ -7,7 +7,7 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class BarberShopService(IBarberShopRepository barberShopRepository, IUserService userService)
+public sealed class BarberShopService(IBarberShopRepository barberShopRepository, IUserService userService)
     : BasePrimaryKeyService<BarberShop, int>(barberShopRepository), IBarberShopService
 {
     private readonly IBarberShopRepository _primaryBarberShopRepository = barberShopRepository;

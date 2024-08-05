@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class UserRepository(AppDbContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager) : IUserRepository
+public sealed class UserRepository(AppDbContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager) : IUserRepository
 {
     private readonly AppDbContext _context = context;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;

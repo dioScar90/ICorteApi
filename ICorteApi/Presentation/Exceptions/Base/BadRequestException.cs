@@ -15,6 +15,7 @@ public abstract class BadRequestException : Exception
     {
         Errors = errors;
     }
+    
     public IDictionary<string, string[]> Errors { get; }
 
     private static Dictionary<string, string[]> GetDictionaryByArrayOfErrors(Error[]? errors = null)

@@ -7,6 +7,7 @@ using FluentValidation;
 using ICorteApi.Presentation.Exceptions;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -39,7 +40,8 @@ public static class AddressEndpoint
     public static async Task<IResult> GetAddress(
         int barberShopId,
         int id,
-        IAddressService service)
+        IAddressService service,
+        IAddressErrors errors)
     {
         var res = await service.GetByIdAsync(id);
 
@@ -49,7 +51,7 @@ public static class AddressEndpoint
         var address = res.Value!;
 
         if (address.BarberShopId != barberShopId)
-            return Results.BadRequest();
+            return Results.BadRequest(errors.NotFoundError());
 
         var addressDto = address.CreateDto();
         return Results.Ok(addressDto);
@@ -59,7 +61,8 @@ public static class AddressEndpoint
         int barberShopId,
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
-        IAddressService service)
+        IAddressService service,
+        IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
@@ -70,7 +73,7 @@ public static class AddressEndpoint
         var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
 
         if (!response.IsSuccess)
-            return Results.BadRequest(Error.BadSave);
+            return Results.BadRequest(errors.CreateError());
             
         return GetCreatedResult(response.Value!.Id, barberShopId);
     }
@@ -80,7 +83,8 @@ public static class AddressEndpoint
         int id,
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
-        IAddressService service)
+        IAddressService service,
+        IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
@@ -91,8 +95,8 @@ public static class AddressEndpoint
         var response = await service.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(Error.BadSave);
-            
+            return Results.BadRequest(errors.UpdateError());
+
         return Results.NoContent();
     }
 
@@ -100,12 +104,13 @@ public static class AddressEndpoint
         int barberShopId,
         int id,
         AddressDtoRequest dto,
-        IAddressService service)
+        IAddressService service,
+        IAddressErrors errors)
     {
         var response = await service.DeleteAsync(id);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(Error.BadSave);
+            return Results.BadRequest(errors.DeleteError());
             
         return Results.NoContent();
     }

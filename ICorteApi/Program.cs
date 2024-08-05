@@ -9,6 +9,8 @@ using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Exceptions;
+using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +53,18 @@ builder.Services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
 builder.Services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<IAddressErrors, AddressErrors>();
+builder.Services.AddScoped<IAppointmentErrors, AppointmentErrors>();
+builder.Services.AddScoped<IBarberShopErrors, BarberShopErrors>();
+builder.Services.AddScoped<IConversationErrors, ConversationErrors>();
+builder.Services.AddScoped<IMessageErrors, MessageErrors>();
+builder.Services.AddScoped<IPersonErrors, PersonErrors>();
+builder.Services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
+builder.Services.AddScoped<IReportErrors, ReportErrors>();
+builder.Services.AddScoped<IServiceErrors, ServiceErrors>();
+builder.Services.AddScoped<ISpecialScheduleErrors, SpecialScheduleErrors>();
+builder.Services.AddScoped<IUserErrors, UserErrors>();
 
 // Register validator with service provider (or use one of the automatic registration methods)
 ConfigureValidators.AddAll(builder);

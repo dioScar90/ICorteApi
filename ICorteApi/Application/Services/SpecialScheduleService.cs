@@ -6,7 +6,7 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class SpecialScheduleService(ISpecialScheduleRepository specialScheduleRepository)
+public sealed class SpecialScheduleService(ISpecialScheduleRepository specialScheduleRepository)
     : BaseCompositeKeyService<SpecialSchedule, DateOnly, int>(specialScheduleRepository), ISpecialScheduleService
 {
     public override async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)

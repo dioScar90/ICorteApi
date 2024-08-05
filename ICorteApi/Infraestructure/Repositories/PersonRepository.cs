@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class PersonRepository(AppDbContext context)
+public sealed class PersonRepository(AppDbContext context)
     : BasePrimaryKeyRepository<Person, int>(context), IPersonRepository
 {
 }

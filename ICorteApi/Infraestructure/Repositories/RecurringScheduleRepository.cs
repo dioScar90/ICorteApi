@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public class RecurringScheduleRepository(AppDbContext context)
+public sealed class RecurringScheduleRepository(AppDbContext context)
     : BaseCompositeKeyRepository<RecurringSchedule, DayOfWeek, int>(context), IRecurringScheduleRepository
 {
 }

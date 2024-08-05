@@ -5,7 +5,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public class UserService(IUserRepository userRepository) : IUserService
+public sealed class UserService(IUserRepository userRepository) : IUserService
 {
     private readonly IUserRepository _repository = userRepository;
     

@@ -6,7 +6,7 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public class ServiceAppointmentService(IServiceAppointmentRepository serviceAppointmentRepository)
+public sealed class ServiceAppointmentService(IServiceAppointmentRepository serviceAppointmentRepository)
     : BaseCompositeKeyService<ServiceAppointment, int, int>(serviceAppointmentRepository), IServiceAppointmentService
 {
     public override async Task<ISingleResponse<ServiceAppointment>> GetByIdAsync(int appointmentId, int serviceId)

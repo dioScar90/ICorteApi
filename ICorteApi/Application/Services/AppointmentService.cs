@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public class AppointmentService(IAppointmentRepository appointmentRepository)
+public sealed class AppointmentService(IAppointmentRepository appointmentRepository)
     : BasePrimaryKeyService<Appointment, int>(appointmentRepository), IAppointmentService
 {
 }

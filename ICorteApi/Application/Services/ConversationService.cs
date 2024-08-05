@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public class ConversationService(IConversationRepository conversationRepository)
+public sealed class ConversationService(IConversationRepository conversationRepository)
     : BasePrimaryKeyService<Conversation, int>(conversationRepository), IConversationService
 {
 }
