@@ -4,11 +4,9 @@ namespace ICorteApi.Domain.Entities;
 
 public class ServiceAppointment : CompositeKeyEntity<int, int>
 {
-    // public int AppointmentId => Id1;
     public int AppointmentId { get => Id1; set => Id1 = value; }
     public Appointment Appointment { get; set; }
 
-    // public int ServiceId => Id2;
     public int ServiceId { get => Id2; set => Id2 = value; }
     public Service Service { get; set; }
 }

@@ -13,7 +13,7 @@ public class Appointment : BasePrimaryKeyEntity<int>
     public AppointmentStatus Status { get; set; }
 
     public int ClientId { get; set; }
-    public Person Client { get; set; }
+    public User Client { get; set; }
 
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }

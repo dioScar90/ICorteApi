@@ -10,7 +10,7 @@ public class Report : BasePrimaryKeyEntity<int>
     public Rating Rating { get; set; }
 
     public int ClientId { get; set; }
-    public Person Client { get; set; }
+    public User Client { get; set; }
 
     public int BarberShopId { get; set; }
     public BarberShop BarberShop { get; set; }

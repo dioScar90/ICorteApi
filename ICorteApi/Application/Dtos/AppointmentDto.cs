@@ -12,7 +12,6 @@ public record AppointmentDtoRequest(
     string? Notes,
     decimal TotalPrice,
     AppointmentStatus Status
-    // AppointmentServicesDtoResponse[]? AppointmentServices
 ) : IDtoRequest<Appointment>;
 
 public record AppointmentDtoResponse(
@@ -23,5 +22,4 @@ public record AppointmentDtoResponse(
     string? Notes,
     decimal TotalPrice,
     AppointmentStatus Status
-    // AppointmentServicesDtoResponse[]? AppointmentServices
 ) : IDtoResponse<Appointment>;

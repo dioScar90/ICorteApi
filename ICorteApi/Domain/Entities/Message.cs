@@ -12,5 +12,5 @@ public class Message : BasePrimaryKeyEntity<int>
     public Conversation Conversation { get; set; }
 
     public int SenderId { get; set; }
-    public Person Sender { get; set; }
+    public User Sender { get; set; }
 }

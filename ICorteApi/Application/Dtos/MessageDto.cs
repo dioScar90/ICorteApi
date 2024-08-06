@@ -7,7 +7,7 @@ public record MessageDtoRequest(
     string Content,
     DateTime SentAt,
     bool IsRead,
-    PersonDtoRequest Sender
+    UserDtoRequest Sender
 ) : IDtoRequest<Message>;
 
 public record MessageDtoResponse(
@@ -15,5 +15,5 @@ public record MessageDtoResponse(
     string Content,
     DateTime SentAt,
     bool IsRead,
-    PersonDtoResponse Sender
+    UserDtoResponse Sender
 ) : IDtoResponse<Message>;

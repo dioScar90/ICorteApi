@@ -10,12 +10,12 @@ public class BarberShop : BasePrimaryKeyEntity<int>
     public string ComercialEmail { get; set; }
 
     public int OwnerId { get; set; }
-    public Person Owner { get; set; }
+    public User Owner { get; set; }
 
     public Address Address { get; set; }
     public ICollection<RecurringSchedule> RecurringSchedules { get; set; } = [];
     public ICollection<SpecialSchedule> SpecialSchedules { get; set; } = [];
-    public ICollection<Person> Barbers { get; set; } = [];
+    public ICollection<User> Barbers { get; set; } = [];
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Service> Services { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
