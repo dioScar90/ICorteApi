@@ -19,14 +19,13 @@ public static class ConfigureEndpoints
 
         app.MapGet("/", () => "Hello World!");
 
-        PersonEndpoint.Map(app);
-
-        BarberShopEndpoint.Map(app);
-
-        RecurringScheduleEndpoint.Map(app);
-
         AddressEndpoint.Map(app);
-
+        AppointmentEndpoint.Map(app);
         AuthEndpoint.Map(app);
+        BarberShopEndpoint.Map(app);
+        // ConversationEndpoint.Map(app);
+        PersonEndpoint.Map(app);
+        RecurringScheduleEndpoint.Map(app);
+        SpecialScheduleEndpoint.Map(app);
     }
 }

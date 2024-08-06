@@ -1,7 +1,9 @@
-﻿using ICorteApi.Application.Interfaces;
-using ICorteApi.Application.Dtos;
+﻿using ICorteApi.Application.Dtos;
 using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
+using FluentValidation;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -10,13 +12,13 @@ public static class SpecialScheduleEndpoint
     private static readonly string INDEX = "";
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.SpecialSchedule;
     private static readonly string ENDPOINT_NAME = EndpointNames.SpecialSchedule;
-
+    
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-
+        
         group.MapGet(INDEX, GetAllSpecialSchedules);
         group.MapGet("{date}", GetSpecialSchedule);
         group.MapPost(INDEX, CreateSpecialSchedule);
@@ -24,35 +26,47 @@ public static class SpecialScheduleEndpoint
         group.MapDelete("{date}", DeleteSpecialSchedule);
     }
 
+    public static IResult GetCreatedResult(DateOnly newId, int barberShopId)
+    {
+        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.SpecialSchedule + "/" + newId;
+        object value = new { Message = "Horário especial criado com sucesso" };
+        return Results.Created(uri, value);
+    }
+    
     public static async Task<IResult> GetSpecialSchedule(
         int barberShopId,
         DateOnly date,
-        ISpecialScheduleService specialScheduleService)
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
     {
-        var response = await specialScheduleService.GetByIdAsync(date, barberShopId);
+        var res = await service.GetByIdAsync(date, barberShopId);
 
-        if (!response.IsSuccess)
-            return Results.NotFound();
+        if (!res.IsSuccess)
+            errors.ThrowNotFoundException();
 
-        var specialScheduleDto = response.Value!.CreateDto();
-        return Results.Ok(specialScheduleDto);
+        var address = res.Value!;
+
+        if (address.BarberShopId != barberShopId)
+            errors.ThrowBadRequestException();
+
+        var addressDto = address.CreateDto();
+        return Results.Ok(addressDto);
     }
-
+    
     public static async Task<IResult> GetAllSpecialSchedules(
+        int page,
+        int pageSize,
         int barberShopId,
-        int page, int pageSize,
-        ISpecialScheduleService specialScheduleService)
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
     {
-        var response = await specialScheduleService.GetAllAsync(page, pageSize);
+        var response = await service.GetAllAsync(page, pageSize);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(response.Error);
-
-        if (!response.Values.Any())
-            return Results.NotFound();
-
-        var dtos = response.Values
-            .Select(dto => dto.CreateDto())
+            errors.ThrowNotFoundException();
+        
+        var dtos = response.Values!
+            .Select(b => b.CreateDto())
             .ToArray();
 
         return Results.Ok(dtos);
@@ -61,27 +75,40 @@ public static class SpecialScheduleEndpoint
     public static async Task<IResult> CreateSpecialSchedule(
         int barberShopId,
         SpecialScheduleDtoRequest dto,
-        ISpecialScheduleService specialScheduleService)
+        IValidator<SpecialScheduleDtoRequest> validator,
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
     {
-        var response = await specialScheduleService.CreateAsync(dto);
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+                    
+        var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
 
         if (!response.IsSuccess)
-            Results.BadRequest(response.Error);
-
-        string uri = $"/{ENDPOINT_PREFIX}/{barberShopId}-{dto.Date}";
-        return Results.Created(uri, new { Message = "Horário de funcionamento criado com sucesso" });
+            errors.ThrowCreateException();
+            
+        return GetCreatedResult(response.Value!.Date, barberShopId);
     }
 
     public static async Task<IResult> UpdateSpecialSchedule(
         int barberShopId,
         DateOnly date,
         SpecialScheduleDtoRequest dto,
-        ISpecialScheduleService specialScheduleService)
+        IValidator<SpecialScheduleDtoRequest> validator,
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
     {
-        var response = await specialScheduleService.UpdateAsync(dto, date, barberShopId);
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+        
+        var response = await service.UpdateAsync(dto, date, barberShopId);
 
         if (!response.IsSuccess)
-            return Results.NotFound(response.Error);
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -89,13 +116,14 @@ public static class SpecialScheduleEndpoint
     public static async Task<IResult> DeleteSpecialSchedule(
         int barberShopId,
         DateOnly date,
-        ISpecialScheduleService specialScheduleService)
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
     {
-        var resp = await specialScheduleService.DeleteAsync(date, barberShopId);
+        var response = await service.DeleteAsync(date, barberShopId);
 
-        if (!resp.IsSuccess)
-            return Results.NotFound(resp.Error);
-
+        if (!response.IsSuccess)
+            errors.ThrowDeleteException();
+            
         return Results.NoContent();
     }
 }

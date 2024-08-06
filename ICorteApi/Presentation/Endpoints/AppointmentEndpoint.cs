@@ -1,98 +1,109 @@
-﻿// using Microsoft.EntityFrameworkCore;
-// using ICorteApi.Infraestructure.Context;
-// using ICorteApi.Presentation.Extensions;
-// using ICorteApi.Application.Dtos;
-// using ICorteApi.Domain.Entities;
+﻿using ICorteApi.Application.Dtos;
+using ICorteApi.Presentation.Extensions;
+using ICorteApi.Presentation.Enums;
+using FluentValidation;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Interfaces;
 
-// namespace ICorteApi.Presentation.Endpoints;
+namespace ICorteApi.Presentation.Endpoints;
 
-// public static class AppointmentEndpoint
-// {
-//     private const string INDEX = "";
-//     private const string ENDPOINT_PREFIX = "appointment";
-//     private const string ENDPOINT_NAME = "Appointment";
+public static class AppointmentEndpoint
+{
+    private static readonly string INDEX = "";
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Appointment;
+    private static readonly string ENDPOINT_NAME = EndpointNames.Appointment;
+    
+    public static void Map(WebApplication app)
+    {
+        var group = app.MapGroup(ENDPOINT_PREFIX)
+            .WithTags(ENDPOINT_NAME)
+            .RequireAuthorization();
+        
+        group.MapGet("{id}", GetAppointment);
+        group.MapPost(INDEX, CreateAppointment);
+        group.MapPut("{id}", UpdateAppointment);
+        group.MapDelete("{id}", DeleteAppointment);
+    }
 
-//     public static void Map(WebApplication app)
-//     {
-//         var group = app.MapGroup(ENDPOINT_PREFIX)
-//             .WithTags(ENDPOINT_NAME)
-//             .RequireAuthorization();
+    public static IResult GetCreatedResult(int newId, int barberShopId)
+    {
+        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Appointment + "/" + newId;
+        object value = new { Message = "Agendamento criado com sucesso" };
+        return Results.Created(uri, value);
+    }
+    
+    public static async Task<IResult> GetAppointment(
+        int barberShopId,
+        int id,
+        IAppointmentService service,
+        IAppointmentErrors errors)
+    {
+        var res = await service.GetByIdAsync(id);
 
-//         // group.MapGet(INDEX, GetAppointmentes);
-//         group.MapGet("{id}", GetAppointment);
-//         group.MapPost(INDEX, CreateAppointment);
-//         group.MapPut("{id}", UpdateAppointment);
-//         group.MapDelete("{id}", DeleteAppointment);
-//     }
+        if (!res.IsSuccess)
+            errors.ThrowNotFoundException();
 
-//     public static async Task<IResult> GetAppointment(int id, AppDbContext context)
-//     {
-//         var appointment = await context.Appointments
-//             .SingleOrDefaultAsync(a => a.Id == id);
+        var address = res.Value!;
 
-//         if (appointment is null)
-//             return Results.NotFound("Agendamento não encontrado");
+        if (address.BarberShopId != barberShopId)
+            errors.ThrowBadRequestException();
 
-//         var appointmentDto = appointment.CreateDto<AppointmentDtoResponse>();
-//         return Results.Ok(appointmentDto);
-//     }
+        var addressDto = address.CreateDto();
+        return Results.Ok(addressDto);
+    }
 
-//     public static async Task<IResult> CreateAppointment(AppointmentDtoRequest dto, AppDbContext context)
-//     {
-//         try
-//         {
-//             var newAppointment = dto.CreateEntity()!;
+    public static async Task<IResult> CreateAppointment(
+        int barberShopId,
+        AppointmentDtoRequest dto,
+        IValidator<AppointmentDtoRequest> validator,
+        IAppointmentService service,
+        IAppointmentErrors errors)
+    {
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+                    
+        var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
 
-//             await context.Appointments.AddAsync(newAppointment);
-//             await context.SaveChangesAsync();
+        if (!response.IsSuccess)
+            errors.ThrowCreateException();
+            
+        return GetCreatedResult(response.Value!.Id, barberShopId);
+    }
 
-//             return Results.Created($"/{ENDPOINT_PREFIX}/{newAppointment.Id}", new { Message = "Agendamento criado com sucesso" });
-//         }
-//         catch (Exception ex)
-//         {
-//             return Results.BadRequest(ex.Message);
-//         }
-//     }
+    public static async Task<IResult> UpdateAppointment(
+        int barberShopId,
+        int id,
+        AppointmentDtoRequest dto,
+        IValidator<AppointmentDtoRequest> validator,
+        IAppointmentService service,
+        IAppointmentErrors errors)
+    {
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+        
+        var response = await service.UpdateAsync(dto, id);
 
-//     public static async Task<IResult> UpdateAppointment(int id, AppointmentDtoRequest dto, AppDbContext context)
-//     {
-//         try
-//         {
-//             var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.Id == id);
+        if (!response.IsSuccess)
+            errors.ThrowUpdateException();
 
-//             if (appointment is null)
-//                 return Results.NotFound();
+        return Results.NoContent();
+    }
 
-//             appointment.AppointmentDate = dto.AppointmentDate;
-//             appointment.UpdatedAt = DateTime.UtcNow;
+    public static async Task<IResult> DeleteAppointment(
+        int barberShopId,
+        int id,
+        IAppointmentService service,
+        IAppointmentErrors errors)
+    {
+        var response = await service.DeleteAsync(id);
 
-//             await context.SaveChangesAsync();
-//             return Results.Ok(new { Message = "Agendamento atualizado com sucesso" });
-//         }
-//         catch (Exception ex)
-//         {
-//             return Results.BadRequest(ex.Message);
-//         }
-//     }
-
-//     public static async Task<IResult> DeleteAppointment(int id, AppDbContext context)
-//     {
-//         try
-//         {
-//             var appointment = await context.Appointments.SingleOrDefaultAsync(a => a.Id == id);
-
-//             if (appointment is null)
-//                 return Results.NotFound();
-
-//             appointment.UpdatedAt = DateTime.UtcNow;
-//             appointment.IsDeleted = true;
-
-//             await context.SaveChangesAsync();
-//             return Results.NoContent();
-//         }
-//         catch (Exception ex)
-//         {
-//             return Results.BadRequest(ex.Message);
-//         }
-//     }
-// }
+        if (!response.IsSuccess)
+            errors.ThrowDeleteException();
+            
+        return Results.NoContent();
+    }
+}

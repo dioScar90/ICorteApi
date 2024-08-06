@@ -2,19 +2,20 @@ using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Presentation.Exceptions;
 
-public abstract class ConflictException : Exception
+public class BadRequestException : Exception
 {
-    public ConflictException(string message, Error[]? errors = null)
+    public BadRequestException(string message, Error[]? errors = null)
         : base(message)
     {
         Errors = GetDictionaryByArrayOfErrors(errors);
     }
     
-    public ConflictException(string message, IDictionary<string, string[]> errors)
+    public BadRequestException(string message, IDictionary<string, string[]> errors)
         : base(message)
     {
         Errors = errors;
     }
+    
     public IDictionary<string, string[]> Errors { get; }
 
     private static Dictionary<string, string[]> GetDictionaryByArrayOfErrors(Error[]? errors = null)

@@ -1,9 +1,9 @@
 ﻿using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Presentation.Extensions;
-using Microsoft.AspNetCore.Mvc;
 using ICorteApi.Presentation.Enums;
+using FluentValidation;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -26,7 +26,17 @@ public static class BarberShopEndpoint
         group.MapDelete("{id}", DeleteBarberShop);
     }
 
-    public static async Task<IResult> GetBarberShop(int id, IBarberShopService barberShopService)
+    public static IResult GetCreatedResult(int newId)
+    {
+        string uri = EndpointPrefixes.BarberShop + "/" + newId;
+        object value = new { Message = "Barbearia criada com sucesso" };
+        return Results.Created(uri, value);
+    }
+
+    public static async Task<IResult> GetBarberShop(
+        int id,
+        IBarberShopService barberShopService,
+        IBarberShopErrors errors)
     {
         var response = await barberShopService.GetByIdAsync(id);
 
@@ -36,47 +46,32 @@ public static class BarberShopEndpoint
         var barberShopDto = response.Value!.CreateDto();
         return Results.Ok(barberShopDto);
     }
-
-    private static (int, int) SanitizeIndexAndPageSize(int page, int? pageSize)
-    {
-        const int DEFAULT_PAGE_SIZE = 25;
-
-        if (page < 1)
-            page = 1;
-
-        pageSize ??= DEFAULT_PAGE_SIZE;
-
-        if (pageSize < 1)
-            pageSize = DEFAULT_PAGE_SIZE;
-
-        return (page, (int)pageSize);
-    }
-
+    
     public static async Task<IResult> GetAllBarberShops(
         int page,
         int pageSize,
-        IBarberShopService barberShopService)
+        IBarberShopService barberShopService,
+        IBarberShopErrors errors)
     {
         var response = await barberShopService.GetAllAsync(page, pageSize);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(response.Error);
-
-        // if (!response.Data.Any())
-        //     return Results.NotFound();
-
+            errors.ThrowNotFoundException();
+        
         var dtos = response.Values!
             .Select(b => b.CreateDto())
-            .ToList();
+            .ToArray();
 
         return Results.Ok(dtos);
     }
 
     public static async Task<IResult> CreateBarberShop(
         BarberShopDtoRequest dto,
+        IValidator<BarberShopDtoRequest> validator,
         IBarberShopService barberShopService,
         IPersonService personService,
-        IUserService userService)
+        IUserService userService,
+        IBarberShopErrors errors)
     {
         var ownerId = await userService.GetUserIdAsync();
 
@@ -86,36 +81,50 @@ public static class BarberShopEndpoint
         var respPerson = await personService.GetByIdAsync((int)ownerId);
 
         if (!respPerson.IsSuccess)
-            return Results.BadRequest();
-
-        var newBarberShop = dto.CreateEntity()!;
-        newBarberShop.OwnerId = respPerson.Value!.UserId;
+            errors.ThrowBadRequestException();
+        
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
 
         var response = await barberShopService.CreateAsync(respPerson.Value!.UserId, dto);
 
         if (!response.IsSuccess)
-            Results.BadRequest(response.Error);
+            errors.ThrowCreateException();
 
-        string uri = $"/{ENDPOINT_PREFIX}/{newBarberShop!.Id}";
-        return Results.Created(uri, new { Message = "Barbearia criada com sucesso" });
+        return GetCreatedResult(response.Value!.Id);
     }
 
-    public static async Task<IResult> UpdateBarberShop(int id, BarberShopDtoRequest dto, IBarberShopService barberShopService)
+    public static async Task<IResult> UpdateBarberShop(
+        int id,
+        BarberShopDtoRequest dto,
+        IValidator<BarberShopDtoRequest> validator,
+        IBarberShopService barberShopService,
+        IBarberShopErrors errors)
     {
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+        
         var response = await barberShopService.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
-            return Results.NotFound(response.Error);
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteBarberShop(int id, IBarberShopService barberShopService)
+    public static async Task<IResult> DeleteBarberShop(
+        int id,
+        IBarberShopService barberShopService,
+        IBarberShopErrors errors)
     {
         var response = await barberShopService.DeleteAsync(id);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(response.Error);
+            errors.ThrowDeleteException();
 
         return Results.NoContent();
     }

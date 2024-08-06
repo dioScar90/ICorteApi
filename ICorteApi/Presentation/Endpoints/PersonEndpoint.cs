@@ -5,6 +5,7 @@ using ICorteApi.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Presentation.Exceptions;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -39,28 +40,30 @@ public static class PersonEndpoint
 
     public static async Task<IResult> CreatePerson(
         PersonDtoRequest dto,
-        [FromServices] IUserService userService,
-        [FromServices] IPersonService personService)
+        IUserService userService,
+        IPersonService personService,
+        IPersonErrors errors)
     {
         var userResponse = await userService.GetAsync();
 
         if (!userResponse.IsSuccess)
             return Results.BadRequest(userResponse);
 
-        var newPerson = dto.CreateEntity();
-        newPerson!.UserId = userResponse.Value.Id;
+        var newPerson = dto.CreateEntity()!;
+        newPerson.UserId = userResponse.Value!.Id;
 
         var personResponse = await personService.CreateAsync(userResponse.Value.Id, dto);
 
         if (!personResponse.IsSuccess)
             return Results.BadRequest(personResponse.Error);
 
-        return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Usuário criado com sucesso" });
+        return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Pessoa criada com sucesso" });
     }
 
     public static async Task<IResult> GetMe(
-        [FromServices] IUserService userService,
-        [FromServices] IPersonService personService)
+        IUserService userService,
+        IPersonService personService,
+        IPersonErrors errors)
     {
         // Obtendo o ID do usuário autenticado
         // var userId = userManager.GetUserId(user);
@@ -73,12 +76,11 @@ public static class PersonEndpoint
         // if (!int.TryParse(userManager.GetUserId(user), out int userId))
         //     return Results.Unauthorized();
         
-        var personResponse = await personService.GetByIdAsync(userResponse.Value.Id);
+        var personResponse = await personService.GetByIdAsync(userResponse.Value!.Id);
 
         if (!personResponse.IsSuccess)
-            throw new PersonNotFoundException();
-            // return Results.NotFound(personResponse);
-
+            errors.ThrowNotFoundException();
+            
         var personDto = personResponse.Value!.CreateDto();
         return Results.Ok(personDto);
     }

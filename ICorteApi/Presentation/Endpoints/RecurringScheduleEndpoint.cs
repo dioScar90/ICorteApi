@@ -1,7 +1,9 @@
-﻿using ICorteApi.Application.Interfaces;
-using ICorteApi.Application.Dtos;
+﻿using ICorteApi.Application.Dtos;
 using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
+using FluentValidation;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -10,13 +12,13 @@ public static class RecurringScheduleEndpoint
     private static readonly string INDEX = "";
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.RecurringSchedule;
     private static readonly string ENDPOINT_NAME = EndpointNames.RecurringSchedule;
-
+    
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-
+        
         group.MapGet(INDEX, GetAllRecurringSchedules);
         group.MapGet("{dayOfWeek}", GetRecurringSchedule);
         group.MapPost(INDEX, CreateRecurringSchedule);
@@ -24,35 +26,47 @@ public static class RecurringScheduleEndpoint
         group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule);
     }
 
+    public static IResult GetCreatedResult(DayOfWeek newId, int barberShopId)
+    {
+        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.RecurringSchedule + "/" + newId;
+        object value = new { Message = "Horário de funcionamento criado com sucesso" };
+        return Results.Created(uri, value);
+    }
+    
     public static async Task<IResult> GetRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService recurringScheduleService)
+        IRecurringScheduleService service,
+        IRecurringScheduleErrors errors)
     {
-        var response = await recurringScheduleService.GetByIdAsync(dayOfWeek, barberShopId);
+        var res = await service.GetByIdAsync(dayOfWeek, barberShopId);
 
-        if (!response.IsSuccess)
-            return Results.NotFound();
+        if (!res.IsSuccess)
+            errors.ThrowNotFoundException();
 
-        var recurringScheduleDto = response.Value!.CreateDto();
-        return Results.Ok(recurringScheduleDto);
+        var address = res.Value!;
+
+        if (address.BarberShopId != barberShopId)
+            errors.ThrowBadRequestException();
+
+        var addressDto = address.CreateDto();
+        return Results.Ok(addressDto);
     }
-
+    
     public static async Task<IResult> GetAllRecurringSchedules(
+        int page,
+        int pageSize,
         int barberShopId,
-        int page, int pageSize,
-        IRecurringScheduleService recurringScheduleService)
+        IRecurringScheduleService service,
+        IRecurringScheduleErrors errors)
     {
-        var response = await recurringScheduleService.GetAllAsync(page, pageSize);
+        var response = await service.GetAllAsync(page, pageSize);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(response.Error);
-
-        if (!response.Values.Any())
-            return Results.NotFound();
-
-        var dtos = response.Values
-            .Select(dto => dto.CreateDto())
+            errors.ThrowNotFoundException();
+        
+        var dtos = response.Values!
+            .Select(b => b.CreateDto())
             .ToArray();
 
         return Results.Ok(dtos);
@@ -61,27 +75,40 @@ public static class RecurringScheduleEndpoint
     public static async Task<IResult> CreateRecurringSchedule(
         int barberShopId,
         RecurringScheduleDtoRequest dto,
-        IRecurringScheduleService recurringScheduleService)
+        IValidator<RecurringScheduleDtoRequest> validator,
+        IRecurringScheduleService service,
+        IRecurringScheduleErrors errors)
     {
-        var response = await recurringScheduleService.CreateAsync(dto with { BarberShopId = barberShopId });
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+                    
+        var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
 
         if (!response.IsSuccess)
-            Results.BadRequest(response.Error);
-
-        string uri = $"/{ENDPOINT_PREFIX}/{barberShopId}-{dto.DayOfWeek}";
-        return Results.Created(uri, new { Message = "Horário de funcionamento criado com sucesso" });
+            errors.ThrowCreateException();
+            
+        return GetCreatedResult(response.Value!.DayOfWeek, barberShopId);
     }
 
     public static async Task<IResult> UpdateRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoRequest dto,
-        IRecurringScheduleService recurringScheduleService)
+        IValidator<RecurringScheduleDtoRequest> validator,
+        IRecurringScheduleService service,
+        IRecurringScheduleErrors errors)
     {
-        var response = await recurringScheduleService.UpdateAsync(dto, dayOfWeek, barberShopId);
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+        
+        var response = await service.UpdateAsync(dto, dayOfWeek, barberShopId);
 
         if (!response.IsSuccess)
-            return Results.NotFound(response.Error);
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -89,13 +116,14 @@ public static class RecurringScheduleEndpoint
     public static async Task<IResult> DeleteRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService recurringScheduleService)
+        IRecurringScheduleService service,
+        IRecurringScheduleErrors errors)
     {
-        var resp = await recurringScheduleService.DeleteAsync(dayOfWeek, barberShopId);
+        var response = await service.DeleteAsync(dayOfWeek, barberShopId);
 
-        if (!resp.IsSuccess)
-            return Results.NotFound(resp.Error);
-
+        if (!response.IsSuccess)
+            errors.ThrowDeleteException();
+            
         return Results.NoContent();
     }
 }

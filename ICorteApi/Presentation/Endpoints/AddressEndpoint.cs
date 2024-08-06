@@ -1,14 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ICorteApi.Infraestructure.Context;
-using ICorteApi.Application.Dtos;
+﻿using ICorteApi.Application.Dtos;
 using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
 using FluentValidation;
-using ICorteApi.Presentation.Exceptions;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -23,8 +18,7 @@ public static class AddressEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-
-        // group.MapGet(INDEX, GetAddresses);
+        
         group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
@@ -42,17 +36,17 @@ public static class AddressEndpoint
         int barberShopId,
         int id,
         IAddressService service,
-        [FromServices] IAddressErrors errors)
+        IAddressErrors errors)
     {
         var res = await service.GetByIdAsync(id);
 
         if (!res.IsSuccess)
-            return Results.NotFound("Agendamento não encontrado");
+            errors.ThrowNotFoundException();
 
         var address = res.Value!;
 
         if (address.BarberShopId != barberShopId)
-            return Results.BadRequest(errors.NotFoundError());
+            errors.ThrowBadRequestException();
 
         var addressDto = address.CreateDto();
         return Results.Ok(addressDto);
@@ -63,18 +57,17 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
         IAddressService service,
-        [FromServices] IAddressErrors errors)
+        IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
         if (!validationResult.IsValid)
-            throw new AddressValidationException(
-                validationResult.Errors.Select(e => new Error(e.PropertyName, e.ErrorMessage)).ToArray());
+            errors.ThrowValidationException(validationResult.ToDictionary());
                     
         var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
 
         if (!response.IsSuccess)
-            return Results.BadRequest(errors.CreateError());
+            errors.ThrowCreateException();
             
         return GetCreatedResult(response.Value!.Id, barberShopId);
     }
@@ -85,18 +78,17 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
         IAddressService service,
-        [FromServices] IAddressErrors errors)
+        IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
         if (!validationResult.IsValid)
-            throw new AddressValidationException(
-                validationResult.Errors.Select(e => new Error(e.PropertyName, e.ErrorMessage)).ToArray());
+            errors.ThrowValidationException(validationResult.ToDictionary());
         
         var response = await service.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(errors.UpdateError());
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -104,14 +96,13 @@ public static class AddressEndpoint
     public static async Task<IResult> DeleteAddress(
         int barberShopId,
         int id,
-        AddressDtoRequest dto,
         IAddressService service,
-        [FromServices] IAddressErrors errors)
+        IAddressErrors errors)
     {
         var response = await service.DeleteAsync(id);
 
         if (!response.IsSuccess)
-            return Results.BadRequest(errors.DeleteError());
+            errors.ThrowDeleteException();
             
         return Results.NoContent();
     }

@@ -2,15 +2,15 @@ using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Presentation.Exceptions;
 
-public abstract class BadRequestException : Exception
+public class UnprocessableEntity : Exception
 {
-    public BadRequestException(string message, Error[]? errors = null)
+    public UnprocessableEntity(string message, Error[]? errors = null)
         : base(message)
     {
         Errors = GetDictionaryByArrayOfErrors(errors);
     }
     
-    public BadRequestException(string message, IDictionary<string, string[]> errors)
+    public UnprocessableEntity(string message, IDictionary<string, string[]> errors)
         : base(message)
     {
         Errors = errors;

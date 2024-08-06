@@ -5,6 +5,7 @@ namespace ICorteApi.Application.Dtos;
 
 public record SpecialScheduleDtoRequest(
     DateOnly Date,
+    int? BarberShopId,
     string? Notes,
     TimeOnly? OpenTime,
     TimeOnly? CloseTime,

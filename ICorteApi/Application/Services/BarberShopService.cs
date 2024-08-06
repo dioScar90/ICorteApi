@@ -15,7 +15,7 @@ public sealed class BarberShopService(IBarberShopRepository barberShopRepository
     
     public async Task<int?> GetMyBarberShopAsync() => await _userService.GetUserIdAsync();
 
-    public async Task<IResponse> CreateAsync(int ownerId, BarberShopDtoRequest dto)
+    public async Task<ISingleResponse<BarberShop>> CreateAsync(int ownerId, BarberShopDtoRequest dto)
     {
         var newBarberShop = dto.CreateEntity()!;
         newBarberShop.OwnerId = ownerId;

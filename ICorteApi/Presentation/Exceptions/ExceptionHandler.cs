@@ -17,7 +17,7 @@ public sealed class ExceptionHandler : IExceptionHandler
             Detail = exception.Message ?? null
         };
         
-        if (exception is BadRequestException br && br.Errors is not null)
+        if (exception is UnprocessableEntity br && br.Errors is not null)
         {
             problemDetails.Extensions = new Dictionary<string, object?>
             {
@@ -37,8 +37,9 @@ public sealed class ExceptionHandler : IExceptionHandler
             UnauthorizedException       => "Unauthorized",
             NotFoundException           => "NotFound",
             BadRequestException         => "BadRequest",
-            ConflictException           => "Conflict",
             ForbiddenException          => "Forbidden",
+            ConflictException           => "Conflict",
+            UnprocessableEntity         => "UnprocessableEntity",
             MethodNotAllowedException   => "MethodNotAllowed",
             _ => "ServerError"
         };
@@ -48,8 +49,9 @@ public sealed class ExceptionHandler : IExceptionHandler
             UnauthorizedException       => StatusCodes.Status401Unauthorized,
             NotFoundException           => StatusCodes.Status404NotFound,
             BadRequestException         => StatusCodes.Status400BadRequest,
-            ConflictException           => StatusCodes.Status409Conflict,
             ForbiddenException          => StatusCodes.Status403Forbidden,
+            ConflictException           => StatusCodes.Status409Conflict,
+            UnprocessableEntity         => StatusCodes.Status422UnprocessableEntity,
             MethodNotAllowedException   => StatusCodes.Status405MethodNotAllowed,
             _ => StatusCodes.Status500InternalServerError
         };

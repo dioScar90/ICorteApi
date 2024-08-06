@@ -9,5 +9,5 @@ public interface IBarberShopService
 {
     Task<int?> GetMyBarberShopAsync();
     
-    Task<IResponse> CreateAsync(int ownerId, BarberShopDtoRequest dto);
+    Task<ISingleResponse<BarberShop>> CreateAsync(int ownerId, BarberShopDtoRequest dto);
 }
