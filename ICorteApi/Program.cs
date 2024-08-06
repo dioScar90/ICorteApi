@@ -11,6 +11,8 @@ using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Exceptions;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Errors;
+using ICorteApi.Presentation.Extensions;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,47 +29,75 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IAddressService, AddressService>();
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-builder.Services.AddScoped<IAppointmentService, AppointmentService>();
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
-builder.Services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
-builder.Services.AddScoped<IBarberShopService, BarberShopService>();
-builder.Services.AddScoped<IBarberShopRepository, BarberShopRepository>();
-builder.Services.AddScoped<IConversationParticipantService, ConversationParticipantService>();
-builder.Services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
-builder.Services.AddScoped<IConversationService, ConversationService>();
-builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
-builder.Services.AddScoped<IMessageService, MessageService>();
-builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IPersonService, PersonService>();
-builder.Services.AddScoped<IPersonRepository, PersonRepository>();
-builder.Services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
-builder.Services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
-builder.Services.AddScoped<IServiceService, ServiceService>();
-builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
-builder.Services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
-builder.Services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// builder.Services.AddScoped<IAddressService, AddressService>();
+// builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+// builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+// builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+// builder.Services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
+// builder.Services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
+// builder.Services.AddScoped<IBarberShopService, BarberShopService>();
+// builder.Services.AddScoped<IBarberShopRepository, BarberShopRepository>();
+// builder.Services.AddScoped<IConversationParticipantService, ConversationParticipantService>();
+// builder.Services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
+// builder.Services.AddScoped<IConversationService, ConversationService>();
+// builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+// builder.Services.AddScoped<IMessageService, MessageService>();
+// builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+// builder.Services.AddScoped<IPersonService, PersonService>();
+// builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+// builder.Services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
+// builder.Services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
+// builder.Services.AddScoped<IReportService, ReportService>();
+// builder.Services.AddScoped<IReportRepository, ReportRepository>();
+// builder.Services.AddScoped<IServiceService, ServiceService>();
+// builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+// builder.Services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
+// builder.Services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
+// builder.Services.AddScoped<IUserService, UserService>();
+// builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-builder.Services.AddScoped<IAddressErrors, AddressErrors>();
-builder.Services.AddScoped<IAppointmentErrors, AppointmentErrors>();
-builder.Services.AddScoped<IBarberShopErrors, BarberShopErrors>();
-builder.Services.AddScoped<IConversationErrors, ConversationErrors>();
-builder.Services.AddScoped<IMessageErrors, MessageErrors>();
-builder.Services.AddScoped<IPersonErrors, PersonErrors>();
-builder.Services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
-builder.Services.AddScoped<IReportErrors, ReportErrors>();
-builder.Services.AddScoped<IServiceErrors, ServiceErrors>();
-builder.Services.AddScoped<ISpecialScheduleErrors, SpecialScheduleErrors>();
-builder.Services.AddScoped<IUserErrors, UserErrors>();
+// builder.Services.AddScoped<IAddressErrors, AddressErrors>();
+// builder.Services.AddScoped<IAppointmentErrors, AppointmentErrors>();
+// builder.Services.AddScoped<IBarberShopErrors, BarberShopErrors>();
+// builder.Services.AddScoped<IConversationErrors, ConversationErrors>();
+// builder.Services.AddScoped<IMessageErrors, MessageErrors>();
+// builder.Services.AddScoped<IPersonErrors, PersonErrors>();
+// builder.Services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
+// builder.Services.AddScoped<IReportErrors, ReportErrors>();
+// builder.Services.AddScoped<IServiceErrors, ServiceErrors>();
+// builder.Services.AddScoped<ISpecialScheduleErrors, SpecialScheduleErrors>();
+// builder.Services.AddScoped<IUserErrors, UserErrors>();
+
+// var assembly = typeof(Program).Assembly;
+// var errorTypes = assembly.GetTypes()
+//     .Where(t => t.IsClass
+//         && t.IsSealed
+//         && !t.IsAbstract
+//         && (
+//             typeof(IBaseErrors<>).IsAssignableFrom(t)
+//             || typeof(IBaseRepository<>).IsAssignableFrom(t)
+//             || typeof(IBaseService<>).IsAssignableFrom(t)
+//             ));
+
+// foreach (var type in errorTypes)
+// {
+//     var interfaceType = type.GetInterfaces()
+//         .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IBaseErrors<>));
+
+//     if (interfaceType is not null)
+//         builder.Services.AddScoped(interfaceType, type);
+// }
+
+// Outros serviços de configuração
+// builder.Services.AddApplicationServices(Assembly.GetExecutingAssembly());
+builder.Services
+    .AddRepositories()
+    .AddServices()
+    .AddErrors()
+    .AddValidators();
 
 // Register validator with service provider (or use one of the automatic registration methods)
-ConfigureValidators.AddAll(builder);
+// ConfigureValidators.AddAll(builder);
 
 // After .NET 8 we can use IExceptionHandler interface
 builder.Services.AddExceptionHandler<ExceptionHandler>();

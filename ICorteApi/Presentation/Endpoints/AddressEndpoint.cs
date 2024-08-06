@@ -8,6 +8,7 @@ using ICorteApi.Presentation.Exceptions;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -41,7 +42,7 @@ public static class AddressEndpoint
         int barberShopId,
         int id,
         IAddressService service,
-        IAddressErrors errors)
+        [FromServices] IAddressErrors errors)
     {
         var res = await service.GetByIdAsync(id);
 
@@ -62,7 +63,7 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
         IAddressService service,
-        IAddressErrors errors)
+        [FromServices] IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
@@ -84,7 +85,7 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
         IAddressService service,
-        IAddressErrors errors)
+        [FromServices] IAddressErrors errors)
     {
         var validationResult = validator.Validate(dto);
         
@@ -105,7 +106,7 @@ public static class AddressEndpoint
         int id,
         AddressDtoRequest dto,
         IAddressService service,
-        IAddressErrors errors)
+        [FromServices] IAddressErrors errors)
     {
         var response = await service.DeleteAsync(id);
 
