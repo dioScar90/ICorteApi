@@ -1,11 +1,9 @@
-﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Presentation.Extensions;
+﻿using FluentValidation;
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using ICorteApi.Presentation.Enums;
-using ICorteApi.Presentation.Exceptions;
+using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,201 +12,89 @@ public static class UserEndpoint
     private static readonly string INDEX = "";
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.User;
     private static readonly string ENDPOINT_NAME = EndpointNames.User;
-
+    
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-
-        // group.MapGet(INDEX, GetAll);
-        group.MapGet("me", GetMe);
-        group.MapPost(INDEX, CreateUser);
-        // group.MapPut("{id}", UpdateUser);
-        // group.MapDelete("{id}", DeleteUser);
-    }
-
-    // public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
-    // {
-    //     var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
-
-    //     if (!result.Succeeded)
-    //         return Results.Unauthorized();
-
-    //     return Results.Ok("Login bem-sucedido");
-    // }
-
-    public static async Task<IResult> CreateUser(
-        UserDtoRequest dto,
-        IUserService userService,
-        IUserService personService,
-        IUserErrors errors)
-    {
-        var userResponse = await userService.GetAsync();
-
-        if (!userResponse.IsSuccess)
-            return Results.BadRequest(userResponse);
-
-        var newUser = dto.CreateEntity()!;
-        newUser.Id = userResponse.Value!.Id;
-
-        var personResponse = await personService.CreateAsync(userResponse.Value.Id, dto);
-
-        if (!personResponse.IsSuccess)
-            return Results.BadRequest(personResponse.Error);
-
-        return Results.Created($"/{ENDPOINT_PREFIX}/{newUser!.Id}", new { Message = "Pessoa criada com sucesso" });
-    }
-
-    public static async Task<IResult> GetMe(
-        IUserService userService,
-        IUserService personService,
-        IUserErrors errors)
-    {
-        // Obtendo o ID do usuário autenticado
-        // var userId = userManager.GetUserId(user);
-        var userResponse = await userService.GetAsync();
-
-        if (!userResponse.IsSuccess)
-            // throw new UserNotFoundException();
-            return Results.BadRequest(userResponse);
-
-        // if (!int.TryParse(userManager.GetUserId(user), out int userId))
-        //     return Results.Unauthorized();
         
-        var personResponse = await personService.GetByIdAsync(userResponse.Value!.Id);
+        group.MapGet("me", GetMe);
+        group.MapPut("{id}", UpdateUser);
+        group.MapDelete("{id}", DeleteUser);
+        
+        group.MapPut("{id}/roles/{role}/add", AddUserRole);
+        group.MapPut("{id}/roles/{role}/remove", RemoveUserRole);
+    }
+    
+    public static async Task<IResult> GetMe(
+        IUserService service,
+        IUserErrors errors)
+    {
+        var resp = await service.GetMeAsync();
 
-        if (!personResponse.IsSuccess)
+        if (!resp.IsSuccess)
             errors.ThrowNotFoundException();
-            
-        var personDto = personResponse.Value!.CreateDto();
-        return Results.Ok(personDto);
+        
+        return Results.Ok(resp.Value!);
+    }
+    
+    public static async Task<IResult> AddUserRole(
+        int id,
+        UserRole role,
+        IUserService service)
+    {
+        var response = await service.AddUserRoleAsync(role, id);
+
+        if (!response.IsSuccess)
+            return Results.BadRequest(response);
+        
+        return Results.NoContent();
     }
 
-    // public static async Task<IResult> UpdateProfile(
-    //     UserManager<User> userManager, ClaimsPrincipal user, UserDtoUpdateProfileRequest request)
-    // {
-    //     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-    //     var userToUpdate = await userManager.FindByIdAsync(userId);
+    public static async Task<IResult> RemoveUserRole(
+        int id,
+        UserRole role,
+        IUserService service)
+    {
+        var response = await service.RemoveUserRoleAsync(role, id);
 
-    //     if (userToUpdate is null)
-    //         return Results.NotFound(new { Message = "Usuário não encontrado." });
+        if (!response.IsSuccess)
+            return Results.BadRequest(response);
+        
+        return Results.NoContent();
+    }
 
-    //     // Atualize os campos do usuário
-    //     userToUpdate.User.FirstName = request.FirstName;
-    //     userToUpdate.User.LastName = request.LastName;
-    //     // Atualize outros campos conforme necessário
+    public static async Task<IResult> UpdateUser(
+        int id,
+        UserDtoRequest dto,
+        IValidator<UserDtoRequest> validator,
+        IUserService service,
+        IUserErrors errors)
+    {
+        var validationResult = validator.Validate(dto);
+        
+        if (!validationResult.IsValid)
+            errors.ThrowValidationException(validationResult.ToDictionary());
+        
+        var response = await service.UpdateAsync(dto, id);
 
-    //     var result = await userManager.UpdateAsync(userToUpdate);
+        if (!response.IsSuccess)
+            errors.ThrowUpdateException();
 
-    //     if (!result.Succeeded)
-    //         return Results.BadRequest(new { Message = "Erro ao atualizar perfil." });
+        return Results.NoContent();
+    }
 
-    //     return Results.Ok(new { Message = "Perfil atualizado com sucesso." });
-    // }
+    public static async Task<IResult> DeleteUser(
+        int id,
+        IUserService service,
+        IUserErrors errors)
+    {
+        var response = await service.DeleteAsync(id);
 
-    // public static async Task<IResult> Logout(SignInManager<User> signInManager, [FromBody] object empty)
-    // {
-    //     try
-    //     {
-    //         // 'empty' must be passed and also must be empty, like => {}
-    //         // It was written on documentation. I don't know why.
-    //         // It's unnecessary, perhaps.
-    //         if (empty is not {})
-    //             return Results.Unauthorized();
+        if (!response.IsSuccess)
+            errors.ThrowDeleteException();
 
-    //         await signInManager.SignOutAsync();
-    //         return Results.Ok();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return TypedResults.BadRequest(ex.Message);
-    //     }
-    // }
-
-    // public static async Task<IResult> ForgotPassword(UserManager<User> userManager, UserDtoForgotPasswordRequest request)
-    // {
-    //     var user = await userManager.FindByEmailAsync(request.Email);
-    //     string DEFAULT_MESSAGE = "Se o email existir, um link de redefinição de senha será enviado.";
-
-    //     if (user is null) // Não revelar que o usuário não existe ou não está confirmado
-    //         return Results.Ok(new { Message = DEFAULT_MESSAGE });
-
-    //     var token = await userManager.GeneratePasswordResetTokenAsync(user);
-    //     var resetLink = $"https://yourapp.com/resetPassword?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
-
-    //     // Envie o link por email. Aqui você pode usar um serviço de email para enviar o link.
-    //     Console.WriteLine($"Reset link: {resetLink}"); // Substitua isso pelo serviço de email.
-
-    //     return Results.Ok(new { Message = DEFAULT_MESSAGE });
-    // }
-
-    // public static async Task<IResult> ResetPassword(UserManager<User> userManager, UserDtoResetPasswordRequest request)
-    // {
-    //     if (request.NewPassword != request.ConfirmNewPassword)
-    //         return Results.BadRequest(new { Message = "As senhas não coincidem." });
-
-    //     var user = await userManager.FindByEmailAsync(request.Email);
-
-    //     if (user is null) // Não revelar que o usuário não existe
-    //         return Results.BadRequest(new { Message = "Token inválido." });
-
-    //     var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
-
-    //     if (!result.Succeeded)
-    //         return Results.BadRequest(new { Message = "Token inválido ou a senha não atende aos requisitos de segurança." });
-
-    //     return Results.Ok(new { Message = "Senha redefinida com sucesso." });
-    // }
-
-    // public static async Task<IResult> ChangePassword(
-    //     UserManager<User> userManager, ClaimsPrincipal user, UserDtoChangePasswordRequest request)
-    // {
-    //     if (request.NewPassword != request.ConfirmNewPassword)
-    //         return Results.BadRequest(new { Message = "As senhas não coincidem." });
-
-    //     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-    //     var userToUpdate = await userManager.FindByIdAsync(userId);
-
-    //     if (userToUpdate is null)
-    //         return Results.NotFound(new { Message = "Usuário não encontrado." });
-
-    //     var result = await userManager.ChangePasswordAsync(userToUpdate, request.CurrentPassword, request.NewPassword);
-
-    //     if (!result.Succeeded)
-    //         return Results.BadRequest(new { Message = "Erro ao alterar senha." });
-
-    //     return Results.Ok(new { Message = "Senha alterada com sucesso." });
-    // }
-
-    // public static async Task<IResult> ConfirmEmail(UserManager<User> userManager, UserDtoConfirmEmailRequest request)
-    // {
-    //     var user = await userManager.FindByEmailAsync(request.Email);
-
-    //     if (user is null)
-    //         return Results.BadRequest(new { Message = "Token inválido." });
-
-    //     var result = await userManager.ConfirmEmailAsync(user, request.Token);
-
-    //     if (!result.Succeeded)
-    //         return Results.BadRequest(new { Message = "Erro ao confirmar email." });
-
-    //     return Results.Ok(new { Message = "Email confirmado com sucesso." });
-    // }
-
-    // public static async Task<IResult> DeleteUser(UserManager<User> userManager, HttpContext httpContext)
-    // {
-    //     var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-    //     var user = await userManager.FindByIdAsync(userId);
-
-    //     if (user is null)
-    //         return Results.NotFound();
-
-    //     var result = await userManager.DeleteAsync(user);
-
-    //     if (!result.Succeeded)
-    //         return Results.BadRequest(result.Errors);
-
-    //     return Results.Ok(new { Message = "Usuário removido com sucesso" });
-    // }
+        return Results.NoContent();
+    }
 }

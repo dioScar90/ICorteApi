@@ -16,29 +16,28 @@ public record PersonDtoResponse(
     BarberShopDtoResponse? OwnedBarberShop
 ) : IDtoResponse<User>;
 
-
 public record UserDtoRequest(
     string Email,
-    string Password,
-    UserRole Role,
-    PersonDtoRequest? PersonDto
+    string FirstName,
+    string LastName,
+    string PhoneNumber,
+    string? ImageUrl,
+    UserRole[] Roles
 ) : IDtoRequest<User>;
 
 public record UserDtoResponse(
     int Id,
-    // string FirstName,
-    // string LastName,
     string Email,
-    // UserRole[] Roles,
-    string[] Roles,
-    PersonDtoResponse? PersonDto
+    string FirstName,
+    string LastName,
+    string PhoneNumber,
+    string? ImageUrl,
+    UserRole[] Roles
 ) : IDtoResponse<User>;
 
 public record UserDtoRegisterRequest(
     string Email,
-    string Password,
-    string PhoneNumber,
-    PersonDtoRequest PersonDto
+    string Password
 ) : IDtoRequest<User>;
 
 public record UserDtoLoginRequest(

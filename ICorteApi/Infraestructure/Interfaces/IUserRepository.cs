@@ -1,10 +1,16 @@
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Interfaces;
 
-public interface IUserRepository
+public interface IUserRepository : IRepository<User>
 {
-    Task<ISingleResponse<User>> GetAsync();
-    Task<int?> GetUserIdAsync();
+    string? GetUserId();
+    Task<UserRole[]> GetUserRolesAsync();
+    Task<IResponse> AddUserRoleAsync(UserRole role);
+    Task<IResponse> RemoveUserRoleAsync(UserRole role);
+    Task<ISingleResponse<User>> GetMeAsync();
+    Task<IResponse> UpdateAsync(User entity);
+    Task<IResponse> DeleteAsync(User entity);
 }

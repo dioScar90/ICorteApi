@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ReportService(IReportRepository reportRepository)
-    : BasePrimaryKeyService<Report, int>(reportRepository), IReportService
+public sealed class ReportService(IReportRepository repository)
+    : BasePrimaryKeyService<Report, int>(repository), IReportService
 {
 }

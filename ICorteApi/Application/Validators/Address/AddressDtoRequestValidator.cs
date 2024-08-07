@@ -36,4 +36,6 @@ public class AddressDtoRequestValidator : AbstractValidator<AddressDtoRequest>
             .NotEmpty().WithMessage("País é obrigatório")
             .MinimumLength(3).WithMessage("País precisa ter pelo menos 3 caracteres");
     }
+
+    private bool PostalCodeMatching(string value) => value.Any(char.IsUpper);
 }

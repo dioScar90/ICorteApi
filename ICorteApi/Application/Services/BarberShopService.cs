@@ -7,14 +7,11 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class BarberShopService(IBarberShopRepository barberShopRepository, IUserService userService)
-    : BasePrimaryKeyService<BarberShop, int>(barberShopRepository), IBarberShopService
+public sealed class BarberShopService(IBarberShopRepository repository)
+    : BasePrimaryKeyService<BarberShop, int>(repository), IBarberShopService
 {
-    private readonly IBarberShopRepository _primaryBarberShopRepository = barberShopRepository;
-    private readonly IUserService _userService = userService;
+    private readonly IBarberShopRepository _primaryBarberShopRepository = repository;
     
-    public async Task<int?> GetMyBarberShopAsync() => await _userService.GetUserIdAsync();
-
     public async Task<ISingleResponse<BarberShop>> CreateAsync(int ownerId, BarberShopDtoRequest dto)
     {
         var newBarberShop = dto.CreateEntity()!;

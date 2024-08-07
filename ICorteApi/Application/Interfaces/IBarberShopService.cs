@@ -7,7 +7,5 @@ namespace ICorteApi.Application.Interfaces;
 public interface IBarberShopService
     : IBasePrimaryKeyService<BarberShop, int>
 {
-    Task<int?> GetMyBarberShopAsync();
-    
     Task<ISingleResponse<BarberShop>> CreateAsync(int ownerId, BarberShopDtoRequest dto);
 }

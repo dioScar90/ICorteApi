@@ -170,7 +170,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConversationParticipantService, ConversationParticipantService>();
         services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IMessageService, MessageService>();
-        services.AddScoped<IPersonService, PersonService>();
+        // services.AddScoped<IPersonService, PersonService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IServiceService, ServiceService>();
@@ -207,7 +207,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
-        services.AddScoped<IPersonRepository, PersonRepository>();
+        // services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
@@ -242,7 +242,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
         services.AddScoped<IConversationErrors, ConversationErrors>();
         services.AddScoped<IMessageErrors, MessageErrors>();
-        services.AddScoped<IPersonErrors, PersonErrors>();
+        // services.AddScoped<IPersonErrors, PersonErrors>();
         services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
         services.AddScoped<IReportErrors, ReportErrors>();
         services.AddScoped<IServiceErrors, ServiceErrors>();

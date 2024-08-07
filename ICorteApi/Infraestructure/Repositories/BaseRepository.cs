@@ -15,22 +15,14 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
 
     protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-    
-    public async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
+
+    public virtual async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
     {
         _dbSet.Add(entity);
         return await SaveChangesAsync() ? Response.Success(entity) : Response.Failure<TEntity>(Error.CreateError);
     }
-    
-    public async Task<ICollectionResponse<TEntity>> CreateAsync(TEntity[] entities)
-    {
-        _dbSet.AddRange(entities);
-        return await SaveChangesAsync()
-            ? Response.Success(entities)
-            : Response.FailureCollection<TEntity>(Error.CreateError);
-    }
-    
-    public async Task<ICollectionResponse<TEntity>> GetAllAsync(
+
+    public virtual async Task<ICollectionResponse<TEntity>> GetAllAsync(
         int page,
         int pageSize,
         Expression<Func<TEntity, bool>>? filter = null,
@@ -59,20 +51,13 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         return Response.Success(entities, totalItems, totalPages, page, pageSize);
     }
 
-    
-    public async Task<IResponse> UpdateAsync(TEntity entity)
+    public virtual async Task<IResponse> UpdateAsync(TEntity entity)
     {
         _dbSet.Update(entity);
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.UpdateError);
     }
 
-    public async Task<IResponse> UpdateAsync(TEntity[] entities)
-    {
-        _dbSet.UpdateRange(entities);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.UpdateError);
-    }
-    
-    public async Task<IResponse> DeleteAsync(TEntity entity)
+    public virtual async Task<IResponse> DeleteAsync(TEntity entity)
     {
         _dbSet.Remove(entity);
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);

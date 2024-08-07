@@ -57,15 +57,7 @@ public static class DtoCreator
         );
 
     // Payment
-        
-    public static PersonDtoResponse CreateDto(this Person person) =>
-        new(
-            person.UserId,
-            person.FirstName,
-            person.LastName,
-            person.OwnedBarberShop?.CreateDto()
-        );
-
+    
     public static RecurringScheduleDtoResponse CreateDto(this RecurringSchedule recurringSchedule) =>
         new(
             recurringSchedule.DayOfWeek,
@@ -106,8 +98,11 @@ public static class DtoCreator
         new(
             user.Id,
             user.Email,
-            [],
-            user.Person?.CreateDto()
+            user.FirstName,
+            user.LastName,
+            user.PhoneNumber,
+            user.ImageUrl,
+            []
         );
 
 

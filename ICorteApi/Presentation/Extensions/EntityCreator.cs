@@ -12,12 +12,12 @@ public static class EntityCreator
     {
         return dtoRequest switch
         {
+            UserDtoRequest registerDto
+                => MapDtoToUser(registerDto) as TEntity,
+                
             UserDtoRegisterRequest registerDto
                 => MapDtoToUser(registerDto) as TEntity,
-            
-            PersonDtoRequest personDto
-                => MapDtoToPerson(personDto) as TEntity,
-            
+                
             BarberShopDtoRequest barberShopDto
                 => MapDtoToBarberShop(barberShopDto) as TEntity,
             
@@ -31,21 +31,22 @@ public static class EntityCreator
         };
     }
 
-    private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
+    private static User MapDtoToUser(UserDtoRequest userDto) =>
         new()
         {
             UserName = userDto.Email,
             Email = userDto.Email,
             PhoneNumber = userDto.PhoneNumber,
-            Person = userDto.PersonDto.CreateEntity(),
+            FirstName = userDto.FirstName,
+            LastName = userDto.LastName,
+            ImageUrl = userDto.ImageUrl,
         };
 
-    private static Person MapDtoToPerson(PersonDtoRequest personDto) =>
+    private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
         new()
         {
-            FirstName = personDto.FirstName,
-            LastName = personDto.LastName,
-            // Addresses = personDto.Addresses?.Select(a => a.CreateEntity()).ToList(),
+            UserName = userDto.Email,
+            Email = userDto.Email
         };
         
     private static BarberShop MapDtoToBarberShop(BarberShopDtoRequest barberShopDto) =>

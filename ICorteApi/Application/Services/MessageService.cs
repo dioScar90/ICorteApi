@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class MessageService(IMessageRepository messageRepository)
-    : BasePrimaryKeyService<Message, int>(messageRepository), IMessageService
+public sealed class MessageService(IMessageRepository repository)
+    : BasePrimaryKeyService<Message, int>(repository), IMessageService
 {
 }

@@ -35,10 +35,10 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> GetBarberShop(
         int id,
-        IBarberShopService barberShopService,
+        IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var response = await barberShopService.GetByIdAsync(id);
+        var response = await service.GetByIdAsync(id);
 
         if (!response.IsSuccess)
             return Results.NotFound();
@@ -50,10 +50,10 @@ public static class BarberShopEndpoint
     public static async Task<IResult> GetAllBarberShops(
         int page,
         int pageSize,
-        IBarberShopService barberShopService,
+        IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var response = await barberShopService.GetAllAsync(page, pageSize);
+        var response = await service.GetAllAsync(page, pageSize);
 
         if (!response.IsSuccess)
             errors.ThrowNotFoundException();
@@ -68,27 +68,23 @@ public static class BarberShopEndpoint
     public static async Task<IResult> CreateBarberShop(
         BarberShopDtoRequest dto,
         IValidator<BarberShopDtoRequest> validator,
-        IBarberShopService barberShopService,
-        IPersonService personService,
+        IBarberShopService service,
         IUserService userService,
         IBarberShopErrors errors)
     {
-        var ownerId = await userService.GetUserIdAsync();
+        var respUser = await userService.GetMeAsync();
 
-        if (ownerId is null)
+        if (!respUser.IsSuccess)
             return Results.Unauthorized();
 
-        var respPerson = await personService.GetByIdAsync((int)ownerId);
-
-        if (!respPerson.IsSuccess)
-            errors.ThrowBadRequestException();
+        var user = respUser.Value!;
         
         var validationResult = validator.Validate(dto);
         
         if (!validationResult.IsValid)
             errors.ThrowValidationException(validationResult.ToDictionary());
 
-        var response = await barberShopService.CreateAsync(respPerson.Value!.UserId, dto);
+        var response = await service.CreateAsync(user.Id, dto);
 
         if (!response.IsSuccess)
             errors.ThrowCreateException();
@@ -100,7 +96,7 @@ public static class BarberShopEndpoint
         int id,
         BarberShopDtoRequest dto,
         IValidator<BarberShopDtoRequest> validator,
-        IBarberShopService barberShopService,
+        IBarberShopService service,
         IBarberShopErrors errors)
     {
         var validationResult = validator.Validate(dto);
@@ -108,7 +104,7 @@ public static class BarberShopEndpoint
         if (!validationResult.IsValid)
             errors.ThrowValidationException(validationResult.ToDictionary());
         
-        var response = await barberShopService.UpdateAsync(dto, id);
+        var response = await service.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
             errors.ThrowUpdateException();
@@ -118,10 +114,10 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> DeleteBarberShop(
         int id,
-        IBarberShopService barberShopService,
+        IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var response = await barberShopService.DeleteAsync(id);
+        var response = await service.DeleteAsync(id);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();

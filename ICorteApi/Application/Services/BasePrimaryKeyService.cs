@@ -11,7 +11,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
     where TKey : IEquatable<TKey>
 {
     protected new readonly IBasePrimaryKeyRepository<TEntity, TKey> _repository = repository;
-    
+
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id)
     {
         return await _repository.GetByIdAsync(id);
@@ -23,10 +23,10 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
 
         if (!resp.IsSuccess)
             return resp;
-        
+
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dto);
-        
+
         return await _repository.UpdateAsync(entity);
     }
 
@@ -36,7 +36,7 @@ public abstract class BasePrimaryKeyService<TEntity, TKey>(IBasePrimaryKeyReposi
 
         if (!resp.IsSuccess)
             return resp;
-        
+
         var entity = resp.Value!;
         return await _repository.DeleteAsync(entity);
     }
