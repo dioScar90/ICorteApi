@@ -8,6 +8,7 @@ public class BarberShop : BasePrimaryKeyEntity<int>
     public string? Description { get; set; }
     public string ComercialNumber { get; set; }
     public string ComercialEmail { get; set; }
+    public string? ImageUrl { get; set; }
 
     public int OwnerId { get; set; }
     public User Owner { get; set; }

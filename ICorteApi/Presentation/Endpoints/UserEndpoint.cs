@@ -9,11 +9,11 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Endpoints;
 
-public static class PersonEndpoint
+public static class UserEndpoint
 {
     private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Person;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Person;
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.User;
+    private static readonly string ENDPOINT_NAME = EndpointNames.User;
 
     public static void Map(WebApplication app)
     {
@@ -23,9 +23,9 @@ public static class PersonEndpoint
 
         // group.MapGet(INDEX, GetAll);
         group.MapGet("me", GetMe);
-        group.MapPost(INDEX, CreatePerson);
-        // group.MapPut("{id}", UpdatePerson);
-        // group.MapDelete("{id}", DeletePerson);
+        group.MapPost(INDEX, CreateUser);
+        // group.MapPut("{id}", UpdateUser);
+        // group.MapDelete("{id}", DeleteUser);
     }
 
     // public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
@@ -38,32 +38,32 @@ public static class PersonEndpoint
     //     return Results.Ok("Login bem-sucedido");
     // }
 
-    public static async Task<IResult> CreatePerson(
-        PersonDtoRequest dto,
+    public static async Task<IResult> CreateUser(
+        UserDtoRequest dto,
         IUserService userService,
-        IPersonService personService,
-        IPersonErrors errors)
+        IUserService personService,
+        IUserErrors errors)
     {
         var userResponse = await userService.GetAsync();
 
         if (!userResponse.IsSuccess)
             return Results.BadRequest(userResponse);
 
-        var newPerson = dto.CreateEntity()!;
-        newPerson.UserId = userResponse.Value!.Id;
+        var newUser = dto.CreateEntity()!;
+        newUser.Id = userResponse.Value!.Id;
 
         var personResponse = await personService.CreateAsync(userResponse.Value.Id, dto);
 
         if (!personResponse.IsSuccess)
             return Results.BadRequest(personResponse.Error);
 
-        return Results.Created($"/{ENDPOINT_PREFIX}/{newPerson!.UserId}", new { Message = "Pessoa criada com sucesso" });
+        return Results.Created($"/{ENDPOINT_PREFIX}/{newUser!.Id}", new { Message = "Pessoa criada com sucesso" });
     }
 
     public static async Task<IResult> GetMe(
         IUserService userService,
-        IPersonService personService,
-        IPersonErrors errors)
+        IUserService personService,
+        IUserErrors errors)
     {
         // Obtendo o ID do usuário autenticado
         // var userId = userManager.GetUserId(user);
@@ -95,8 +95,8 @@ public static class PersonEndpoint
     //         return Results.NotFound(new { Message = "Usuário não encontrado." });
 
     //     // Atualize os campos do usuário
-    //     userToUpdate.Person.FirstName = request.FirstName;
-    //     userToUpdate.Person.LastName = request.LastName;
+    //     userToUpdate.User.FirstName = request.FirstName;
+    //     userToUpdate.User.LastName = request.LastName;
     //     // Atualize outros campos conforme necessário
 
     //     var result = await userManager.UpdateAsync(userToUpdate);

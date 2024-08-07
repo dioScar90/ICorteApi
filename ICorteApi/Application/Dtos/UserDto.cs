@@ -4,6 +4,19 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
 
+public record PersonDtoRequest(
+    string FirstName,
+    string LastName
+) : IDtoRequest<User>;
+
+public record PersonDtoResponse(
+    int UserId,
+    string FirstName,
+    string LastName,
+    BarberShopDtoResponse? OwnedBarberShop
+) : IDtoResponse<User>;
+
+
 public record UserDtoRequest(
     string Email,
     string Password,

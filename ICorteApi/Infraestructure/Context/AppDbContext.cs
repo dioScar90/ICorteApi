@@ -8,7 +8,6 @@ namespace ICorteApi.Infraestructure.Context;
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<User, IdentityRole<int>, int>(options)
 {
-    public DbSet<Person> People { get; set; }
     public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
