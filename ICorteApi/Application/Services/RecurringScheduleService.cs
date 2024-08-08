@@ -9,6 +9,15 @@ namespace ICorteApi.Application.Services;
 public sealed class RecurringScheduleService(IRecurringScheduleRepository repository)
     : BaseCompositeKeyService<RecurringSchedule, DayOfWeek, int>(repository), IRecurringScheduleService
 {
+    public async Task<ISingleResponse<RecurringSchedule>> CreateAsync(IDtoRequest<RecurringSchedule> dto, int barberShopId)
+    {
+        var entity = dto.CreateEntity()!;
+        
+        entity.BarberShopId = barberShopId;
+
+        return await CreateByEntityAsync(entity);
+    }
+
     public override async Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
         return await _repository.GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);

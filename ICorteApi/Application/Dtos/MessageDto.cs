@@ -5,9 +5,11 @@ namespace ICorteApi.Application.Dtos;
 
 public record MessageDtoRequest(
     string Content,
-    DateTime SentAt,
-    bool IsRead,
-    UserDtoRequest Sender
+    DateTime SentAt
+) : IDtoRequest<Message>;
+
+public record MessageIsReadDtoRequest(
+    bool IsRead
 ) : IDtoRequest<Message>;
 
 public record MessageDtoResponse(
@@ -15,5 +17,7 @@ public record MessageDtoResponse(
     string Content,
     DateTime SentAt,
     bool IsRead,
-    UserDtoResponse Sender
+    int SenderId,
+    string FirstName,
+    string LastName
 ) : IDtoResponse<Message>;

@@ -41,22 +41,23 @@ public static class DtoCreator
             barberShop.Barbers?.Select(b => b.CreateDto()).ToArray()
         );
         
-    public static ConversationDtoResponse CreateDto(this Conversation conversation) =>
-        new(
-            conversation.Id,
-            conversation.LastMessageAt
-        );
-        
     public static MessageDtoResponse CreateDto(this Message message) =>
         new(
             message.Id,
             message.Content,
             message.SentAt,
             message.IsRead,
-            message.Sender.CreateDto()
+            message.Sender.Id,
+            message.Sender.FirstName,
+            message.Sender.LastName
         );
-
-    // Payment
+        
+    public static PaymentDtoResponse CreateDto(this Payment payment) =>
+        new(
+            payment.Id,
+            payment.PaymentType,
+            payment.Amount
+        );
     
     public static RecurringScheduleDtoResponse CreateDto(this RecurringSchedule recurringSchedule) =>
         new(
@@ -104,6 +105,4 @@ public static class DtoCreator
             user.ImageUrl,
             []
         );
-
-
 }

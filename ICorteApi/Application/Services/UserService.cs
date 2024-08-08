@@ -79,4 +79,9 @@ public sealed class UserService(IUserRepository repository) : IUserService
         
         return await _repository.DeleteAsync(user);
     }
+
+    public Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dto)
+    {
+        throw new NotImplementedException();
+    }
 }

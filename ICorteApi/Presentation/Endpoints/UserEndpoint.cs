@@ -4,6 +4,7 @@ using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Presentation.Enums;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -12,17 +13,17 @@ public static class UserEndpoint
     private static readonly string INDEX = "";
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.User;
     private static readonly string ENDPOINT_NAME = EndpointNames.User;
-    
+
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-        
+
         group.MapGet("me", GetMe);
         group.MapPut("{id}", UpdateUser);
         group.MapDelete("{id}", DeleteUser);
-        
+
         group.MapPut("{id}/roles/{role}/add", AddUserRole);
         group.MapPut("{id}/roles/{role}/remove", RemoveUserRole);
     }
@@ -35,10 +36,10 @@ public static class UserEndpoint
 
         if (!resp.IsSuccess)
             errors.ThrowNotFoundException();
-        
+
         return Results.Ok(resp.Value!);
     }
-    
+
     public static async Task<IResult> AddUserRole(
         int id,
         UserRole role,
@@ -48,7 +49,7 @@ public static class UserEndpoint
 
         if (!response.IsSuccess)
             return Results.BadRequest(response);
-        
+
         return Results.NoContent();
     }
 
@@ -61,7 +62,7 @@ public static class UserEndpoint
 
         if (!response.IsSuccess)
             return Results.BadRequest(response);
-        
+
         return Results.NoContent();
     }
 
@@ -72,11 +73,8 @@ public static class UserEndpoint
         IUserService service,
         IUserErrors errors)
     {
-        var validationResult = validator.Validate(dto);
-        
-        if (!validationResult.IsValid)
-            errors.ThrowValidationException(validationResult.ToDictionary());
-        
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+
         var response = await service.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)

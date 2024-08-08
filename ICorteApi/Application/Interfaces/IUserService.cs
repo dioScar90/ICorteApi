@@ -5,7 +5,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IUserService : IService<User>
+public interface IUserService : IService<User>, IHasNoForeignKeyService<User>
 {
     Task<ISingleResponse<User>> GetMeAsync();
     Task<IResponse> AddUserRoleAsync(UserRole role, int id);

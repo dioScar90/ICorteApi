@@ -13,13 +13,19 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    public async Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id, params Expression<Func<TEntity, object>>[] includes)
+    public async Task<ISingleResponse<TEntity>> GetByIdAsync(
+        TKey id,
+        Expression<Func<TEntity, bool>>? foreignKeysFilter = null,
+        params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
         if (includes is not null && includes.Length > 0)
             foreach (var include in includes)
                 query  = query.Include(include);
+                
+        if (foreignKeysFilter is not null)
+            query = query.Where(foreignKeysFilter);
                 
         var entity = await query.SingleOrDefaultAsync(x => x.Id.Equals(id));
 

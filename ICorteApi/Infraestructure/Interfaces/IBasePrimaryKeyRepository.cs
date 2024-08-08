@@ -7,5 +7,5 @@ public interface IBasePrimaryKeyRepository<TEntity, TKey> : IBaseRepository<TEnt
     where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id, params Expression<Func<TEntity, object>>[]? includes);
+    Task<ISingleResponse<TEntity>> GetByIdAsync(TKey id, Expression<Func<TEntity, bool>>? filter = null, params Expression<Func<TEntity, object>>[]? includes);
 }

@@ -19,4 +19,5 @@ public class Appointment : BasePrimaryKeyEntity<int>
     public BarberShop BarberShop { get; set; }
 
     public ICollection<ServiceAppointment> ServiceAppointments { get; set; } = [];
+    public ICollection<Payment> Payments { get; set; } = [];
 }

@@ -4,7 +4,7 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public sealed class ConversationRepository(AppDbContext context)
-    : BasePrimaryKeyRepository<Conversation, int>(context), IConversationRepository
+public sealed class PaymentRepository(AppDbContext context)
+    : BasePrimaryKeyRepository<Payment, int>(context), IPaymentRepository
 {
 }

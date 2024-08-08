@@ -9,9 +9,9 @@ public class MessageMap : BaseMap<Message>
     {
         base.Configure(builder);
 
-        builder.HasOne(m => m.Conversation)
+        builder.HasOne(m => m.Appointment)
             .WithMany(c => c.Messages)
-            .HasForeignKey(m => m.ConversationId);
+            .HasForeignKey(m => m.AppointmentId);
 
         builder.HasOne(m => m.Sender)
             .WithMany()

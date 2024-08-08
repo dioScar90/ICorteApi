@@ -12,83 +12,135 @@ public static class EntityCreator
     {
         return dtoRequest switch
         {
-            UserDtoRequest registerDto
-                => MapDtoToUser(registerDto) as TEntity,
+            AddressDtoRequest dto           => MapDtoToAddress(dto) as TEntity,
+
+            AppointmentDtoRequest dto       => MapDtoToAppointment(dto) as TEntity,
+
+            BarberShopDtoRequest dto        => MapDtoToBarberShop(dto) as TEntity,
+
+            MessageDtoRequest dto           => MapDtoToMessage(dto) as TEntity,
+
+            PaymentDtoRequest dto           => MapDtoToPayment(dto) as TEntity,
+            
+            RecurringScheduleDtoRequest dto => MapDtoToRecurringSchedule(dto) as TEntity,
+            
+            ReportDtoRequest dto            => MapDtoToReport(dto) as TEntity,
+            
+            ServiceDtoRequest dto           => MapDtoToService(dto) as TEntity,
+            
+            SpecialScheduleDtoRequest dto   => MapDtoToSpecialSchedule(dto) as TEntity,
                 
-            UserDtoRegisterRequest registerDto
-                => MapDtoToUser(registerDto) as TEntity,
+            UserDtoRequest dto              => MapDtoToUser(dto) as TEntity,
                 
-            BarberShopDtoRequest barberShopDto
-                => MapDtoToBarberShop(barberShopDto) as TEntity,
-            
-            RecurringScheduleDtoRequest opScheduleDto
-                => MapDtoToRecurringSchedule(opScheduleDto) as TEntity,
-            
-            AddressDtoRequest addressDto
-                => MapDtoToAddress(addressDto) as TEntity,
-            
+            UserDtoRegisterRequest dto      => MapDtoToUser(dto) as TEntity,
+
             _ => null
         };
     }
 
-    private static User MapDtoToUser(UserDtoRequest userDto) =>
+    private static Address MapDtoToAddress(AddressDtoRequest dto) =>
         new()
         {
-            UserName = userDto.Email,
-            Email = userDto.Email,
-            PhoneNumber = userDto.PhoneNumber,
-            FirstName = userDto.FirstName,
-            LastName = userDto.LastName,
-            ImageUrl = userDto.ImageUrl,
-        };
-
-    private static User MapDtoToUser(UserDtoRegisterRequest userDto) =>
-        new()
-        {
-            UserName = userDto.Email,
-            Email = userDto.Email
+            Street = dto.Street,
+            Number = dto.Number,
+            Complement = dto.Complement,
+            Neighborhood = dto.Neighborhood,
+            City = dto.City,
+            State = dto.State,
+            PostalCode = dto.PostalCode,
+            Country = dto.Country
         };
         
-    private static BarberShop MapDtoToBarberShop(BarberShopDtoRequest barberShopDto) =>
+    private static Appointment MapDtoToAppointment(AppointmentDtoRequest dto) =>
         new()
         {
-            Name = barberShopDto.Name,
-            Description = barberShopDto.Description ?? default,
-            ComercialNumber = barberShopDto.ComercialNumber,
-            ComercialEmail = barberShopDto.ComercialEmail,
+            Date = dto.Date,
+            StartTime = dto.StartTime,
+            EndTime = dto.EndTime,
+            Notes = dto.Notes,
+            TotalPrice = dto.TotalPrice,
+            Status = dto.Status
+        };
+        
+    private static BarberShop MapDtoToBarberShop(BarberShopDtoRequest dto) =>
+        new()
+        {
+            Name = dto.Name,
+            Description = dto.Description ?? default,
+            ComercialNumber = dto.ComercialNumber,
+            ComercialEmail = dto.ComercialEmail,
 
-            Address = barberShopDto.Address?.CreateEntity(),
-            RecurringSchedules = barberShopDto.RecurringSchedules?.Select(oh => oh.CreateEntity()).ToList(),
-            Barbers = barberShopDto.Barbers?.Select(b => b.CreateEntity()).ToList()
+            Address = dto.Address?.CreateEntity(),
+            RecurringSchedules = dto.RecurringSchedules?.Select(oh => oh.CreateEntity()).ToList(),
+            Barbers = dto.Barbers?.Select(b => b.CreateEntity()).ToList()
+        };
+        
+    private static Message MapDtoToMessage(MessageDtoRequest dto) =>
+        new()
+        {
+            Content = dto.Content,
+            SentAt = dto.SentAt
+        };
+        
+    private static Payment MapDtoToPayment(PaymentDtoRequest dto) =>
+        new()
+        {
+            PaymentType = dto.PaymentType,
+            Amount = dto.Amount
         };
 
-    private static RecurringSchedule MapDtoToRecurringSchedule(RecurringScheduleDtoRequest recurringScheduleDto) =>
+    private static RecurringSchedule MapDtoToRecurringSchedule(RecurringScheduleDtoRequest dto) =>
         new()
         {
-            DayOfWeek = recurringScheduleDto.DayOfWeek,
+            DayOfWeek = dto.DayOfWeek,
+            
+            OpenTime = dto.OpenTime,
+            CloseTime = dto.CloseTime,
 
-            // OpenTime = GetTimeSpanValue(recurringScheduleDto.OpenTime),
-            // CloseTime = GetTimeSpanValue(recurringScheduleDto.CloseTime),
-
-            OpenTime = recurringScheduleDto.OpenTime,
-            CloseTime = recurringScheduleDto.CloseTime,
-
-            BarberShopId = recurringScheduleDto.BarberShopId ?? default,
-
-            IsActive = recurringScheduleDto.IsActive,
+            IsActive = dto.IsActive
         };
 
-    private static Address MapDtoToAddress(AddressDtoRequest addressDto) =>
+    private static Report MapDtoToReport(ReportDtoRequest dto) =>
         new()
         {
-            Street = addressDto.Street,
-            Number = addressDto.Number,
-            Complement = addressDto.Complement,
-            Neighborhood = addressDto.Neighborhood,
-            City = addressDto.City,
-            State = addressDto.State,
-            PostalCode = addressDto.PostalCode,
-            Country = addressDto.Country,
-            BarberShopId = addressDto.BarberShopId
+            Title = dto.Title,
+            Content = dto.Content,
+            Rating = dto.Rating
+        };
+
+    private static Service MapDtoToService(ServiceDtoRequest dto) =>
+        new()
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            Price = dto.Price,
+        };
+
+    private static SpecialSchedule MapDtoToSpecialSchedule(SpecialScheduleDtoRequest dto) =>
+        new()
+        {
+            Date = dto.Date,
+            
+            OpenTime = dto.OpenTime,
+            CloseTime = dto.CloseTime,
+            IsClosed = dto.IsClosed,
+        };
+
+    private static User MapDtoToUser(UserDtoRequest dto) =>
+        new()
+        {
+            UserName = dto.Email,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            ImageUrl = dto.ImageUrl,
+        };
+
+    private static User MapDtoToUser(UserDtoRegisterRequest dto) =>
+        new()
+        {
+            UserName = dto.Email,
+            Email = dto.Email
         };
 }

@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -12,28 +13,27 @@ public static class AddressEndpoint
     private static readonly string INDEX = "";
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Address;
     private static readonly string ENDPOINT_NAME = EndpointNames.Address;
-    
+
     public static void Map(WebApplication app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-        
+
         group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
     }
-
+    
     public static IResult GetCreatedResult(int newId, int barberShopId)
     {
         string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Address + "/" + newId;
         object value = new { Message = "Endereço criado com sucesso" };
         return Results.Created(uri, value);
     }
-    
+
     public static async Task<IResult> GetAddress(
-        int barberShopId,
         int id,
         IAddressService service,
         IAddressErrors errors)
@@ -44,10 +44,7 @@ public static class AddressEndpoint
             errors.ThrowNotFoundException();
 
         var address = res.Value!;
-
-        if (address.BarberShopId != barberShopId)
-            errors.ThrowBadRequestException();
-
+        
         var addressDto = address.CreateDto();
         return Results.Ok(addressDto);
     }
@@ -59,32 +56,25 @@ public static class AddressEndpoint
         IAddressService service,
         IAddressErrors errors)
     {
-        var validationResult = validator.Validate(dto);
-        
-        if (!validationResult.IsValid)
-            errors.ThrowValidationException(validationResult.ToDictionary());
-                    
-        var response = await service.CreateAsync(dto with { BarberShopId = barberShopId });
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+
+        var response = await service.CreateAsync(dto, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowCreateException();
-            
+
         return GetCreatedResult(response.Value!.Id, barberShopId);
     }
 
     public static async Task<IResult> UpdateAddress(
-        int barberShopId,
         int id,
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
         IAddressService service,
         IAddressErrors errors)
     {
-        var validationResult = validator.Validate(dto);
-        
-        if (!validationResult.IsValid)
-            errors.ThrowValidationException(validationResult.ToDictionary());
-        
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+
         var response = await service.UpdateAsync(dto, id);
 
         if (!response.IsSuccess)
@@ -94,7 +84,6 @@ public static class AddressEndpoint
     }
 
     public static async Task<IResult> DeleteAddress(
-        int barberShopId,
         int id,
         IAddressService service,
         IAddressErrors errors)
@@ -103,7 +92,7 @@ public static class AddressEndpoint
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();
-            
+
         return Results.NoContent();
     }
 }

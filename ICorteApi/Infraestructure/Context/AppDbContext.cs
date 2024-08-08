@@ -11,14 +11,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
+    public DbSet<Payment> Payments { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
     public DbSet<SpecialSchedule> SpecialSchedules { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
-    public DbSet<Conversation> Conversations { get; set; }
     public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
-    public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

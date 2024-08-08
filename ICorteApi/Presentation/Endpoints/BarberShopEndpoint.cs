@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -18,14 +19,13 @@ public static class BarberShopEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization();
-
-        group.MapGet(INDEX, GetAllBarberShops);
+            
         group.MapGet("{id}", GetBarberShop);
         group.MapPost(INDEX, CreateBarberShop);
         group.MapPut("{id}", UpdateBarberShop);
         group.MapDelete("{id}", DeleteBarberShop);
     }
-
+    
     public static IResult GetCreatedResult(int newId)
     {
         string uri = EndpointPrefixes.BarberShop + "/" + newId;
@@ -47,24 +47,6 @@ public static class BarberShopEndpoint
         return Results.Ok(barberShopDto);
     }
     
-    public static async Task<IResult> GetAllBarberShops(
-        int page,
-        int pageSize,
-        IBarberShopService service,
-        IBarberShopErrors errors)
-    {
-        var response = await service.GetAllAsync(page, pageSize);
-
-        if (!response.IsSuccess)
-            errors.ThrowNotFoundException();
-        
-        var dtos = response.Values!
-            .Select(b => b.CreateDto())
-            .ToArray();
-
-        return Results.Ok(dtos);
-    }
-
     public static async Task<IResult> CreateBarberShop(
         BarberShopDtoRequest dto,
         IValidator<BarberShopDtoRequest> validator,
@@ -72,19 +54,10 @@ public static class BarberShopEndpoint
         IUserService userService,
         IBarberShopErrors errors)
     {
-        var respUser = await userService.GetMeAsync();
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        if (!respUser.IsSuccess)
-            return Results.Unauthorized();
-
-        var user = respUser.Value!;
-        
-        var validationResult = validator.Validate(dto);
-        
-        if (!validationResult.IsValid)
-            errors.ThrowValidationException(validationResult.ToDictionary());
-
-        var response = await service.CreateAsync(user.Id, dto);
+        int ownerId = (await userService.GetMeAsync()).Value!.Id;
+        var response = await service.CreateAsync(dto, ownerId);
 
         if (!response.IsSuccess)
             errors.ThrowCreateException();
@@ -99,10 +72,7 @@ public static class BarberShopEndpoint
         IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var validationResult = validator.Validate(dto);
-        
-        if (!validationResult.IsValid)
-            errors.ThrowValidationException(validationResult.ToDictionary());
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         
         var response = await service.UpdateAsync(dto, id);
 

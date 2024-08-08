@@ -24,7 +24,7 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             nameof(Address)             => ("endereço", false),
             nameof(Appointment)         => ("agendamento", false),
             nameof(BarberShop)          => ("barbearia", true),
-            nameof(Conversation)        => ("conversa", true),
+            // nameof(Conversation)        => ("conversa", true),
             nameof(Message)             => ("mensagem", true),
             // nameof(Person)              => ("pessoa", true),
             nameof(RecurringSchedule)   => ("horário de funcionamento", false),

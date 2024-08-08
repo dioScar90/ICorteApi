@@ -15,5 +15,4 @@ public class User : BasePrimaryKeyUserEntity<int>
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
-    public ICollection<ConversationParticipant> ConversationParticipants { get; set; } = [];
 }

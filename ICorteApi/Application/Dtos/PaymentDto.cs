@@ -1,18 +1,16 @@
-// using ICorteApi.Application.Interfaces;
+using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 
-// namespace ICorteApi.Application.Dtos;
+namespace ICorteApi.Application.Dtos;
 
-// public record PaymentDtoRequest(
-//     int AppointmentId,
-//     decimal Amount,
-//     DateTime PaymentDate,
-//     string PaymentMethod
-// ) : IDtoRequest<Payment>;
+public record PaymentDtoRequest(
+    PaymentType PaymentType,
+    decimal Amount
+) : IDtoRequest<Payment>;
 
-// public record PaymentDtoResponse(
-//     int Id,
-//     int AppointmentId,
-//     decimal Amount,
-//     DateTime PaymentDate,
-//     string PaymentMethod
-// ) : IDtoResponse<Payment>;
+public record PaymentDtoResponse(
+    int Id,
+    PaymentType PaymentType,
+    decimal Amount
+) : IDtoResponse<Payment>;

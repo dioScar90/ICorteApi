@@ -1,3 +1,4 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
@@ -6,14 +7,14 @@ using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class BarberShopService(IBarberShopRepository repository)
-    : BasePrimaryKeyService<BarberShop, int>(repository), IBarberShopService
+public sealed class PaymentService(IPaymentRepository repository)
+    : BasePrimaryKeyService<Payment, int>(repository), IPaymentService
 {
-    public async Task<ISingleResponse<BarberShop>> CreateAsync(IDtoRequest<BarberShop> dto, int ownerId)
+    public async Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dto, int appointmentId)
     {
         var entity = dto.CreateEntity()!;
         
-        entity.OwnerId = ownerId;
+        entity.AppointmentId = appointmentId;
 
         return await CreateByEntityAsync(entity);
     }

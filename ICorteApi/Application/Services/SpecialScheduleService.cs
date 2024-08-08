@@ -9,6 +9,15 @@ namespace ICorteApi.Application.Services;
 public sealed class SpecialScheduleService(ISpecialScheduleRepository repository)
     : BaseCompositeKeyService<SpecialSchedule, DateOnly, int>(repository), ISpecialScheduleService
 {
+    public async Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dto, int barberShopId)
+    {
+        var entity = dto.CreateEntity()!;
+        
+        entity.BarberShopId = barberShopId;
+
+        return await CreateByEntityAsync(entity);
+    }
+
     public override async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
     {
         return await _repository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
