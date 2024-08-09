@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 

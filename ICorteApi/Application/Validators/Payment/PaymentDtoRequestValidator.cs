@@ -1,6 +1,5 @@
 using FluentValidation;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Validators;
 

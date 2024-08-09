@@ -14,10 +14,8 @@ public class Appointment : BasePrimaryKeyEntity<int>
 
     public int ClientId { get; set; }
     public User Client { get; set; }
-
-    public int BarberShopId { get; set; }
-    public BarberShop BarberShop { get; set; }
-
-    public ICollection<ServiceAppointment> ServiceAppointments { get; set; } = [];
+    
+    public ICollection<Message> Messages { get; set; } = [];
     public ICollection<Payment> Payments { get; set; } = [];
+    public ICollection<ServiceAppointment> ServiceAppointments { get; set; } = [];
 }

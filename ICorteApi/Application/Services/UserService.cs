@@ -13,12 +13,22 @@ namespace ICorteApi.Application.Services;
 public sealed class UserService(IUserRepository repository) : IUserService
 {
     private readonly IUserRepository _repository = repository;
-    
+
     public async Task<ISingleResponse<User>> GetMeAsync()
     {
         return await _repository.GetMeAsync();
     }
-    
+
+    public int? GetMyUserIdAsync()
+    {
+        return _repository.GetMyUserId();
+    }
+
+    public async Task<UserRole[]> GetUserRolesAsync()
+    {
+        return await _repository.GetUserRolesAsync();
+    }
+
     public async Task<IResponse> AddUserRoleAsync(UserRole role, int id)
     {
         var resp = await _repository.GetMeAsync();
@@ -30,7 +40,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
 
         if (user.Id != id)
             return Response.Failure(Error.UserNotFound);
-        
+
         return await _repository.AddUserRoleAsync(role);
     }
 
@@ -45,7 +55,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
 
         if (user.Id != id)
             return Response.Failure(Error.UserNotFound);
-        
+
         return await _repository.RemoveUserRoleAsync(role);
     }
 
@@ -60,8 +70,10 @@ public sealed class UserService(IUserRepository repository) : IUserService
 
         if (user.Id != id)
             return Response.Failure(Error.UserNotFound);
-        
+            
+        user.IsRegisterCompleted = user.CheckRegisterCompletation();
         user.UpdateEntityByDto(dto);
+
         return await _repository.UpdateAsync(user);
     }
 
@@ -76,7 +88,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
 
         if (user.Id != id)
             return Response.Failure(Error.UserNotFound);
-        
+
         return await _repository.DeleteAsync(user);
     }
 

@@ -1,4 +1,3 @@
-using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 

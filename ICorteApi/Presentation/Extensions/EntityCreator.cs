@@ -129,8 +129,8 @@ public static class EntityCreator
     private static User MapDtoToUser(UserDtoRequest dto) =>
         new()
         {
-            UserName = dto.Email,
-            Email = dto.Email,
+            // UserName = dto.Email,
+            // Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
             FirstName = dto.FirstName,
             LastName = dto.LastName,

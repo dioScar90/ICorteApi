@@ -13,18 +13,8 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<User> _userManager = userManager;
-
-    private async Task<User?> GetCurrentUser()
-    {
-        var userId = GetUserId();
-        
-        if (userId is null)
-            return null;
-
-        return await _userManager.FindByIdAsync(userId);
-    }
     
-    public string? GetUserId()
+    private string? GetUserId()
     {
         var user = _httpContextAccessor.HttpContext?.User;
 
@@ -32,6 +22,11 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             return null;
 
         return _userManager.GetUserId(user);
+    }
+
+    public int? GetMyUserId()
+    {
+        return int.TryParse(GetUserId(), out int userId) ? userId : null;
     }
 
     public async Task<UserRole[]> GetUserRolesAsync()
@@ -51,6 +46,16 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             .Where(role => role.HasValue)
             .Select(role => role!.Value)
             .ToArray();
+    }
+
+    private async Task<User?> GetCurrentUser()
+    {
+        var userId = GetUserId();
+        
+        if (userId is null)
+            return null;
+
+        return await _userManager.FindByIdAsync(userId);
     }
 
     public async Task<ISingleResponse<User>> GetMeAsync()

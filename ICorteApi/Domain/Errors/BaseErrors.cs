@@ -7,9 +7,9 @@ namespace ICorteApi.Domain.Errors;
 public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
     where TEntity : class, IBaseTableEntity
 {
-    private readonly string _entity;
-    private readonly bool _isFemale;
-    private readonly char _the;
+    protected readonly string _entity;
+    protected readonly bool _isFemale;
+    protected readonly char _the;
 
     protected BaseErrors()
     {
@@ -24,9 +24,8 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             nameof(Address)             => ("endereço", false),
             nameof(Appointment)         => ("agendamento", false),
             nameof(BarberShop)          => ("barbearia", true),
-            // nameof(Conversation)        => ("conversa", true),
             nameof(Message)             => ("mensagem", true),
-            // nameof(Person)              => ("pessoa", true),
+            nameof(Payment)             => ("pagamento", true),
             nameof(RecurringSchedule)   => ("horário de funcionamento", false),
             nameof(Report)              => ("avaliação", true),
             nameof(Service)             => ("serviço", false),

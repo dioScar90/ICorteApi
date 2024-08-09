@@ -24,9 +24,6 @@ public class Email(string email)
             
             return addr;
         }
-        // catch (FormatException) {
-        //     throw new ArgumentOutOfRangeException(nameof(email), "Email incompleto ou com formato inválidooooooooo");
-        // }
         catch (Exception) {
             throw;
         }

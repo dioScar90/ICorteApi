@@ -20,8 +20,9 @@ public record UserDtoResponse(
     string LastName,
     string PhoneNumber,
     string? ImageUrl,
-    UserRole[] Roles,
-    bool IsRegisterCompleted
+    UserRole[] Roles
+    // ,
+    // bool IsRegisterCompleted
 ) : IDtoResponse<User>;
 
 public record UserDtoRegisterRequest(

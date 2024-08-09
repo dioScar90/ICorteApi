@@ -168,8 +168,8 @@ public static class EntityUpdater
     {
         utcNow ??= DateTime.UtcNow;
         
-        user.UserName = dto.Email;
-        user.Email = dto.Email;
+        // user.UserName = dto.Email;
+        // user.Email = dto.Email;
         user.PhoneNumber = dto.PhoneNumber;
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;

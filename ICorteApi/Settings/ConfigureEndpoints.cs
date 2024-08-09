@@ -6,25 +6,18 @@ public static class ConfigureEndpoints
 {
     public static void MapMyEndpoints(WebApplication app)
     {
-        // app.UseEndpoints(endpoints =>
-        // {
-        //     endpoints.MapGet("/", () => "Hello World!");
-        //     endpoints.MapIdentityApi<User>();
-        //     // endpoints.MapAuthEndpoint();
-        //     endpoints.MapPersonEndpoint();
-        //     endpoints.MapBarberShopEndpoint();
-        //     // endpoints.MapRecurringScheduleEndpoint();
-        //     endpoints.MapAddressEndpoint();
-        // });
-
         app.MapGet("/", () => "Hello World!");
 
+        AuthEndpoint.Map(app);
+        
         AddressEndpoint.Map(app);
         AppointmentEndpoint.Map(app);
-        AuthEndpoint.Map(app);
         BarberShopEndpoint.Map(app);
-        // ConversationEndpoint.Map(app);
+        MessageEndpoint.Map(app);
+        PaymentEndpoint.Map(app);
         RecurringScheduleEndpoint.Map(app);
+        ReportEndpoint.Map(app);
+        ServiceEndpoint.Map(app);
         SpecialScheduleEndpoint.Map(app);
         UserEndpoint.Map(app);
     }

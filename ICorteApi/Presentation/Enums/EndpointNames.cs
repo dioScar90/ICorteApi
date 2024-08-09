@@ -6,8 +6,6 @@ public static class EndpointNames
     public static readonly string Appointment = "Appointment";
     public static readonly string Auth = "Auth";
     public static readonly string BarberShop = "Barber Shop";
-    public static readonly string Conversation = "Conversation";
-    public static readonly string ConversationParticipant = "Conversation Participant";
     public static readonly string Message = "Message";
     public static readonly string Payment = "Payment";
     public static readonly string RecurringSchedule = "Recurring Schedule";

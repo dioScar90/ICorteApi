@@ -6,7 +6,7 @@ namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IUserRepository : IRepository<User>
 {
-    string? GetUserId();
+    int? GetMyUserId();
     Task<UserRole[]> GetUserRolesAsync();
     Task<IResponse> AddUserRoleAsync(UserRole role);
     Task<IResponse> RemoveUserRoleAsync(UserRole role);

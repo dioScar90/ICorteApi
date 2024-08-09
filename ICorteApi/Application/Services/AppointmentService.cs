@@ -14,7 +14,7 @@ public sealed class AppointmentService(IAppointmentRepository repository)
         var entity = dto.CreateEntity()!;
         
         entity.ClientId = clientId;
-        entity.BarberShopId = barberShopId;
+        // entity.BarberShopId = barberShopId;
         
         return await CreateByEntityAsync(entity);
     }

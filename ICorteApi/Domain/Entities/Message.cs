@@ -9,7 +9,7 @@ public class Message : BasePrimaryKeyEntity<int>
     public bool IsRead { get; set; } = false;
 
     public int AppointmentId { get; set; }
-    public User Appointment { get; set; }
+    public Appointment Appointment { get; set; }
 
     public int SenderId { get; set; }
     public User Sender { get; set; }

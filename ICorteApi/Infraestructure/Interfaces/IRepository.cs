@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Interfaces;

@@ -5,6 +5,7 @@ using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Presentation.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -21,13 +22,17 @@ public static class UserEndpoint
             .RequireAuthorization();
 
         group.MapGet("me", GetMe);
-        group.MapPost("", CreateUserWithPersonValues);
-        group.MapPut("{id}", UpdateUser);
-        group.MapDelete("{id}", DeleteUser);
+        group.MapPost(INDEX, CreateUserWithPersonValues);
+        group.MapPut(INDEX, UpdateUser);
+        group.MapDelete(INDEX, DeleteUser);
 
-        group.MapPut("{id}/roles/{role}/add", AddUserRole);
-        group.MapPut("{id}/roles/{role}/remove", RemoveUserRole);
+        group.MapGet("roles", GetUserRoles);
+        group.MapPost("roles/{role}", AddUserRole);
+        group.MapDelete("roles/{role}", RemoveUserRole);
     }
+
+    private static int GetMyUserId(this IUserService service) => (int)service.GetMyUserIdAsync()!;
+    private static async Task<UserRole[]> GetMyUserRoles(this IUserService service) => await service.GetUserRolesAsync() ?? [];
     
     public static IResult GetCreatedResult()
     {
@@ -45,33 +50,47 @@ public static class UserEndpoint
         if (!resp.IsSuccess)
             errors.ThrowNotFoundException();
 
+        if (!resp.Value!.IsRegisterCompleted)
+            errors.ThrowRegisterNotCompletedException();
+
         return Results.Ok(resp.Value!.CreateDto());
     }
 
     public static async Task<IResult> CreateUserWithPersonValues(
-        int id,
         UserDtoRequest dto,
         IValidator<UserDtoRequest> validator,
         IUserService service,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var user = (await service.GetMeAsync()).Value;
 
-        int userId = (await service.GetMeAsync()).Value!.Id;
-        var res = await service.UpdateAsync(dto, userId);
+        if (user is null)
+            errors.ThrowBadRequestException();
+        
+        if (user!.IsRegisterCompleted)
+            errors.ThrowUserAlreadyCreatedException();
+        
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var res = await service.UpdateAsync(dto, user.Id);
 
         if (!res.IsSuccess)
             errors.ThrowCreateException();
-
+            
         return GetCreatedResult();
     }
 
+    public static async Task<IResult> GetUserRoles(IUserService service)
+    {
+        var userRoles = await service.GetMyUserRoles();
+        return Results.Ok(new { userRoles });
+    }
+
     public static async Task<IResult> AddUserRole(
-        int id,
         UserRole role,
         IUserService service)
     {
-        var response = await service.AddUserRoleAsync(role, id);
+        int userId = service.GetMyUserId();
+        var response = await service.AddUserRoleAsync(role, userId);
 
         if (!response.IsSuccess)
             return Results.BadRequest(response);
@@ -80,11 +99,11 @@ public static class UserEndpoint
     }
 
     public static async Task<IResult> RemoveUserRole(
-        int id,
         UserRole role,
         IUserService service)
     {
-        var response = await service.RemoveUserRoleAsync(role, id);
+        int userId = service.GetMyUserId();
+        var response = await service.RemoveUserRoleAsync(role, userId);
 
         if (!response.IsSuccess)
             return Results.BadRequest(response);
@@ -93,7 +112,6 @@ public static class UserEndpoint
     }
 
     public static async Task<IResult> UpdateUser(
-        int id,
         UserDtoRequest dto,
         IValidator<UserDtoRequest> validator,
         IUserService service,
@@ -101,7 +119,8 @@ public static class UserEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateAsync(dto, id);
+        int userId = service.GetMyUserId();
+        var response = await service.UpdateAsync(dto, userId);
 
         if (!response.IsSuccess)
             errors.ThrowUpdateException();
@@ -109,12 +128,10 @@ public static class UserEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteUser(
-        int id,
-        IUserService service,
-        IUserErrors errors)
+    public static async Task<IResult> DeleteUser(IUserService service, IUserErrors errors)
     {
-        var response = await service.DeleteAsync(id);
+        int userId = service.GetMyUserId();
+        var response = await service.DeleteAsync(userId);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();
