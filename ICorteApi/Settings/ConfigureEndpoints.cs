@@ -24,8 +24,8 @@ public static class ConfigureEndpoints
         AuthEndpoint.Map(app);
         BarberShopEndpoint.Map(app);
         // ConversationEndpoint.Map(app);
-        // PersonEndpoint.Map(app);
         RecurringScheduleEndpoint.Map(app);
         SpecialScheduleEndpoint.Map(app);
+        UserEndpoint.Map(app);
     }
 }

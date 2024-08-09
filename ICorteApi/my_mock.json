@@ -5,8 +5,11 @@
     }
     ,
     {
+        "email": "lionel@messi.com.br",
         "firstName": "Lionel",
-        "lastName": "Messi"
+        "lastName": "Messi",
+        "roles": [],
+        "phoneNumber": "11912345678"
     }
     ,
     {

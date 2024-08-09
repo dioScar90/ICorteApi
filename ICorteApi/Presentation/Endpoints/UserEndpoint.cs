@@ -21,11 +21,19 @@ public static class UserEndpoint
             .RequireAuthorization();
 
         group.MapGet("me", GetMe);
+        group.MapPost("", CreateUserWithPersonValues);
         group.MapPut("{id}", UpdateUser);
         group.MapDelete("{id}", DeleteUser);
 
         group.MapPut("{id}/roles/{role}/add", AddUserRole);
         group.MapPut("{id}/roles/{role}/remove", RemoveUserRole);
+    }
+    
+    public static IResult GetCreatedResult()
+    {
+        string uri = EndpointPrefixes.BarberShop + "/me";
+        object value = new { Message = "Usuário criado com sucesso" };
+        return Results.Created(uri, value);
     }
     
     public static async Task<IResult> GetMe(
@@ -37,7 +45,25 @@ public static class UserEndpoint
         if (!resp.IsSuccess)
             errors.ThrowNotFoundException();
 
-        return Results.Ok(resp.Value!);
+        return Results.Ok(resp.Value!.CreateDto());
+    }
+
+    public static async Task<IResult> CreateUserWithPersonValues(
+        int id,
+        UserDtoRequest dto,
+        IValidator<UserDtoRequest> validator,
+        IUserService service,
+        IUserErrors errors)
+    {
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+
+        int userId = (await service.GetMeAsync()).Value!.Id;
+        var res = await service.UpdateAsync(dto, userId);
+
+        if (!res.IsSuccess)
+            errors.ThrowCreateException();
+
+        return GetCreatedResult();
     }
 
     public static async Task<IResult> AddUserRole(

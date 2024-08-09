@@ -1,11 +1,14 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
 public class User : BasePrimaryKeyUserEntity<int>
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    [PreventNullAfterSet]
+    public string? FirstName { get; set; }
+    [PreventNullAfterSet]
+    public string? LastName { get; set; }
     public string? ImageUrl { get; set; }
     
     public int? BarberShopId { get; set; }

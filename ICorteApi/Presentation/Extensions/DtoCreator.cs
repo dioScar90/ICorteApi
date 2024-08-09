@@ -95,6 +95,14 @@ public static class DtoCreator
             specialSchedule.IsClosed
         );
 
+    private static bool CheckUserRegisterCompletation(User user) =>
+        user is {
+            Email: not null,
+            FirstName: not null,
+            LastName: not null,
+            PhoneNumber: not null,
+        };
+
     public static UserDtoResponse CreateDto(this User user) =>
         new(
             user.Id,
@@ -103,6 +111,7 @@ public static class DtoCreator
             user.LastName,
             user.PhoneNumber,
             user.ImageUrl,
-            []
+            [],
+            CheckUserRegisterCompletation(user)
         );
 }
