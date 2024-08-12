@@ -13,7 +13,7 @@ public static class PaymentEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment + "{appointmentId}" + EndpointPrefixes.Payment;
     private static readonly string ENDPOINT_NAME = EndpointNames.Payment;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapPaymentEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -24,6 +24,8 @@ public static class PaymentEndpoint
         group.MapPost(INDEX, CreatePayment);
         group.MapPut("{id}", UpdatePayment);
         group.MapDelete("{id}", DeletePayment);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId, int appointmentId)

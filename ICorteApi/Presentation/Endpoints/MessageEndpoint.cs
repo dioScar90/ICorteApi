@@ -13,7 +13,7 @@ public static class MessageEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment + "{appointmentId}" + EndpointPrefixes.Message;
     private static readonly string ENDPOINT_NAME = EndpointNames.Message;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapMessageEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -24,6 +24,8 @@ public static class MessageEndpoint
         group.MapPost(INDEX, CreateMessage);
         group.MapPut("{id}", UpdateMessage);
         group.MapDelete("{id}", DeleteMessage);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId, int appointmentId)

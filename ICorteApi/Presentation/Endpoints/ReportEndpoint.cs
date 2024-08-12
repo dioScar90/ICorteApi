@@ -13,7 +13,7 @@ public static class ReportEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "{barberShopId}" + EndpointPrefixes.Report;
     private static readonly string ENDPOINT_NAME = EndpointNames.Report;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapReportEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -24,6 +24,8 @@ public static class ReportEndpoint
         group.MapPost(INDEX, CreateReport);
         group.MapPut("{id}", UpdateReport);
         group.MapDelete("{id}", DeleteReport);
+
+        return app;
     }
 
     private static int GetMyUserId(this IUserService service) => (int)service.GetMyUserIdAsync()!;

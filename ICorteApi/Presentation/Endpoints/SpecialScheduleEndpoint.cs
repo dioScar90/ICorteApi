@@ -4,7 +4,6 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,7 +13,7 @@ public static class SpecialScheduleEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.SpecialSchedule;
     private static readonly string ENDPOINT_NAME = EndpointNames.SpecialSchedule;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapSpecialScheduleEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -25,6 +24,8 @@ public static class SpecialScheduleEndpoint
         group.MapPost(INDEX, CreateSpecialSchedule);
         group.MapPut("{date}", UpdateSpecialSchedule);
         group.MapDelete("{date}", DeleteSpecialSchedule);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(DateOnly newId, int barberShopId)

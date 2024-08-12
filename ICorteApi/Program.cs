@@ -3,99 +3,42 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using ICorteApi.Infraestructure.Context;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Presentation.Exceptions;
 using ICorteApi.Presentation.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuração do banco de dados
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options
-        .UseSqlite(
-            builder.Configuration.GetConnectionString("SqliteConnection"),
-            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // .UseNpgsql(
-        //     builder.Configuration.GetConnectionString("PostgreSqlConnection"),
-        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // .UseInMemoryDatabase("AppDb")
-    );
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("SqliteConnection"),
+        assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
+    )
+    // Alternativas de banco de dados descomentadas conforme necessidade
+    //.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"), assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+    //.UseInMemoryDatabase("AppDb")
+);
 
 builder.Services.AddHttpContextAccessor();
 
-// Outros serviços de configuração
-// builder.Services.AddApplicationServices(Assembly.GetExecutingAssembly());
+// Adicionando serviços de aplicação
 builder.Services
     .AddRepositories()
     .AddServices()
     .AddErrors()
-    .AddValidators();
+    .AddValidators()
+    .AddExceptionHandlers();
     
-// After .NET 8 we can use IExceptionHandler interface
-builder.Services.AddExceptionHandler<ExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-// After .NET 8 it's not necessary to use `AddAuthentication` here.
-builder.Services.AddAuthorization();
-
-// After .NET 8 we can use AddIdentityApiEndpoints<TUser> and AddRoles<TRole>,
-// which is specific for web api applications, instead of AddIdentity<TUser, TRole>.
 builder.Services
-.AddIdentityApiEndpoints<User>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 8;
-
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    options.User.AllowedUserNameCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    options.User.RequireUniqueEmail = false;
-})
-.AddRoles<IdentityRole<int>>()
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-    options.LoginPath = "/auth/login";
-    options.LogoutPath = "/auth/logout";
-    options.AccessDeniedPath = "/auth/access-denied";
-    options.SlidingExpiration = true;
-});
+    .AddAuthorizationRules()
+    .AddIdentityConfigurations()
+    .AddCookieConfiguration()
+    .AddAntiCsrfConfiguration();
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter JWT with Bearer into field",
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-    {
-        new OpenApiSecurityScheme
-        {
-            Reference = new OpenApiReference
-            {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
-        },
-        []
-    }});
 });
 
 var app = builder.Build();
@@ -109,7 +52,6 @@ if (app.Environment.IsDevelopment())
 
 app.DefineCultureLocalization("pt-BR");
 
-// Seed dos papéis
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
@@ -121,7 +63,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-ConfigureEndpoints.MapMyEndpoints(app);
+app.ConfigureMyEndpoints();
 
 app.UseExceptionHandler();
 

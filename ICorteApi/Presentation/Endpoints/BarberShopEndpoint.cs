@@ -14,7 +14,7 @@ public static class BarberShopEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop;
     private static readonly string ENDPOINT_NAME = EndpointNames.BarberShop;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapBarberShopEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -24,6 +24,8 @@ public static class BarberShopEndpoint
         group.MapPost(INDEX, CreateBarberShop);
         group.MapPut("{id}", UpdateBarberShop);
         group.MapDelete("{id}", DeleteBarberShop);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId)

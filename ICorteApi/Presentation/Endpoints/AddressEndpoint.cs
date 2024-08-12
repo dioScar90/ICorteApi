@@ -4,7 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,16 +14,18 @@ public static class AddressEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Address;
     private static readonly string ENDPOINT_NAME = EndpointNames.Address;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
-
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+        
         group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId, int barberShopId)

@@ -12,13 +12,15 @@ public static class AuthEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Auth;
     private static readonly string ENDPOINT_NAME = EndpointNames.Auth;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapAuthEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
 
         group.MapPost("logout", LogoutUser);
         group.MapIdentityApi<User>();
+
+        return app;
     }
 
     public static async Task<IResult> LogoutUser(SignInManager<User> signInManager, [FromBody] object? empty)
@@ -29,7 +31,7 @@ public static class AuthEndpoint
                 return Results.Unauthorized();
 
             await signInManager.SignOutAsync();
-            return Results.StatusCode(205);
+            return Results.StatusCode(StatusCodes.Status205ResetContent);
         }
         catch (Exception ex)
         {
@@ -37,13 +39,13 @@ public static class AuthEndpoint
         }
     }
 
-    public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
-    {
-        var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+    // public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
+    // {
+    //     var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
 
-        if (!result.Succeeded)
-            return Results.Unauthorized();
+    //     if (!result.Succeeded)
+    //         return Results.Unauthorized();
 
-        return Results.Ok("Login bem-sucedido");
-    }
+    //     return Results.Ok("Login bem-sucedido");
+    // }
 }

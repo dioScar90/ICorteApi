@@ -4,7 +4,6 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,7 +13,7 @@ public static class ServiceEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Service;
     private static readonly string ENDPOINT_NAME = EndpointNames.Service;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapServiceEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -25,6 +24,8 @@ public static class ServiceEndpoint
         group.MapPost(INDEX, CreateService);
         group.MapPut("{id}", UpdateService);
         group.MapDelete("{id}", DeleteService);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId, int barberShopId)

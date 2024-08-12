@@ -13,7 +13,7 @@ public static class AppointmentEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Appointment;
     private static readonly string ENDPOINT_NAME = EndpointNames.Appointment;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -23,6 +23,8 @@ public static class AppointmentEndpoint
         group.MapPost(INDEX, CreateAppointment);
         group.MapPut("{id}", UpdateAppointment);
         group.MapDelete("{id}", DeleteAppointment);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(int newId, int barberShopId)

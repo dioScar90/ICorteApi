@@ -5,7 +5,6 @@ using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Presentation.Extensions;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -15,7 +14,7 @@ public static class UserEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.User;
     private static readonly string ENDPOINT_NAME = EndpointNames.User;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapUserEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -29,6 +28,8 @@ public static class UserEndpoint
         group.MapGet("roles", GetUserRoles);
         group.MapPost("roles/{role}", AddUserRole);
         group.MapDelete("roles/{role}", RemoveUserRole);
+
+        return app;
     }
 
     private static int GetMyUserId(this IUserService service) => (int)service.GetMyUserIdAsync()!;

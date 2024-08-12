@@ -4,7 +4,6 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -14,7 +13,7 @@ public static class RecurringScheduleEndpoint
     private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.RecurringSchedule;
     private static readonly string ENDPOINT_NAME = EndpointNames.RecurringSchedule;
 
-    public static void Map(WebApplication app)
+    public static IEndpointRouteBuilder MapRecurringScheduleEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
@@ -25,6 +24,8 @@ public static class RecurringScheduleEndpoint
         group.MapPost(INDEX, CreateRecurringSchedule);
         group.MapPut("{dayOfWeek}", UpdateRecurringSchedule);
         group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule);
+
+        return app;
     }
     
     public static IResult GetCreatedResult(DayOfWeek newId, int barberShopId)
