@@ -4,6 +4,7 @@ public enum PolicyUserRole
 {
     Free,
     ClientOrHigh,
+    ClientOnly,
     BarberShopOrHigh,
     AdminOnly
 }

@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,7 +18,7 @@ public static class AppointmentEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("{id}", GetAppointment);
         group.MapPost(INDEX, CreateAppointment);

@@ -16,22 +16,30 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(
         TKey id,
         Expression<Func<TEntity, bool>>? foreignKeysFilter = null,
-        params Expression<Func<TEntity, object>>[] includes)
+        params Expression<Func<TEntity, object>>[]? includes)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
-        if (includes is not null && includes.Length > 0)
+        if (includes?.Length > 0)
             foreach (var include in includes)
-                query  = query.Include(include);
-                
+                query = query.Include(include);
+
         if (foreignKeysFilter is not null)
             query = query.Where(foreignKeysFilter);
-                
+
         var entity = await query.SingleOrDefaultAsync(x => x.Id.Equals(id));
 
         if (entity is null)
             return Response.Failure<TEntity>(Error.TEntityNotFound);
-        
+
         return Response.Success(entity);
+    }
+
+    public override async Task<IResponse> DeleteAsync(TEntity entity)
+    {
+        entity.UpdatedAt = DateTime.UtcNow;
+        entity.IsDeleted = true;
+        _dbSet.Update(entity);
+        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
     }
 }

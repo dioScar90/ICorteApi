@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,10 +18,14 @@ public static class RecurringScheduleEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet(INDEX, GetAllRecurringSchedules);
-        group.MapGet("{dayOfWeek}", GetRecurringSchedule);
+        group.MapGet(INDEX, GetAllRecurringSchedules)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet("{dayOfWeek}", GetRecurringSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPost(INDEX, CreateRecurringSchedule);
         group.MapPut("{dayOfWeek}", UpdateRecurringSchedule);
         group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule);

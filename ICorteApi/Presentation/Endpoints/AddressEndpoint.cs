@@ -20,7 +20,9 @@ public static class AddressEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
         
-        group.MapGet("{id}", GetAddress);
+        group.MapGet("{id}", GetAddress)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);

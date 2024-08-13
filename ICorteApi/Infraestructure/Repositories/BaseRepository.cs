@@ -30,7 +30,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
-        if (includes is not null && includes.Any())
+        if (includes?.Length > 0)
             foreach (var include in includes)
                 query = query.Include(include);
 
@@ -57,9 +57,5 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.UpdateError);
     }
 
-    public virtual async Task<IResponse> DeleteAsync(TEntity entity)
-    {
-        _dbSet.Remove(entity);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
-    }
+    public abstract Task<IResponse> DeleteAsync(TEntity entity);
 }

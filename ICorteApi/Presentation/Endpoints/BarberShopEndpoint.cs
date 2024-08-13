@@ -4,7 +4,7 @@ using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -18,10 +18,14 @@ public static class BarberShopEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
-        group.MapGet("{id}", GetBarberShop);
-        group.MapPost(INDEX, CreateBarberShop);
+        group.MapGet("{id}", GetBarberShop)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        
+        group.MapPost(INDEX, CreateBarberShop)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPut("{id}", UpdateBarberShop);
         group.MapDelete("{id}", DeleteBarberShop);
 

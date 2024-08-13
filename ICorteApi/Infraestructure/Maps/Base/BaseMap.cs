@@ -30,10 +30,18 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             
             string column_name = CamelCaseToSnakeCase(prop.Name);
             builder.Property(prop.Name).HasColumnName(column_name);
+
+            if (prop.PropertyType.IsEnum)
+                builder.Property(prop.Name).HasConversion<string>();
         }
 
         if (TEntityImplementsIPrimaryKeyEntity())
+        {
+            builder.Property(x => ((IPrimaryKeyEntity<int>)x).Id)
+                .ValueGeneratedNever();
+            
             builder.HasQueryFilter(x => !((IPrimaryKeyEntity<int>)x).IsDeleted); // same as 'x => !x.IsDeleted'
+        }
     }
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>

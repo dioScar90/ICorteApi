@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,10 +18,14 @@ public static class ReportEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapGet(INDEX, GetAllReports);
-        group.MapGet("{id}", GetReport);
+        group.MapGet(INDEX, GetAllReports)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet("{id}", GetReport)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPost(INDEX, CreateReport);
         group.MapPut("{id}", UpdateReport);
         group.MapDelete("{id}", DeleteReport);

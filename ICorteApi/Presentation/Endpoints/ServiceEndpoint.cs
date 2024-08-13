@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,10 +18,14 @@ public static class ServiceEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{id}", GetService);
-        group.MapGet(INDEX, GetAllServices);
+        group.MapGet("{id}", GetService)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet(INDEX, GetAllServices)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPost(INDEX, CreateService);
         group.MapPut("{id}", UpdateService);
         group.MapDelete("{id}", DeleteService);

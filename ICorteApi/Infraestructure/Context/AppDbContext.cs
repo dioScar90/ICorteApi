@@ -39,18 +39,97 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     private void HandleSoftDelete()
     {
+        CheckForDeletedUsers();
+        CheckForDeletedBarberShops();
+        CheckForDeletedServices();
+        CheckForDeletedAppointments();
+    }
+
+    private void CheckForDeletedUsers()
+    {
+        var deletedUsers = ChangeTracker.Entries<User>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
+            .Select(e => e.Entity)
+            .ToArray();
+
+        foreach (var user in deletedUsers)
+        {
+            var barberShop = BarberShops
+                .FirstOrDefault(bs => !bs.IsDeleted && bs.OwnerId == user.Id);
+                
+            if (barberShop is not null)
+            {
+                barberShop.IsDeleted = true;
+                Update(barberShop);
+            }
+        }
+    }
+
+    private void CheckForDeletedBarberShops()
+    {
         var deletedBarberShops = ChangeTracker.Entries<BarberShop>()
             .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
             .Select(e => e.Entity)
-            .ToList();
+            .ToArray();
 
         foreach (var barberShop in deletedBarberShops)
         {
-            var recurringSchedules = RecurringSchedules
-                .Where(os => os.BarberShopId == barberShop.Id)
-                .ToList();
+            var address = Addresses
+                .FirstOrDefault(a => !a.IsDeleted && a.BarberShopId == barberShop.Id);
+                
+            if (address is not null)
+            {
+                address.IsDeleted = true;
+                Update(address);
+            }
 
-            RecurringSchedules.RemoveRange(recurringSchedules);
+            var recurringSchedules = RecurringSchedules
+                .Where(rs => rs.BarberShopId == barberShop.Id)
+                .ToArray();
+
+            var specialSchedules = SpecialSchedules
+                .Where(ss => ss.BarberShopId == barberShop.Id)
+                .ToArray();
+
+            var services = Services
+                .Where(s => s.BarberShopId == barberShop.Id)
+                .ToArray();
+
+            RemoveRange(recurringSchedules, specialSchedules, services);
+        }
+    }
+
+    private void CheckForDeletedServices()
+    {
+        var deletedServices = ChangeTracker.Entries<Service>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
+            .Select(e => e.Entity)
+            .ToArray();
+
+        foreach (var service in deletedServices)
+        {
+            var serviceAppointments = ServiceAppointments
+                .Where(sa => sa.ServiceId == service.Id)
+                .ToArray();
+
+            RemoveRange(serviceAppointments);
+        }
+    }
+
+    private void CheckForDeletedAppointments()
+    {
+        var deletedAppointments = ChangeTracker.Entries<Appointment>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
+            .Select(e => e.Entity)
+            .ToArray();
+
+        foreach (var appointment in deletedAppointments)
+        {
+            var serviceAppointments = ServiceAppointments
+                .Where(sa => sa.AppointmentId == appointment.Id)
+                .ToArray();
+
+            RemoveRange(serviceAppointments);
         }
     }
 }

@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Enums;
 using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,10 +18,14 @@ public static class SpecialScheduleEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet(INDEX, GetAllSpecialSchedules);
-        group.MapGet("{date}", GetSpecialSchedule);
+        group.MapGet(INDEX, GetAllSpecialSchedules)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet("{date}", GetSpecialSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPost(INDEX, CreateSpecialSchedule);
         group.MapPut("{date}", UpdateSpecialSchedule);
         group.MapDelete("{date}", DeleteSpecialSchedule);

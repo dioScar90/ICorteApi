@@ -4,6 +4,7 @@ using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,7 +18,7 @@ public static class MessageEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet(INDEX, GetAllMessages);
         group.MapGet("{id}", GetMessage);

@@ -18,7 +18,7 @@ public static class UserEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization();
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("me", GetMe);
         group.MapPost(INDEX, CreateUserWithPersonValues);

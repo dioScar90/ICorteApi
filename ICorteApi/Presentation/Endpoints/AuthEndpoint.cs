@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Application.Dtos;
 using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -38,14 +37,4 @@ public static class AuthEndpoint
             return Results.BadRequest(new { ex.Message });
         }
     }
-
-    // public static async Task<IResult> Login(SignInManager<User> signInManager, UserDtoLoginRequest dto)
-    // {
-    //     var result = await signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
-
-    //     if (!result.Succeeded)
-    //         return Results.Unauthorized();
-
-    //     return Results.Ok("Login bem-sucedido");
-    // }
 }
