@@ -10,7 +10,9 @@ public record BarberShopDtoRequest(
     string ComercialEmail,
     AddressDtoRequest? Address,
     RecurringScheduleDtoRequest[]? RecurringSchedules,
-    UserDtoRequest[]? Barbers
+    SpecialScheduleDtoRequest[]? SpecialSchedules,
+    ServiceDtoRequest[]? Services,
+    ReportDtoRequest[]? Reports
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoResponse(
@@ -21,5 +23,7 @@ public record BarberShopDtoResponse(
     string ComercialEmail,
     AddressDtoResponse? Address,
     RecurringScheduleDtoResponse[]? RecurringSchedules,
-    UserDtoResponse[]? Barbers
+    SpecialScheduleDtoResponse[]? SpecialSchedules,
+    ServiceDtoResponse[]? Services,
+    ReportDtoResponse[]? Reports
 ) : IDtoResponse<BarberShop>;

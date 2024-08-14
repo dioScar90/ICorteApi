@@ -10,7 +10,7 @@ namespace ICorteApi.Infraestructure.Repositories;
 
 public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext context)
     : BaseRepository<TEntity>(context), IBasePrimaryKeyRepository<TEntity, TKey>
-    where TEntity : class, IPrimaryKeyEntity<TKey>, IBaseTableEntity
+    where TEntity : class, IPrimaryKeyEntity<TEntity, TKey>, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(
@@ -37,8 +37,7 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
 
     public override async Task<IResponse> DeleteAsync(TEntity entity)
     {
-        entity.UpdatedAt = DateTime.UtcNow;
-        entity.IsDeleted = true;
+        entity.DeleteEntity();
         _dbSet.Update(entity);
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
     }

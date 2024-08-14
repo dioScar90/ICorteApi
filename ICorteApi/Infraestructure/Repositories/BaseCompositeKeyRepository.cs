@@ -10,7 +10,7 @@ namespace ICorteApi.Infraestructure.Repositories;
 
 public abstract class BaseCompositeKeyRepository<TEntity, TKey1, TKey2>(AppDbContext context)
     : BaseRepository<TEntity>(context), IBaseCompositeKeyRepository<TEntity, TKey1, TKey2>
-    where TEntity : class, ICompositeKeyEntity<TKey1, TKey2>, IBaseTableEntity
+    where TEntity : class, ICompositeKeyEntity<TEntity, TKey1, TKey2>, IBaseTableEntity
 {
     public async Task<ISingleResponse<TEntity>> GetByIdAsync(
         Expression<Func<TEntity, bool>> func,

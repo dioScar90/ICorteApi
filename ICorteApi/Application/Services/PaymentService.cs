@@ -3,19 +3,18 @@ using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class PaymentService(IPaymentRepository repository)
     : BasePrimaryKeyService<Payment, int>(repository), IPaymentService
 {
-    public async Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dto, int appointmentId)
+    public async Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dtoRequest, int appointmentId)
     {
-        var entity = dto.CreateEntity()!;
-        
-        entity.AppointmentId = appointmentId;
+        if (dtoRequest is not PaymentDtoRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
+        var entity = new Payment(dto, appointmentId);
         return await CreateByEntityAsync(entity);
     }
 }

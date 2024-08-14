@@ -4,11 +4,12 @@ namespace ICorteApi.Settings;
 
 public static class ConfigureEndpoints
 {
-    public static IEndpointRouteBuilder ConfigureMyEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder ConfigureMyEndpoints(this IEndpointRouteBuilder endpointBuilder)
     {
-        app.MapGet("/", () => "Hello World!");
+        endpointBuilder.MapGet("/", () => "Hello World!");
 
-        app.MapAuthEndpoint()
+        endpointBuilder
+            .MapAuthEndpoint()
             .MapAddressEndpoint()
             .MapAppointmentEndpoint()
             .MapBarberShopEndpoint()
@@ -20,6 +21,6 @@ public static class ConfigureEndpoints
             .MapSpecialScheduleEndpoint()
             .MapUserEndpoint();
 
-        return app;
+        return endpointBuilder;
     }
 }

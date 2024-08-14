@@ -187,8 +187,8 @@ public static class ServiceCollectionExtensions
 
                 options.Lockout.AllowedForNewUsers = true;
 
-                // options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@#$+";
-                options.User.AllowedUserNameCharacters = "a-zA-Z0-9-._@#$+";
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                // options.User.AllowedUserNameCharacters = "a-zA-Z0-9-._@#$+";
                 options.User.RequireUniqueEmail = true; // Ajustado para exigir e-mails únicos
             })
             .AddRoles<IdentityRole<int>>()

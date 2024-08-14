@@ -38,7 +38,9 @@ public static class DtoCreator
             barberShop.ComercialEmail,
             barberShop.Address?.CreateDto(),
             barberShop.RecurringSchedules?.Select(b => b.CreateDto()).ToArray(),
-            barberShop.Barbers?.Select(b => b.CreateDto()).ToArray()
+            barberShop.SpecialSchedules?.Select(b => b.CreateDto()).ToArray(),
+            barberShop.Services?.Select(b => b.CreateDto()).ToArray(),
+            barberShop.Reports?.Select(b => b.CreateDto()).ToArray()
         );
         
     public static MessageDtoResponse CreateDto(this Message message) =>

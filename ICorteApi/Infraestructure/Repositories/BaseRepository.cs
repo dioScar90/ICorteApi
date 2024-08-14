@@ -45,7 +45,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
             .Take(pageSize)
             .ToListAsync();
 
-        if (entities is null || entities.Count == 0)
+        if (entities is not { Count: > 0 })
             return Response.FailureCollection<TEntity>(Error.TEntityNotFound);
 
         return Response.Success(entities, totalItems, totalPages, page, pageSize);

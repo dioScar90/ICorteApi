@@ -6,7 +6,6 @@ using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
@@ -59,7 +58,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.RemoveUserRoleAsync(role);
     }
 
-    public async Task<IResponse> UpdateAsync(UserDtoRequest dto, int id)
+    public async Task<IResponse> UpdateAsync(UserDtoRequest dtoRequest, int id)
     {
         var resp = await _repository.GetMeAsync();
 
@@ -71,9 +70,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
         if (user.Id != id)
             return Response.Failure(Error.UserNotFound);
             
-        user.IsRegisterCompleted = user.CheckRegisterCompletation();
-        user.UpdateEntityByDto(dto);
-
+        user.UpdateEntityByDto(dtoRequest);
         return await _repository.UpdateAsync(user);
     }
 
@@ -92,7 +89,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.DeleteAsync(user);
     }
 
-    public Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dto)
+    public Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
     {
         throw new NotImplementedException();
     }

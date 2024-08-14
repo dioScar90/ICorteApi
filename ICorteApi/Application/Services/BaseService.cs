@@ -1,7 +1,6 @@
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 

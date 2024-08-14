@@ -1,14 +1,45 @@
+using ICorteApi.Application.Dtos;
+using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public class ServiceAppointment : CompositeKeyEntity<int, int>
+public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment, int, int>
 {
-    public int AppointmentId { get => Id1; set => Id1 = value; }
-    public Appointment Appointment { get; set; }
+    public int AppointmentId { get => Id1; init => Id1 = value; }
+    public Appointment Appointment { get; init; }
 
-    public int ServiceId { get => Id2; set => Id2 = value; }
-    public Service Service { get; set; }
+    public int ServiceId { get => Id2; init => Id2 = value; }
+    public Service Service { get; init; }
+
+    private ServiceAppointment() {}
+
+    public ServiceAppointment(ServiceAppointmentDtoRequest dto)
+    {
+        if (dto.AppointmentId is int appointmentId)
+            AppointmentId = appointmentId;
+
+        if (dto.ServiceId is int serviceId)
+            ServiceId = serviceId;
+    }
+    
+    private void UpdateByServiceAppointmentDto(ServiceAppointmentDtoRequest dto, DateTime? utcNow)
+    {
+        // utcNow ??= DateTime.UtcNow;
+
+        // OpenTime = dto.OpenTime;
+        // CloseTime = dto.CloseTime;
+
+        // UpdatedAt = utcNow;
+    }
+    
+    public override void UpdateEntityByDto(IDtoRequest<ServiceAppointment> requestDto, DateTime? utcNow = null)
+    {
+        if (requestDto is ServiceAppointmentDtoRequest dto)
+            UpdateByServiceAppointmentDto(dto, utcNow);
+            
+        throw new Exception("Dados enviados inválidos");
+    }
 }
 
 /*

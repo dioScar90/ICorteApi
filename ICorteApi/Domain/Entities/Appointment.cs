@@ -1,21 +1,59 @@
+using ICorteApi.Application.Dtos;
+using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public class Appointment : BasePrimaryKeyEntity<int>
+public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
 {
-    public DateOnly Date { get; set; }
-    public TimeOnly StartTime { get; set; }
-    public TimeOnly EndTime { get; set; }
-    public string? Notes { get; set; }
-    public decimal TotalPrice { get; set; }
-    public AppointmentStatus Status { get; set; }
+    public DateOnly Date { get; private set; }
+    public TimeOnly StartTime { get; private set; }
+    public TimeOnly EndTime { get; private set; }
+    public string? Notes { get; private set; }
+    public decimal TotalPrice { get; private set; }
+    public AppointmentStatus Status { get; private set; }
 
-    public int ClientId { get; set; }
+    public int ClientId { get; init; }
     public User Client { get; set; }
     
-    public ICollection<Message> Messages { get; set; } = [];
-    public ICollection<Payment> Payments { get; set; } = [];
-    public ICollection<ServiceAppointment> ServiceAppointments { get; set; } = [];
+    public ICollection<Message> Messages { get; init; }
+    public ICollection<Payment> Payments { get; init; }
+    public ICollection<ServiceAppointment> ServiceAppointments { get; init; }
+
+    private Appointment() {}
+
+    public Appointment(AppointmentDtoRequest dto, int? clientId = null)
+    {
+        Date = dto.Date;
+        StartTime = dto.StartTime;
+        EndTime = dto.EndTime;
+        Notes = dto.Notes;
+        TotalPrice = dto.TotalPrice;
+        Status = dto.Status;
+
+        ClientId = clientId ?? default;
+    }
+    
+    private void UpdateByAppointmentDto(AppointmentDtoRequest dto, DateTime? utcNow)
+    {
+        utcNow ??= DateTime.UtcNow;
+
+        Date = dto.Date;
+        StartTime = dto.StartTime;
+        EndTime = dto.EndTime;
+        Notes = dto.Notes;
+        TotalPrice = dto.TotalPrice;
+        Status = dto.Status;
+        
+        UpdatedAt = utcNow;
+    }
+
+    public override void UpdateEntityByDto(IDtoRequest<Appointment> requestDto, DateTime? utcNow = null)
+    {
+        if (requestDto is AppointmentDtoRequest dto)
+            UpdateByAppointmentDto(dto, utcNow);
+            
+        throw new Exception("Dados enviados inválidos");
+    }
 }

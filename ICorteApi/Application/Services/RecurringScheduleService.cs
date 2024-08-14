@@ -1,20 +1,20 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class RecurringScheduleService(IRecurringScheduleRepository repository)
     : BaseCompositeKeyService<RecurringSchedule, DayOfWeek, int>(repository), IRecurringScheduleService
 {
-    public async Task<ISingleResponse<RecurringSchedule>> CreateAsync(IDtoRequest<RecurringSchedule> dto, int barberShopId)
+    public async Task<ISingleResponse<RecurringSchedule>> CreateAsync(IDtoRequest<RecurringSchedule> dtoRequest, int barberShopId)
     {
-        var entity = dto.CreateEntity()!;
-        
-        entity.BarberShopId = barberShopId;
+        if (dtoRequest is not RecurringScheduleDtoRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
+        var entity = new RecurringSchedule(dto, barberShopId);
         return await CreateByEntityAsync(entity);
     }
 
@@ -23,7 +23,7 @@ public sealed class RecurringScheduleService(IRecurringScheduleRepository reposi
         return await _repository.GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
     }
 
-    public override async Task<IResponse> UpdateAsync(IDtoRequest<RecurringSchedule> dto, DayOfWeek dayOfWeek, int barberShopId)
+    public override async Task<IResponse> UpdateAsync(IDtoRequest<RecurringSchedule> dtoRequest, DayOfWeek dayOfWeek, int barberShopId)
     {
         var resp = await GetByIdAsync(dayOfWeek, barberShopId);
 
@@ -31,7 +31,7 @@ public sealed class RecurringScheduleService(IRecurringScheduleRepository reposi
             return resp;
 
         var entity = resp.Value!;
-        entity.UpdateEntityByDto(dto);
+        entity.UpdateEntityByDto(dtoRequest);
 
         return await _repository.UpdateAsync(entity);
     }

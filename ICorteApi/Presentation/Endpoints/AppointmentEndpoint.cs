@@ -62,7 +62,7 @@ public static class AppointmentEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         int clientId = (await userService.GetMeAsync()).Value!.Id;
-        var response = await service.CreateAsync(dto, clientId, barberShopId);
+        var response = await service.CreateAsync(dto, clientId);
 
         if (!response.IsSuccess)
             errors.ThrowCreateException();

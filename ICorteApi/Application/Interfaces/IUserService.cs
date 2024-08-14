@@ -12,6 +12,6 @@ public interface IUserService : IService<User>, IHasNoForeignKeyService<User>
     Task<UserRole[]> GetUserRolesAsync();
     Task<IResponse> AddUserRoleAsync(UserRole role, int id);
     Task<IResponse> RemoveUserRoleAsync(UserRole role, int id);
-    Task<IResponse> UpdateAsync(UserDtoRequest dto, int id);
+    Task<IResponse> UpdateAsync(UserDtoRequest dtoRequest, int id);
     Task<IResponse> DeleteAsync(int id);
 }

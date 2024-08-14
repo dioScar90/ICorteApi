@@ -59,7 +59,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 
             if (barberShop is not null)
             {
-                barberShop.IsDeleted = true;
+                barberShop.DeleteEntity();
                 Update(barberShop);
             }
         }
@@ -79,7 +79,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 
             if (address is not null)
             {
-                address.IsDeleted = true;
+                address.DeleteEntity();
                 Update(address);
             }
 

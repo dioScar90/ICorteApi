@@ -31,8 +31,8 @@ builder.Services
 builder.Services
     .AddAuthorizationRules()
     .AddIdentityConfigurations()
-    .AddCookieConfiguration()
-    .AddAntiCsrfConfiguration();
+    .AddCookieConfiguration();
+    // .AddAntiCsrfConfiguration();
 
 builder.Services.AddEndpointsApiExplorer();
 

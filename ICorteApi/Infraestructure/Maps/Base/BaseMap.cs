@@ -37,15 +37,15 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
         if (TEntityImplementsIPrimaryKeyEntity())
         {
-            builder.Property(x => ((IPrimaryKeyEntity<int>)x).Id)
+            builder.Property(x => ((IPrimaryKeyEntity<TEntity, int>)x).Id)
                 .ValueGeneratedNever();
             
-            builder.HasQueryFilter(x => !((IPrimaryKeyEntity<int>)x).IsDeleted); // same as 'x => !x.IsDeleted'
+            builder.HasQueryFilter(x => !((IPrimaryKeyEntity<TEntity, int>)x).IsDeleted); // same as 'x => !x.IsDeleted'
         }
     }
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
-        typeof(IPrimaryKeyEntity<int>).IsAssignableFrom(typeof(TEntity));
+        typeof(IPrimaryKeyEntity<TEntity, int>).IsAssignableFrom(typeof(TEntity));
         
     [GeneratedRegex(@"([a-z0-9])([A-Z])")]
     private static partial Regex MyRegex();
@@ -70,37 +70,4 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
             || underlyingType == typeof(TimeSpan)
             || underlyingType == typeof(Guid);
     }
-
-    // private static Dictionary<string, string>? GetKeyMappings<TEntity, TKey1, TKey2>()
-    //     where TEntity : ICompositeKeyEntity<TKey1, TKey2>
-    // {
-    //     var keyMappings = new Dictionary<string, string>();
-
-    //     // Get all properties of the class
-    //     var properties = typeof(TEntity).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-    //     // Find the properties that match TKey1 and TKey2
-    //     var id1Property = properties.FirstOrDefault(p => p.PropertyType == typeof(TKey1) && p.Name == "Id1");
-    //     var id2Property = properties.FirstOrDefault(p => p.PropertyType == typeof(TKey2) && p.Name == "Id2");
-
-    //     if (id1Property != null)
-    //     {
-    //         var realId1Property = properties.FirstOrDefault(p => p.PropertyType == typeof(TKey1) && p.Name != "Id1");
-    //         if (realId1Property != null)
-    //         {
-    //             keyMappings.Add("Id1", realId1Property.Name);
-    //         }
-    //     }
-
-    //     if (id2Property != null)
-    //     {
-    //         var realId2Property = properties.FirstOrDefault(p => p.PropertyType == typeof(TKey2) && p.Name != "Id2");
-    //         if (realId2Property != null)
-    //         {
-    //             keyMappings.Add("Id2", realId2Property.Name);
-    //         }
-    //     }
-
-    //     return keyMappings;
-    // }
 }

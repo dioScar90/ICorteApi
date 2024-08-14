@@ -1,21 +1,20 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class ReportService(IReportRepository repository)
     : BasePrimaryKeyService<Report, int>(repository), IReportService
 {
-    public async Task<ISingleResponse<Report>> CreateAsync(IDtoRequest<Report> dto, int clientId, int barberShopId)
+    public async Task<ISingleResponse<Report>> CreateAsync(IDtoRequest<Report> dtoRequest, int clientId, int barberShopId)
     {
-        var entity = dto.CreateEntity()!;
-        
-        entity.ClientId = clientId;
-        entity.BarberShopId = barberShopId;
-        
+        if (dtoRequest is not ReportDtoRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+
+        var entity = new Report(dto, clientId, barberShopId);
         return await CreateByEntityAsync(entity);
     }
 }

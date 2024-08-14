@@ -1,20 +1,20 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(ISpecialScheduleRepository repository)
     : BaseCompositeKeyService<SpecialSchedule, DateOnly, int>(repository), ISpecialScheduleService
 {
-    public async Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dto, int barberShopId)
+    public async Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dtoRequest, int barberShopId)
     {
-        var entity = dto.CreateEntity()!;
-        
-        entity.BarberShopId = barberShopId;
+        if (dtoRequest is not SpecialScheduleDtoRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
+        var entity = new SpecialSchedule(dto, barberShopId);
         return await CreateByEntityAsync(entity);
     }
 
@@ -23,7 +23,7 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
         return await _repository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
     }
 
-    public override async Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dto, DateOnly date, int barberShopId)
+    public override async Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dtoRequest, DateOnly date, int barberShopId)
     {
         var resp = await GetByIdAsync(date, barberShopId);
 
@@ -31,7 +31,7 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
             return resp;
 
         var entity = resp.Value!;
-        entity.UpdateEntityByDto(dto);
+        entity.UpdateEntityByDto(dtoRequest);
 
         return await _repository.UpdateAsync(entity);
     }

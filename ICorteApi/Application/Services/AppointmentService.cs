@@ -1,3 +1,4 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
@@ -9,13 +10,12 @@ namespace ICorteApi.Application.Services;
 public sealed class AppointmentService(IAppointmentRepository repository)
     : BasePrimaryKeyService<Appointment, int>(repository), IAppointmentService
 {
-    public async Task<ISingleResponse<Appointment>> CreateAsync(IDtoRequest<Appointment> dto, int clientId, int barberShopId)
+    public async Task<ISingleResponse<Appointment>> CreateAsync(IDtoRequest<Appointment> dtoRequest, int clientId)
     {
-        var entity = dto.CreateEntity()!;
-        
-        entity.ClientId = clientId;
-        // entity.BarberShopId = barberShopId;
-        
+        if (dtoRequest is not AppointmentDtoRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+
+        var entity = new Appointment(dto, clientId);
         return await CreateByEntityAsync(entity);
     }
 }

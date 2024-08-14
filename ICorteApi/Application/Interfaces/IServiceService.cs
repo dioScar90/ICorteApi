@@ -6,5 +6,5 @@ namespace ICorteApi.Application.Interfaces;
 public interface IServiceService
     : IBasePrimaryKeyService<Service, int>, IHasOneForeignKeyService<Service, int>
 {
-    new Task<ISingleResponse<Service>> CreateAsync(IDtoRequest<Service> dto, int barberShopId);
+    new Task<ISingleResponse<Service>> CreateAsync(IDtoRequest<Service> dtoRequest, int barberShopId);
 }

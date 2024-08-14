@@ -1,15 +1,46 @@
+using ICorteApi.Application.Dtos;
+using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public class SpecialSchedule : CompositeKeyEntity<DateOnly, int>
+public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, DateOnly, int>
 {
-    public DateOnly Date { get => Id1; set => Id1 = value; }
+    public DateOnly Date { get => Id1; init => Id1 = value; }
     public string? Notes { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
     public bool IsClosed { get; set; } = false;
 
-    public int BarberShopId { get => Id2; set => Id2 = value; }
+    public int BarberShopId { get => Id2; init => Id2 = value; }
     public BarberShop BarberShop { get; set; }
+
+    private SpecialSchedule() {}
+
+    public SpecialSchedule(SpecialScheduleDtoRequest dto, int? barberShopId = null)
+    {
+        Date = dto.Date;
+        BarberShopId = barberShopId ?? default;
+        
+        OpenTime = dto.OpenTime;
+        CloseTime = dto.CloseTime;
+    }
+    
+    private void UpdateBySpecialScheduleDto(SpecialScheduleDtoRequest dto, DateTime? utcNow)
+    {
+        utcNow ??= DateTime.UtcNow;
+
+        OpenTime = dto.OpenTime;
+        CloseTime = dto.CloseTime;
+
+        UpdatedAt = utcNow;
+    }
+    
+    public override void UpdateEntityByDto(IDtoRequest<SpecialSchedule> requestDto, DateTime? utcNow = null)
+    {
+        if (requestDto is SpecialScheduleDtoRequest dto)
+            UpdateBySpecialScheduleDto(dto, utcNow);
+            
+        throw new Exception("Dados enviados inválidos");
+    }
 }

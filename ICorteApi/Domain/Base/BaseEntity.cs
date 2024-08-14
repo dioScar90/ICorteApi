@@ -1,32 +1,55 @@
+using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Base;
 
-public abstract class BasePrimaryKeyEntity<TKey> : IPrimaryKeyEntity<TKey>
+public abstract class BasePrimaryKeyEntity<TEntity, TKey> : IPrimaryKeyEntity<TEntity, TKey>
+    where TEntity : class, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    public TKey Id { get; set; }
+    public TKey Id { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; protected set; }
+    public bool IsDeleted { get; protected set; } = false;
+    public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+
+    public void DeleteEntity()
+    {
+        if (IsDeleted)
+            throw new Exception("Já está excluído");
+        
+        UpdatedAt = DateTime.UtcNow;
+        IsDeleted = true;
+    }
+}
+
+public abstract class BasePrimaryKeyUserEntity<TEntity, TKey> : IdentityUser<TKey>, IPrimaryKeyEntity<TEntity, TKey>
+    where TEntity : class, IBaseTableEntity
+    where TKey : IEquatable<TKey>
+{
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public bool IsDeleted { get; set; } = false;
+    public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+
+    public void DeleteEntity()
+    {
+        if (IsDeleted)
+            throw new Exception("Já está excluído");
+        
+        UpdatedAt = DateTime.UtcNow;
+        IsDeleted = true;
+    }
 }
 
-public abstract class BasePrimaryKeyUserEntity<TKey> : IdentityUser<TKey>, IPrimaryKeyEntity<TKey>
-    where TKey : IEquatable<TKey>
+public abstract class CompositeKeyEntity<TEntity, TKey1, TKey2> : ICompositeKeyEntity<TEntity, TKey1, TKey2>
+    where TEntity : class, IBaseTableEntity
 {
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
+    public TKey1 Id1 { get; init; }
+    public TKey2 Id2 { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; protected set; }
+    public bool IsActive { get; protected set; } = true;
+    public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
 }
-
-public abstract class CompositeKeyEntity<TKey1, TKey2> : ICompositeKeyEntity<TKey1, TKey2>
-{
-    public TKey1 Id1 { get; set; }
-    public TKey2 Id2 { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsActive { get; set; } = false;
-}
-
-

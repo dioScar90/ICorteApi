@@ -6,5 +6,5 @@ namespace ICorteApi.Application.Interfaces;
 public interface IReportService
     : IBasePrimaryKeyService<Report, int>, IHasTwoForeignKeyService<Report, int, int>
 {
-    new Task<ISingleResponse<Report>> CreateAsync(IDtoRequest<Report> dto, int clientId, int barberShopId);
+    new Task<ISingleResponse<Report>> CreateAsync(IDtoRequest<Report> dtoRequest, int clientId, int barberShopId);
 }

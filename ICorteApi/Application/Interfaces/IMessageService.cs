@@ -6,5 +6,5 @@ namespace ICorteApi.Application.Interfaces;
 public interface IMessageService
     : IBasePrimaryKeyService<Message, int>, IHasTwoForeignKeyService<Message, int, int>
 {
-    new Task<ISingleResponse<Message>> CreateAsync(IDtoRequest<Message> dto, int appointmentId, int senderId);
+    new Task<ISingleResponse<Message>> CreateAsync(IDtoRequest<Message> dtoRequest, int appointmentId, int senderId);
 }
