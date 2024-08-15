@@ -1,7 +1,6 @@
 using ICorteApi.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Identity;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
 
@@ -31,14 +30,15 @@ builder.Services
 builder.Services
     .AddAuthorizationRules()
     .AddIdentityConfigurations()
+    .AddAntiCsrfConfiguration()
     .AddCookieConfiguration();
-    // .AddAntiCsrfConfiguration();
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
+    c.ResolveConflictingActions(x => x.First());
 });
 
 var app = builder.Build();
@@ -54,7 +54,8 @@ app.DefineCultureLocalization("pt-BR");
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    // var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var roleManager = scope.ServiceProvider;
     await RoleSeeder.SeedRoles(roleManager);
 }
 
@@ -63,6 +64,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Configuring all application endpoints.
 app.ConfigureMyEndpoints();
 
 app.UseExceptionHandler();

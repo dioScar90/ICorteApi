@@ -50,8 +50,8 @@ public static class DtoCreator
             message.SentAt,
             message.IsRead,
             message.Sender.Id,
-            message.Sender.FirstName,
-            message.Sender.LastName
+            message.Sender.Person.FirstName,
+            message.Sender.Person.LastName
         );
         
     public static PaymentDtoResponse CreateDto(this Payment payment) =>
@@ -97,16 +97,22 @@ public static class DtoCreator
             specialSchedule.IsClosed
         );
         
+    public static PersonDtoResponse CreateDto(this Person person) =>
+        new(
+            person.Id,
+            person.FirstName,
+            person.LastName,
+            person.Gender,
+            person.ImageUrl
+        );
+        
     public static UserDtoResponse CreateDto(this User user) =>
         new(
             user.Id,
             user.Email,
-            user.FirstName,
-            user.LastName,
             user.PhoneNumber,
-            user.ImageUrl,
-            []
-            // ,
-            // CheckUserRegisterCompletation(user)
+            [],
+            user.Person?.CreateDto(),
+            user.OwnedBarberShop?.CreateDto()
         );
 }

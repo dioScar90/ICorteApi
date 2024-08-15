@@ -3,16 +3,35 @@ using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
+using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager)
+public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, AppDbContext context)
     : IUserRepository
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<User> _userManager = userManager;
+    private readonly DbSet<User> _dbSet = context.Set<User>();
+
+    public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
+    {
+        var result = await _userManager.CreateAsync(newUser, password);
+
+        if (!result.Succeeded)
+            Response.Failure(new Error(result.Errors.First().Code, result.Errors.First().Description));
+
+        // Atribui o role de Guest ao usuário recém-criado
+        var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
+
+        if (!roleResult.Succeeded)
+            Response.Failure(new Error(roleResult.Errors.First().Code, roleResult.Errors.First().Description));
+
+        return Response.Success(newUser);
+    }
     
     private string? GetUserId()
     {
@@ -24,10 +43,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         return _userManager.GetUserId(user);
     }
 
-    public int? GetMyUserId()
-    {
-        return int.TryParse(GetUserId(), out int userId) ? userId : null;
-    }
+    public int? GetMyUserId() => int.TryParse(GetUserId(), out int userId) ? userId : null;
 
     public async Task<UserRole[]> GetUserRolesAsync()
     {
@@ -60,56 +76,104 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
     public async Task<ISingleResponse<User>> GetMeAsync()
     {
-        var userEntity = await GetCurrentUser();
+        var userId = GetMyUserId();
 
-        if (userEntity is null)
+        if (userId is not int id)
             return Response.Failure<User>(Error.UserNotFound);
 
-        return Response.Success(userEntity);
+        var userEntity = await _dbSet
+            .Include(u => u.Person)
+            .Include(u => u.OwnedBarberShop)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (userEntity is not User user)
+            return Response.Failure<User>(Error.UserNotFound);
+
+        return Response.Success(user);
+    }
+
+    private async void UpdatedUserEntityNow(User user)
+    {
+        user.UpdatedUserNow();
+        await _userManager.UpdateAsync(user);
     }
 
     public async Task<IResponse> AddUserRoleAsync(UserRole role)
     {
-        var user = await GetCurrentUser();
-
-        if (user is null)
-            return Response.Failure(Error.Unauthorized);
+        var user = (await GetCurrentUser())!;
+        var res = await _userManager.AddToRoleAsync(user, Enum.GetName(role)!);
         
-        var res = await _userManager.AddToRoleAsync(user, role.ToString());
-
         if (!res.Succeeded)
             return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
         
+        UpdatedUserEntityNow(user);
         return Response.Success();
     }
 
-    public async Task<IResponse> RemoveUserRoleAsync(UserRole role)
+    public async Task<IResponse> RemoveFromRoleAsync(UserRole role)
     {
-        var user = await GetCurrentUser();
-
-        if (user is null)
-            return Response.Failure(Error.Unauthorized);
-        
-        var res = await _userManager.RemoveFromRoleAsync(user, role.ToString());
+        var user = (await GetCurrentUser())!;
+        var res = await _userManager.RemoveFromRoleAsync(user, Enum.GetName(role)!);
 
         if (!res.Succeeded)
             return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
         
+        UpdatedUserEntityNow(user);
+        return Response.Success();
+    }
+    
+    public async Task<IResponse> UpdateEmailAsync(string newEmail)
+    {
+        var user = (await GetCurrentUser())!;
+        var res = await _userManager.SetEmailAsync(user, newEmail);
+
+        if (!res.Succeeded)
+            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+        
+        UpdatedUserEntityNow(user);
+        return Response.Success();
+    }
+    
+    public async Task<IResponse> UpdatePasswordAsync(string currentPassword, string newPassword)
+    {
+        var user = (await GetCurrentUser())!;
+        var res = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (!res.Succeeded)
+            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+        
+        UpdatedUserEntityNow(user);
         return Response.Success();
     }
 
-    public async Task<IResponse> UpdateAsync(User user)
+    public async Task<IResponse> UpdatePhoneNumberAsync(string newPhoneNumber)
     {
-        var res = await _userManager.UpdateAsync(user);
+        var user = (await GetCurrentUser())!;
+        var res = await _userManager.SetPhoneNumberAsync(user, newPhoneNumber);
 
         if (!res.Succeeded)
             return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
         
+        UpdatedUserEntityNow(user);
         return Response.Success();
+    }
+
+    private async void DeleteUserEntity(User user)
+    {
+        user.DeleteEntity();
+        await _userManager.UpdateAsync(user);
     }
     
     public async Task<IResponse> DeleteAsync(User user)
     {
+        // Remove from all rules.
+        string[] roles = Enum.GetNames(typeof(UserRole));
+        var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
+
+        if (!roleResult.Succeeded)
+            Response.Failure(new Error(roleResult.Errors.First().Code, roleResult.Errors.First().Description));
+        
+        DeleteUserEntity(user);
         var res = await _userManager.DeleteAsync(user);
 
         if (!res.Succeeded)

@@ -15,4 +15,9 @@ public sealed class UserErrors : BaseErrors<User>, IUserErrors
     {
         throw new ConflictException($"{_entity} já criado");
     }
+
+    public void ThrowWrongUserIdException(int id)
+    {
+        throw new ConflictException($"{_entity}'s id is different from \"{id}\" provided");
+    }
 }

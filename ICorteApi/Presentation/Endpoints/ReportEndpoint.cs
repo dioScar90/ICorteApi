@@ -33,15 +33,13 @@ public static class ReportEndpoint
         return app;
     }
 
-    private static int GetMyUserId(this IUserService service) => (int)service.GetMyUserIdAsync()!;
-    
     public static IResult GetCreatedResult(int newId, int barberShopId)
     {
         string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Report + "/" + newId;
         object value = new { Message = "Pagamento criado com sucesso" };
         return Results.Created(uri, value);
     }
-    
+
     public static async Task<IResult> GetReport(
         int id,
         IReportService service,
@@ -65,7 +63,7 @@ public static class ReportEndpoint
 
         if (!res.IsSuccess)
             errors.ThrowBadRequestException(res.Error.Description);
-            
+
         var dtos = res.Values!
             .Select(c => c.CreateDto())
             .ToList();
@@ -100,7 +98,7 @@ public static class ReportEndpoint
         IReportErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        
+
         var res = await service.UpdateAsync(dto, id);
 
         if (!res.IsSuccess)

@@ -1,61 +1,43 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class User : BasePrimaryKeyUserEntity<User, int>
+public sealed class User : IdentityUser<int>, IPrimaryKeyEntity<User, int>
 {
-    public string? FirstName { get; private set; }
-    public string? LastName { get; private set; }
-    public string? ImageUrl { get; private set; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; protected set; }
+    public bool IsDeleted { get; protected set; } = false;
 
-    public bool IsRegisterCompleted { get; private set; } = false;
-    
+    public Person Person { get; set; }
     public BarberShop OwnedBarberShop { get; set; }
     public ICollection<Appointment> Appointments { get; set; }
     public ICollection<Report> Reports { get; set; }
     public ICollection<Message> Messages { get; set; }
 
-    // public User() {}
+    public User() {}
 
-    // public User(UserDtoRegisterRequest dto)
-    // {
-    //     UserName = dto.Email;
-    //     Email = dto.Email;
-    // }
-
-    public bool CheckRegisterCompletation()
+    public User(UserDtoRegisterRequest dto)
     {
-        if (IsRegisterCompleted)
-            return true;
-
-        return this is {
-            Email: not null,
-            FirstName: not null,
-            LastName: not null,
-            PhoneNumber: not null,
-        };
+        UserName = dto.Email;
+        Email = dto.Email;
     }
     
-    private void UpdateByUserDto(UserDtoRequest dto, DateTime? utcNow)
+    public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
+    
+    public void UpdateEntityByDto(IDtoRequest<User> requestDto, DateTime? utcNow = null)
     {
-        utcNow ??= DateTime.UtcNow;
-        
-        PhoneNumber = dto.PhoneNumber;
-        FirstName = dto.FirstName;
-        LastName = dto.LastName;
-
-        IsRegisterCompleted = CheckRegisterCompletation();
-
-        UpdatedAt = utcNow;
+        throw new NotImplementedException();
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<User> requestDto, DateTime? utcNow = null)
+    public void DeleteEntity()
     {
-        if (requestDto is UserDtoRequest dto)
-            UpdateByUserDto(dto, utcNow);
+        if (IsDeleted)
+            throw new Exception("Já está excluído");
         
-        throw new Exception("Dados enviados inválidos");
+        UpdatedAt = DateTime.UtcNow;
+        IsDeleted = true;
     }
 }

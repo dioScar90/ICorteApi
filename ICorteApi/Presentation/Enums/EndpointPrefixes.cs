@@ -8,6 +8,7 @@ public static class EndpointPrefixes
     public static readonly string BarberShop = "barber-shop";
     public static readonly string Message = "message";
     public static readonly string Payment = "payment";
+    public static readonly string Person = "person";
     public static readonly string RecurringSchedule = "operating-schedule";
     public static readonly string Report = "report";
     public static readonly string Service = "service";

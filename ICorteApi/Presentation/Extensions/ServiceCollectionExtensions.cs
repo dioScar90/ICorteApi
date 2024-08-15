@@ -18,94 +18,46 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        // var interfaceType = typeof(IBaseRepository<>);
-        // var types = assembly.GetTypes()
-        //     .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces()
-        //         .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
-        //     .ToList();
-
-        // foreach (var implementationType in types)
-        // {
-        //     var specificInterface = implementationType.GetInterfaces()
-        //         .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
-
-        //     if (specificInterface != null)
-        //     {
-        //         services.AddScoped(specificInterface, implementationType);
-        //     }
-        // }
-
-        services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IAppointmentService, AppointmentService>();
-        services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
-        services.AddScoped<IBarberShopService, BarberShopService>();
-        services.AddScoped<IMessageService, MessageService>();
-        services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
-        services.AddScoped<IReportService, ReportService>();
-        services.AddScoped<IServiceService, ServiceService>();
-        services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAddressRepository, AddressRepository>();
+        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IBarberShopRepository, BarberShopRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPersonRepository, PersonRepository>();
+        services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         
         return services;
     }
     
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        // var interfaceType = typeof(IBaseService<>);
-        // var types = assembly.GetTypes()
-        //     .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces()
-        //         .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
-        //     .ToList();
-
-        // foreach (var implementationType in types)
-        // {
-        //     var specificInterface = implementationType.GetInterfaces()
-        //         .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
-
-        //     if (specificInterface != null)
-        //     {
-        //         services.AddScoped(specificInterface, implementationType);
-        //     }
-        // }
-
-        services.AddScoped<IAddressRepository, AddressRepository>();
-        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
-        services.AddScoped<IBarberShopRepository, BarberShopRepository>();
-        services.AddScoped<IMessageRepository, MessageRepository>();
-        services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
-        services.AddScoped<IReportRepository, ReportRepository>();
-        services.AddScoped<IServiceRepository, ServiceRepository>();
-        services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAddressService, AddressService>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IBarberShopService, BarberShopService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IPersonService, PersonService>();
+        services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
+        services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
+        services.AddScoped<IServiceService, ServiceService>();
+        services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }
     
     public static IServiceCollection AddErrors(this IServiceCollection services)
     {
-        // var interfaceType = typeof(IBaseErrors<>);
-        // var types = assembly.GetTypes()
-        //     .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces()
-        //         .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType))
-        //     .ToList();
-
-        // foreach (var implementationType in types)
-        // {
-        //     var specificInterface = implementationType.GetInterfaces()
-        //         .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
-
-        //     if (specificInterface != null)
-        //     {
-        //         services.AddScoped(specificInterface, implementationType);
-        //     }
-        // }
-
         services.AddScoped<IAddressErrors, AddressErrors>();
         services.AddScoped<IAppointmentErrors, AppointmentErrors>();
         services.AddScoped<IPaymentErrors, PaymentErrors>();
+        services.AddScoped<IPersonErrors, PersonErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
         services.AddScoped<IMessageErrors, MessageErrors>();
         services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
@@ -129,7 +81,11 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<ServiceDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<SpecialScheduleDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoLoginRequestValidator>();
-
+        services.AddValidatorsFromAssemblyContaining<UserDtoRegisterRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoChangeEmailRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoChangePasswordRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoChangePhoneNumberRequestValidator>();
+        
         return services;
     }
 
@@ -173,7 +129,10 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddIdentityConfigurations(this IServiceCollection services)
     {
-        services.AddIdentityApiEndpoints<User>(options =>
+        // services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = false);
+
+        services.AddIdentity<User, ApplicationRole>(options =>
+        // services.AddIdentityApiEndpoints<User>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -190,9 +149,18 @@ public static class ServiceCollectionExtensions
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 // options.User.AllowedUserNameCharacters = "a-zA-Z0-9-._@#$+";
                 options.User.RequireUniqueEmail = true; // Ajustado para exigir e-mails únicos
+
+                options.SignIn.RequireConfirmedEmail = false;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
             })
-            .AddRoles<IdentityRole<int>>()
+            // .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<AppDbContext>()
+
+            // This `AddDefaultUI` above is necessary to not display
+            // `No Registered Service for IEmailSender` error message
+            // after run the application by `dotnet run`
+            .AddDefaultUI()
+
             .AddDefaultTokenProviders();
             
         return services;

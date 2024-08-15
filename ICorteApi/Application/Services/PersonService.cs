@@ -7,22 +7,24 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class BarberShopService(IBarberShopRepository repository, IUserRepository userRepository)
-    : BasePrimaryKeyService<BarberShop, int>(repository), IBarberShopService
+public sealed class PersonService(IPersonRepository repository, IUserRepository userRepository)
+    : BasePrimaryKeyService<Person, int>(repository), IPersonService
 {
     private readonly IUserRepository _userRepository = userRepository;
-    public async Task<ISingleResponse<BarberShop>> CreateAsync(IDtoRequest<BarberShop> dtoRequest, int ownerId)
+    public async Task<ISingleResponse<Person>> CreateAsync(IDtoRequest<Person> dtoRequest, int userId)
     {
-        if (dtoRequest is not BarberShopDtoRequest dto)
+        if (dtoRequest is not PersonDtoRegisterRequest dto)
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
-        var entity = new BarberShop(dto, ownerId);
+        var entity = new Person(dto, userId);
         var result = await CreateByEntityAsync(entity);
 
         if (!result.IsSuccess)
             return result;
 
-        await _userRepository.AddUserRoleAsync(UserRole.BarberShop);
+        await _userRepository.AddUserRoleAsync(UserRole.Client);
+        await _userRepository.UpdatePhoneNumberAsync(dto.PhoneNumber);
+
         return result;
     }
 
@@ -32,8 +34,8 @@ public sealed class BarberShopService(IBarberShopRepository repository, IUserRep
 
         if (!resp.IsSuccess)
             return resp;
-        
-        await _userRepository.RemoveFromRoleAsync(UserRole.BarberShop);
+            
+        await _userRepository.RemoveFromRoleAsync(UserRole.Client);
         return await _repository.DeleteAsync(resp.Value!);
     }
 }

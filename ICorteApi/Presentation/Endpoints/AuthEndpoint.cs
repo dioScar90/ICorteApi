@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Enums;
+using ICorteApi.Application.Dtos;
+using ICorteApi.Domain.Interfaces;
+using FluentValidation;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -16,8 +20,9 @@ public static class AuthEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
 
-        group.MapPost("logout", LogoutUser);
         group.MapIdentityApi<User>();
+
+        group.MapPost("logout", LogoutUser);
 
         return app;
     }
@@ -37,4 +42,5 @@ public static class AuthEndpoint
             return Results.BadRequest(new { ex.Message });
         }
     }
+
 }

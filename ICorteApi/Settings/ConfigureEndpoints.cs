@@ -15,6 +15,7 @@ public static class ConfigureEndpoints
             .MapBarberShopEndpoint()
             .MapMessageEndpoint()
             .MapPaymentEndpoint()
+            .MapPersonEndpoint()
             .MapRecurringScheduleEndpoint()
             .MapReportEndpoint()
             .MapServiceEndpoint()

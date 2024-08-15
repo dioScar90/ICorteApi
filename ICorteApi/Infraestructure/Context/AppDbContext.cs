@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Identity;
 namespace ICorteApi.Infraestructure.Context;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<User, IdentityRole<int>, int>(options)
+    : IdentityDbContext<User, ApplicationRole, int>(options)
 {
+    public DbSet<Person> People { get; set; }
     public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
@@ -18,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

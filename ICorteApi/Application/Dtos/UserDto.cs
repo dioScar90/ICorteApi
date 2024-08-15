@@ -16,14 +16,19 @@ public record UserDtoRequest(
 public record UserDtoResponse(
     int Id,
     string Email,
-    string FirstName,
-    string LastName,
     string PhoneNumber,
-    string? ImageUrl,
-    UserRole[] Roles
-    // ,
-    // bool IsRegisterCompleted
+    UserRole[] Roles,
+    PersonDtoResponse? Person,
+    BarberShopDtoResponse? BarberShop
 ) : IDtoResponse<User>;
+
+public record UserDtoChangeEmailRequest(
+    string Email
+) : IDtoRequest<User>;
+
+public record UserDtoChangePhoneNumberRequest(
+    string PhoneNumber
+) : IDtoRequest<User>;
 
 public record UserDtoRegisterRequest(
     string Email,
@@ -39,6 +44,11 @@ public record UserDtoForgotPasswordRequest(
     string Email
 ) : IDtoRequest<User>;
 
+public record UserDtoChangePasswordRequest(
+    string CurrentPassword,
+    string NewPassword
+) : IDtoRequest<User>;
+
 public record UserDtoResetPasswordRequest(
     string Email,
     string Token,
@@ -49,12 +59,6 @@ public record UserDtoResetPasswordRequest(
 public record UserDtoUpdateProfileRequest(
     string FirstName,
     string LastName
-) : IDtoRequest<User>;
-
-public record UserDtoChangePasswordRequest(
-    string CurrentPassword,
-    string NewPassword,
-    string ConfirmNewPassword
 ) : IDtoRequest<User>;
 
 public record UserDtoConfirmEmailRequest(

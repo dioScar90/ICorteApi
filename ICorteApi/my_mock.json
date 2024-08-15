@@ -8,8 +8,9 @@
         "email": "lionel@messi.com.br",
         "firstName": "Lionel",
         "lastName": "Messi",
-        "roles": [],
-        "phoneNumber": "11912345678"
+        "gender": 1,
+        "phoneNumber": "11912345678",
+        "imageUrl": null
     }
     ,
     {

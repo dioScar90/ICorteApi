@@ -18,9 +18,11 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.GetMeAsync();
     }
 
-    public int? GetMyUserIdAsync()
+    public async Task<User> GetMyUserAsync() => (await GetMeAsync()).Value!;
+
+    public int GetMyUserId()
     {
-        return _repository.GetMyUserId();
+        return (int)_repository.GetMyUserId()!;
     }
 
     public async Task<UserRole[]> GetUserRolesAsync()
@@ -28,50 +30,29 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.GetUserRolesAsync();
     }
 
-    public async Task<IResponse> AddUserRoleAsync(UserRole role, int id)
+    public async Task<IResponse> AddUserRoleAsync(UserRole role)
     {
-        var resp = await _repository.GetMeAsync();
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var user = resp.Value!;
-
-        if (user.Id != id)
-            return Response.Failure(Error.UserNotFound);
-
         return await _repository.AddUserRoleAsync(role);
     }
 
-    public async Task<IResponse> RemoveUserRoleAsync(UserRole role, int id)
+    public async Task<IResponse> RemoveFromRoleAsync(UserRole role)
     {
-        var resp = await _repository.GetMeAsync();
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var user = resp.Value!;
-
-        if (user.Id != id)
-            return Response.Failure(Error.UserNotFound);
-
-        return await _repository.RemoveUserRoleAsync(role);
+        return await _repository.RemoveFromRoleAsync(role);
+    }
+    
+    public async Task<IResponse> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest)
+    {
+        return await _repository.UpdateEmailAsync(dtoRequest.Email);
+    }
+    
+    public async Task<IResponse> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest)
+    {
+        return await _repository.UpdatePasswordAsync(dtoRequest.CurrentPassword, dtoRequest.NewPassword);
     }
 
-    public async Task<IResponse> UpdateAsync(UserDtoRequest dtoRequest, int id)
+    public async Task<IResponse> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest)
     {
-        var resp = await _repository.GetMeAsync();
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var user = resp.Value!;
-
-        if (user.Id != id)
-            return Response.Failure(Error.UserNotFound);
-            
-        user.UpdateEntityByDto(dtoRequest);
-        return await _repository.UpdateAsync(user);
+        return await _repository.UpdatePhoneNumberAsync(dtoRequest.PhoneNumber);
     }
 
     public async Task<IResponse> DeleteAsync(int id)
@@ -89,8 +70,12 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.DeleteAsync(user);
     }
 
-    public Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
+    public async Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
     {
-        throw new NotImplementedException();
+        if (dtoRequest is not UserDtoRegisterRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+
+        var entity = new User(dto);
+        return await _repository.CreateUserAsync(entity, dto.Password);
     }
 }

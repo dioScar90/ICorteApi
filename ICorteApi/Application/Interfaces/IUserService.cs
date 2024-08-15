@@ -8,10 +8,13 @@ namespace ICorteApi.Application.Interfaces;
 public interface IUserService : IService<User>, IHasNoForeignKeyService<User>
 {
     Task<ISingleResponse<User>> GetMeAsync();
-    int? GetMyUserIdAsync();
+    Task<User> GetMyUserAsync();
+    int GetMyUserId();
     Task<UserRole[]> GetUserRolesAsync();
-    Task<IResponse> AddUserRoleAsync(UserRole role, int id);
-    Task<IResponse> RemoveUserRoleAsync(UserRole role, int id);
-    Task<IResponse> UpdateAsync(UserDtoRequest dtoRequest, int id);
+    Task<IResponse> AddUserRoleAsync(UserRole role);
+    Task<IResponse> RemoveFromRoleAsync(UserRole role);
+    Task<IResponse> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest);
+    Task<IResponse> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest);
+    Task<IResponse> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest);
     Task<IResponse> DeleteAsync(int id);
 }

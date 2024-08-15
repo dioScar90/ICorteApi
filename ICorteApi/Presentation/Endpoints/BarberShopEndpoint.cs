@@ -19,13 +19,11 @@ public static class BarberShopEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-            
-        group.MapGet("{id}", GetBarberShop)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
         
         group.MapPost(INDEX, CreateBarberShop)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
+        group.MapGet("{id}", GetBarberShop);
         group.MapPut("{id}", UpdateBarberShop);
         group.MapDelete("{id}", DeleteBarberShop);
 
@@ -62,12 +60,12 @@ public static class BarberShopEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int ownerId = (await userService.GetMeAsync()).Value!.Id;
+        int ownerId = userService.GetMyUserId();
         var response = await service.CreateAsync(dto, ownerId);
 
         if (!response.IsSuccess)
             errors.ThrowCreateException();
-
+        
         return GetCreatedResult(response.Value!.Id);
     }
 
@@ -76,6 +74,7 @@ public static class BarberShopEndpoint
         BarberShopDtoRequest dto,
         IValidator<BarberShopDtoRequest> validator,
         IBarberShopService service,
+        IUserService userService,
         IBarberShopErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
@@ -91,13 +90,14 @@ public static class BarberShopEndpoint
     public static async Task<IResult> DeleteBarberShop(
         int id,
         IBarberShopService service,
+        IUserService userService,
         IBarberShopErrors errors)
     {
         var response = await service.DeleteAsync(id);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();
-
+        
         return Results.NoContent();
     }
 }
