@@ -28,9 +28,9 @@ public abstract class BasePrimaryKeyUserEntity<TEntity, TKey> : IdentityUser<TKe
     where TEntity : class, IBaseTableEntity
     where TKey : IEquatable<TKey>
 {
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; } = false;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; protected set; }
+    public bool IsDeleted { get; protected set; } = false;
     public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
 
     public void DeleteEntity()

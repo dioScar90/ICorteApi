@@ -36,12 +36,7 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
         }
 
         if (TEntityImplementsIPrimaryKeyEntity())
-        {
-            builder.Property(x => ((IPrimaryKeyEntity<TEntity, int>)x).Id)
-                .ValueGeneratedNever();
-            
             builder.HasQueryFilter(x => !((IPrimaryKeyEntity<TEntity, int>)x).IsDeleted); // same as 'x => !x.IsDeleted'
-        }
     }
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>

@@ -6,24 +6,24 @@ namespace ICorteApi.Domain.Entities;
 
 public sealed class User : BasePrimaryKeyUserEntity<User, int>
 {
-    public string? FirstName { get; set; } = "";
-    public string? LastName { get; set; } = "";
-    public string? ImageUrl { get; set; } = "";
+    public string? FirstName { get; private set; }
+    public string? LastName { get; private set; }
+    public string? ImageUrl { get; private set; }
 
-    public bool IsRegisterCompleted { get; set; } = false;
+    public bool IsRegisterCompleted { get; private set; } = false;
     
     public BarberShop OwnedBarberShop { get; set; }
     public ICollection<Appointment> Appointments { get; set; }
     public ICollection<Report> Reports { get; set; }
     public ICollection<Message> Messages { get; set; }
 
-    public User() {}
+    // public User() {}
 
-    public User(UserDtoRegisterRequest dto)
-    {
-        UserName = dto.Email;
-        Email = dto.Email;
-    }
+    // public User(UserDtoRegisterRequest dto)
+    // {
+    //     UserName = dto.Email;
+    //     Email = dto.Email;
+    // }
 
     public bool CheckRegisterCompletation()
     {
