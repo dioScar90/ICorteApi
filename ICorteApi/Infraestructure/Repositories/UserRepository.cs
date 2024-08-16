@@ -15,22 +15,33 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<User> _userManager = userManager;
+    private readonly AppDbContext _context = context;
     private readonly DbSet<User> _dbSet = context.Set<User>();
-
+    
     public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
     {
-        var result = await _userManager.CreateAsync(newUser, password);
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        
+        try
+        {
+            var userResult = await _userManager.CreateAsync(newUser, password);
 
-        if (!result.Succeeded)
-            Response.Failure(new Error(result.Errors.First().Code, result.Errors.First().Description));
+            if (!userResult.Succeeded)
+                throw new Exception(userResult.Errors.First().Description);
+                
+            var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
 
-        // Atribui o role de Guest ao usuário recém-criado
-        var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
+            if (!roleResult.Succeeded)
+                throw new Exception(roleResult.Errors.First().Description);
 
-        if (!roleResult.Succeeded)
-            Response.Failure(new Error(roleResult.Errors.First().Code, roleResult.Errors.First().Description));
-
-        return Response.Success(newUser);
+            await transaction.CommitAsync();
+            return Response.Success(newUser);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response.Failure<User>(new("TransactionError", ex.Message));
+        }
     }
     
     private string? GetUserId()
@@ -104,7 +115,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         var res = await _userManager.AddToRoleAsync(user, Enum.GetName(role)!);
         
         if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
         
         UpdatedUserEntityNow(user);
         return Response.Success();
@@ -116,7 +127,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         var res = await _userManager.RemoveFromRoleAsync(user, Enum.GetName(role)!);
 
         if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
         
         UpdatedUserEntityNow(user);
         return Response.Success();
@@ -128,7 +139,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         var res = await _userManager.SetEmailAsync(user, newEmail);
 
         if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
         
         UpdatedUserEntityNow(user);
         return Response.Success();
@@ -140,7 +151,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         var res = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
 
         if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
         
         UpdatedUserEntityNow(user);
         return Response.Success();
@@ -152,7 +163,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         var res = await _userManager.SetPhoneNumberAsync(user, newPhoneNumber);
 
         if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
+            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
         
         UpdatedUserEntityNow(user);
         return Response.Success();
@@ -166,19 +177,30 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
     
     public async Task<IResponse> DeleteAsync(User user)
     {
-        // Remove from all rules.
-        string[] roles = Enum.GetNames(typeof(UserRole));
-        var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
-        if (!roleResult.Succeeded)
-            Response.Failure(new Error(roleResult.Errors.First().Code, roleResult.Errors.First().Description));
-        
-        DeleteUserEntity(user);
-        var res = await _userManager.DeleteAsync(user);
+        try
+        {
+            // Remove from all rules.
+            string[] roles = Enum.GetNames(typeof(UserRole));
+            var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
 
-        if (!res.Succeeded)
-            return Response.Failure(new Error(res.Errors.First().Code, res.Errors.First().Description));
-        
-        return Response.Success();
+            if (!roleResult.Succeeded)
+                throw new Exception(roleResult.Errors.First().Description);
+            
+            DeleteUserEntity(user);
+            var res = await _userManager.DeleteAsync(user);
+
+            if (!res.Succeeded)
+                throw new Exception(res.Errors.First().Description);
+            
+            await transaction.CommitAsync();
+            return Response.Success();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Response.Failure<User>(new("TransactionError", ex.Message));
+        }
     }
 }

@@ -38,7 +38,7 @@ public abstract class BasePrimaryKeyRepository<TEntity, TKey>(AppDbContext conte
     public override async Task<IResponse> DeleteAsync(TEntity entity)
     {
         entity.DeleteEntity();
-        _dbSet.Update(entity);
+        _dbSet.Update(entity); // Update because here it's soft delete
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
     }
 }
