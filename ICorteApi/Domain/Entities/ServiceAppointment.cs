@@ -40,6 +40,12 @@ public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment, 
             
         throw new Exception("Dados enviados inválidos");
     }
+    
+    public override ServiceAppointmentDtoResponse CreateDto() =>
+        new(
+            AppointmentId,
+            ServiceId
+        );
 }
 
 /*

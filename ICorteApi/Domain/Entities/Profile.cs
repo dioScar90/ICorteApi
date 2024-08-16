@@ -4,7 +4,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Person : BasePrimaryKeyEntity<Person, int>
+public sealed class Profile : BasePrimaryKeyEntity<Profile, int>
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
@@ -13,9 +13,9 @@ public sealed class Person : BasePrimaryKeyEntity<Person, int>
 
     public User User { get; init; }
 
-    private Person() { }
+    private Profile() { }
 
-    public Person(PersonDtoRegisterRequest dto, int userId)
+    public Profile(ProfileDtoRegisterRequest dto, int userId)
     {
         Id = userId;
         FirstName = dto.FirstName;
@@ -23,7 +23,7 @@ public sealed class Person : BasePrimaryKeyEntity<Person, int>
         Gender = dto.Gender;
     }
 
-    private void UpdateByUserDto(PersonDtoRequest dto, DateTime? utcNow)
+    private void UpdateByUserDto(ProfileDtoRequest dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -34,18 +34,27 @@ public sealed class Person : BasePrimaryKeyEntity<Person, int>
         UpdatedAt = utcNow;
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<Person> requestDto, DateTime? utcNow = null)
+    public override void UpdateEntityByDto(IDtoRequest<Profile> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is PersonDtoRequest dto)
+        if (requestDto is ProfileDtoRequest dto)
             UpdateByUserDto(dto, utcNow);
 
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override ProfileDtoResponse CreateDto() =>
+        new(
+            Id,
+            FirstName,
+            LastName,
+            Gender,
+            ImageUrl
+        );
 }
 
 public enum Gender
 {
-    Male,
     Female,
+    Male,
     Other
 }

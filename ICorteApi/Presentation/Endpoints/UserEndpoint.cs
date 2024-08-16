@@ -20,7 +20,7 @@ public static class UserEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.Free));
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
         group.MapPost("register", RegisterUser)
             .AllowAnonymous();
@@ -30,10 +30,10 @@ public static class UserEndpoint
         group.MapPatch("changePassword", UpdateUserPassword);
         group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber);
         group.MapDelete(INDEX, DeleteUser);
-        
+
         return app;
     }
-    
+
     public static IResult GetCreatedResult()
     {
         string uri = EndpointPrefixes.User + "/me";
@@ -53,10 +53,10 @@ public static class UserEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         var result = await service.CreateAsync(dto);
-        
+
         if (!result.IsSuccess)
             errors.ThrowCreateException();
-            
+
         return GetCreatedResult();
     }
 
@@ -68,11 +68,11 @@ public static class UserEndpoint
 
         if (!resp.IsSuccess)
             errors.ThrowNotFoundException();
-        
+
         var dto = resp.Value!.CreateDto();
-        return Results.Ok(dto with { Roles = await service.GetUserRolesAsync() });
+        return Results.Ok(dto);
     }
-    
+
     public static async Task<IResult> UpdateUserEmail(
         UserDtoChangeEmailRequest dto,
         IValidator<UserDtoChangeEmailRequest> validator,
@@ -88,7 +88,7 @@ public static class UserEndpoint
 
         return Results.NoContent();
     }
-    
+
     public static async Task<IResult> UpdateUserPassword(
         UserDtoChangePasswordRequest dto,
         IValidator<UserDtoChangePasswordRequest> validator,
@@ -104,7 +104,7 @@ public static class UserEndpoint
 
         return Results.NoContent();
     }
-    
+
     public static async Task<IResult> UpdateUserPhoneNumber(
         UserDtoChangePhoneNumberRequest dto,
         IValidator<UserDtoChangePhoneNumberRequest> validator,

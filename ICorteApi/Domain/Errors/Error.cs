@@ -7,7 +7,7 @@ public sealed record Error(string Code, string Description)
     public static readonly Error CreateError = new("Server Error", "Não foi possível criar o item");
     public static readonly Error UpdateError = new("Server Error", "Não foi possível atualizar o item");
     public static readonly Error RemoveError = new("Server Error", "Não foi possível remover o item");
-    public static readonly Error PersonNotFound = new("Not Found", "Não há ninguém com esse nome aqui");
+    public static readonly Error ProfileNotFound = new("Not Found", "Não há ninguém com esse nome aqui");
     public static readonly Error UserNotFound = new("Not Found", "Usuário não encontrado");
     public static readonly Error BarberShopNotFound = new("Not Found", "Barbearia não encontrada");
     public static readonly Error RecurringScheduleNotFound = new("Not Found", "Horário de funcionamento não encontrado");

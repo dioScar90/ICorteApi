@@ -23,17 +23,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBarberShopRepository, BarberShopRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IPersonRepository, PersonRepository>();
+        services.AddScoped<IProfileRepository, ProfileRepository>();
         services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        
+
         return services;
     }
-    
+
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IAddressService, AddressService>();
@@ -41,7 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBarberShopService, BarberShopService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddScoped<IPersonService, PersonService>();
+        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
@@ -51,13 +51,13 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     public static IServiceCollection AddErrors(this IServiceCollection services)
     {
         services.AddScoped<IAddressErrors, AddressErrors>();
         services.AddScoped<IAppointmentErrors, AppointmentErrors>();
         services.AddScoped<IPaymentErrors, PaymentErrors>();
-        services.AddScoped<IPersonErrors, PersonErrors>();
+        services.AddScoped<IProfileErrors, ProfileErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
         services.AddScoped<IMessageErrors, MessageErrors>();
         services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
@@ -85,7 +85,7 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<UserDtoChangeEmailRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoChangePasswordRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoChangePhoneNumberRequestValidator>();
-        
+
         return services;
     }
 
@@ -103,27 +103,27 @@ public static class ServiceCollectionExtensions
         // Configuração de autenticação e autorização
         // After .NET 8 it's not necessary to use `AddAuthentication` here.
         services.AddAuthorizationBuilder()
-            
-            .AddPolicy(nameof(PolicyUserRole.Free), policy =>
+
+            .AddPolicy(nameof(PolicyUserRole.FreeIfAuthenticated), policy =>
                 policy.RequireRole(
                     nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-            
+
             .AddPolicy(nameof(PolicyUserRole.ClientOrHigh), policy =>
                 policy.RequireRole(
                     nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-            
+
             .AddPolicy(nameof(PolicyUserRole.ClientOnly), policy =>
                 policy.RequireRole(
                     nameof(UserRole.Client), nameof(UserRole.Admin)))
-            
+
             .AddPolicy(nameof(PolicyUserRole.BarberShopOrHigh), policy =>
                 policy.RequireRole(
                     nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-                    
+
             .AddPolicy(nameof(PolicyUserRole.AdminOnly), policy =>
                 policy.RequireRole(
                     nameof(UserRole.Admin)));
-        
+
         return services;
     }
 
@@ -162,7 +162,7 @@ public static class ServiceCollectionExtensions
             .AddDefaultUI()
 
             .AddDefaultTokenProviders();
-            
+
         return services;
     }
 
@@ -175,17 +175,17 @@ public static class ServiceCollectionExtensions
                 options.LoginPath = "/auth/login";
                 options.LogoutPath = "/auth/logout";
                 options.AccessDeniedPath = "/auth/access-denied";
-                
+
                 // Útil para prolongar a sessão ativa se o usuário estiver ativo.
                 options.SlidingExpiration = true;
-                
+
                 // Garante que os cookies sejam enviados apenas em conexões HTTPS, o que é ótimo para segurança.
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                
+
                 // Define o tempo de vida do cookie de autenticação, ou seja, quanto tempo o cookie permanece válido antes de expirar.
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });
-            
+
         return services;
     }
 

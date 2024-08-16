@@ -11,4 +11,4 @@ public record ServiceAppointmentDtoRequest(
 public record ServiceAppointmentDtoResponse(
     int AppointmentId,
     int ServiceId
-) : IDtoRequest<ServiceAppointment>;
+) : IDtoResponse<ServiceAppointment>;

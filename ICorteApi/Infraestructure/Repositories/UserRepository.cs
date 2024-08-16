@@ -17,18 +17,18 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
     private readonly UserManager<User> _userManager = userManager;
     private readonly AppDbContext _context = context;
     private readonly DbSet<User> _dbSet = context.Set<User>();
-    
+
     public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             var userResult = await _userManager.CreateAsync(newUser, password);
 
             if (!userResult.Succeeded)
                 throw new Exception(userResult.Errors.First().Description);
-                
+
             var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
 
             if (!roleResult.Succeeded)
@@ -43,7 +43,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             return Response.Failure<User>(new("TransactionError", ex.Message));
         }
     }
-    
+
     private string? GetUserId()
     {
         var user = _httpContextAccessor.HttpContext?.User;
@@ -59,7 +59,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
     public async Task<UserRole[]> GetUserRolesAsync()
     {
         var user = await GetCurrentUser();
-        
+
         if (user is null)
             return [];
 
@@ -78,7 +78,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
     private async Task<User?> GetCurrentUser()
     {
         var userId = GetUserId();
-        
+
         if (userId is null)
             return null;
 
@@ -93,12 +93,15 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             return Response.Failure<User>(Error.UserNotFound);
 
         var userEntity = await _dbSet
-            .Include(u => u.Person)
+            .Include(u => u.Profile)
             .Include(u => u.OwnedBarberShop)
             .FirstOrDefaultAsync(u => u.Id == id);
 
         if (userEntity is not User user)
             return Response.Failure<User>(Error.UserNotFound);
+
+        var roles = await GetUserRolesAsync() ?? [];
+        user.SetRoles(roles);
 
         return Response.Success(user);
     }
@@ -113,10 +116,10 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
     {
         var user = (await GetCurrentUser())!;
         var res = await _userManager.AddToRoleAsync(user, Enum.GetName(role)!);
-        
+
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-        
+
         UpdatedUserEntityNow(user);
         return Response.Success();
     }
@@ -128,11 +131,11 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-        
+
         UpdatedUserEntityNow(user);
         return Response.Success();
     }
-    
+
     public async Task<IResponse> UpdateEmailAsync(string newEmail)
     {
         var user = (await GetCurrentUser())!;
@@ -140,11 +143,11 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-        
+
         UpdatedUserEntityNow(user);
         return Response.Success();
     }
-    
+
     public async Task<IResponse> UpdatePasswordAsync(string currentPassword, string newPassword)
     {
         var user = (await GetCurrentUser())!;
@@ -152,7 +155,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-        
+
         UpdatedUserEntityNow(user);
         return Response.Success();
     }
@@ -164,7 +167,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-        
+
         UpdatedUserEntityNow(user);
         return Response.Success();
     }
@@ -174,7 +177,7 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
         user.DeleteEntity();
         await _userManager.UpdateAsync(user);
     }
-    
+
     public async Task<IResponse> DeleteAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -187,13 +190,13 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
             if (!roleResult.Succeeded)
                 throw new Exception(roleResult.Errors.First().Description);
-            
+
             DeleteUserEntity(user);
             var res = await _userManager.DeleteAsync(user);
 
             if (!res.Succeeded)
                 throw new Exception(res.Errors.First().Description);
-            
+
             await transaction.CommitAsync();
             return Response.Success();
         }

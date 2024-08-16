@@ -56,4 +56,15 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override AppointmentDtoResponse CreateDto() =>
+        new(
+            Id,
+            Date,
+            StartTime,
+            EndTime,
+            Notes,
+            TotalPrice,
+            Status
+        );
 }

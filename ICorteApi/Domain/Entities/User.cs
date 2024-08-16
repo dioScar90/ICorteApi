@@ -1,43 +1,42 @@
 using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class User : IdentityUser<int>, IPrimaryKeyEntity<User, int>
+public sealed class User : BaseUserEntity
 {
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; protected set; }
-    public bool IsDeleted { get; protected set; } = false;
-
-    public Person Person { get; set; }
+    public Profile Profile { get; set; }
     public BarberShop OwnedBarberShop { get; set; }
     public ICollection<Appointment> Appointments { get; set; }
     public ICollection<Report> Reports { get; set; }
     public ICollection<Message> Messages { get; set; }
 
-    public User() {}
+    private readonly HashSet<UserRole> _roles = [];
+
+    public User() { }
 
     public User(UserDtoRegisterRequest dto)
     {
         UserName = dto.Email;
         Email = dto.Email;
     }
-    
-    public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
-    
-    public void UpdateEntityByDto(IDtoRequest<User> requestDto, DateTime? utcNow = null)
+
+    public void SetRoles(UserRole[] roles)
     {
-        throw new NotImplementedException();
+        foreach (var role in roles)
+            _roles.Add(role);
     }
 
-    public void DeleteEntity()
-    {
-        if (IsDeleted)
-            throw new Exception("Já está excluído");
-        
-        UpdatedAt = DateTime.UtcNow;
-        IsDeleted = true;
-    }
+    private string[] GetRolesAsStringArray() => _roles.Select(Enum.GetName).ToArray()!;
+
+    public override UserDtoResponse CreateDto() =>
+        new(
+            Id,
+            Email,
+            PhoneNumber,
+            GetRolesAsStringArray(),
+            Profile?.CreateDto(),
+            OwnedBarberShop?.CreateDto()
+        );
 }

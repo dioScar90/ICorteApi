@@ -6,18 +6,18 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class PersonService(IPersonRepository repository)
-    : BasePrimaryKeyService<Person, int>(repository), IPersonService
+public sealed class ProfileService(IProfileRepository repository)
+    : BasePrimaryKeyService<Profile, int>(repository), IProfileService
 {
-    new private readonly IPersonRepository _repository = repository;
-    
-    public async Task<ISingleResponse<Person>> CreateAsync(IDtoRequest<Person> dtoRequest, int userId)
+    new private readonly IProfileRepository _repository = repository;
+
+    public async Task<ISingleResponse<Profile>> CreateAsync(IDtoRequest<Profile> dtoRequest, int userId)
     {
-        if (dtoRequest is not PersonDtoRegisterRequest dto)
+        if (dtoRequest is not ProfileDtoRegisterRequest dto)
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
-        var person = new Person(dto, userId);
-        return await _repository.CreateAsync(person, dto.PhoneNumber);
+        var profile = new Profile(dto, userId);
+        return await _repository.CreateAsync(profile, dto.PhoneNumber);
     }
 
     public override async Task<IResponse> DeleteAsync(int id)
@@ -26,7 +26,7 @@ public sealed class PersonService(IPersonRepository repository)
 
         if (!resp.IsSuccess)
             return resp;
-            
+
         return await _repository.DeleteAsync(resp.Value!);
     }
 }

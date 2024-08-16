@@ -47,4 +47,12 @@ public sealed class Report : BasePrimaryKeyEntity<Report, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override ReportDtoResponse CreateDto() =>
+        new(
+            Id,
+            Title,
+            Content,
+            Rating
+        );
 }

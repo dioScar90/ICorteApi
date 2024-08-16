@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public class PersonMap : BaseMap<Person>
+public class ProfileMap : BaseMap<Profile>
 {
-    public override void Configure(EntityTypeBuilder<Person> builder)
+    public override void Configure(EntityTypeBuilder<Profile> builder)
     {
         base.Configure(builder);
 
         builder.HasOne(p => p.User)
-            .WithOne(u => u.Person)
-            .HasForeignKey<Person>(p => p.Id);
+            .WithOne(u => u.Profile)
+            .HasForeignKey<Profile>(p => p.Id);
     }
 }

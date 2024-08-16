@@ -17,16 +17,20 @@ public static class BarberShopEndpoint
     public static IEndpointRouteBuilder MapBarberShopEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            .WithTags(ENDPOINT_NAME);
         
         group.MapPost(INDEX, CreateBarberShop)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{id}", GetBarberShop);
-        group.MapPut("{id}", UpdateBarberShop);
-        group.MapDelete("{id}", DeleteBarberShop);
-
+        group.MapGet("{id}", GetBarberShop)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+        
+        group.MapPut("{id}", UpdateBarberShop)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+        
+        group.MapDelete("{id}", DeleteBarberShop)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+        
         return app;
     }
     

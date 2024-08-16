@@ -3,26 +3,26 @@ using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
-public record PersonDtoRegisterRequest(
+public record ProfileDtoRegisterRequest(
     string FirstName,
     string LastName,
     Gender Gender,
     string PhoneNumber,
     string? ImageUrl = null
-) : IDtoRequest<Person>;
+) : IDtoRequest<Profile>;
 
-public record PersonDtoRequest(
+public record ProfileDtoRequest(
     string FirstName,
     string LastName,
     Gender Gender,
     string PhoneNumber,
     string? ImageUrl = null
-) : IDtoRequest<Person>;
+) : IDtoRequest<Profile>;
 
-public record PersonDtoResponse(
+public record ProfileDtoResponse(
     int Id,
     string FirstName,
     string LastName,
     Gender Gender,
     string? ImageUrl
-) : IDtoResponse<Person>;
+) : IDtoResponse<Profile>;

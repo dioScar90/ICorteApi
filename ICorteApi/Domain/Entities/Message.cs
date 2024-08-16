@@ -16,7 +16,7 @@ public sealed class Message : BasePrimaryKeyEntity<Message, int>
     public int SenderId { get; init; }
     public User Sender { get; init; }
 
-    private Message() {}
+    private Message() { }
 
     public Message(MessageDtoRequest dto, int? appointmentId = null, int? senderId = null)
     {
@@ -32,7 +32,7 @@ public sealed class Message : BasePrimaryKeyEntity<Message, int>
         utcNow ??= DateTime.UtcNow;
 
         Content = dto.Content;
-        
+
         UpdatedAt = utcNow;
     }
 
@@ -41,7 +41,7 @@ public sealed class Message : BasePrimaryKeyEntity<Message, int>
         utcNow ??= DateTime.UtcNow;
 
         IsRead = IsRead || dto.IsRead;
-        
+
         UpdatedAt = utcNow;
     }
 
@@ -49,10 +49,21 @@ public sealed class Message : BasePrimaryKeyEntity<Message, int>
     {
         if (requestDto is MessageDtoRequest dto)
             UpdateByMessageDto(dto, utcNow);
-        
+
         if (requestDto is MessageIsReadDtoRequest isReadDto)
             UpdateIsReadProp(isReadDto, utcNow);
-            
+
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override MessageDtoResponse CreateDto() =>
+        new(
+            Id,
+            Content,
+            SentAt,
+            IsRead,
+            Sender.Id,
+            Sender.Profile.FirstName,
+            Sender.Profile.LastName
+        );
 }

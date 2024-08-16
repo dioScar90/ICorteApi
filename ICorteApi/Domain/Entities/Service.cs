@@ -50,4 +50,13 @@ public sealed class Service : BasePrimaryKeyEntity<Service, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override ServiceDtoResponse CreateDto() =>
+        new(
+            Id,
+            Name,
+            Description ?? default,
+            Price,
+            Duration
+        );
 }

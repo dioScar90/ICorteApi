@@ -1,6 +1,14 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Interfaces;
+
+public interface IBaseUserEntity : IPrimaryKeyEntity<User, int>
+{
+    void UpdatedUserNow();
+}
 
 public interface IPrimaryKeyEntity<TEntity, TKey> : IBaseTableEntity<TEntity>
     where TEntity : class, IBaseTableEntity
@@ -28,6 +36,7 @@ public interface IBaseTableEntity<TEntity> : IBaseTableEntity
     where TEntity : class, IBaseTableEntity
 {
     void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+    IDtoResponse<TEntity> CreateDto();
 }
 
 public interface IBaseTableEntity {}

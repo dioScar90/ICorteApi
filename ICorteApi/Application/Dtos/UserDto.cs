@@ -10,17 +10,23 @@ public record UserDtoRequest(
     string LastName,
     string PhoneNumber,
     string? ImageUrl,
-    UserRole[] Roles
+    string[] Roles
 ) : IDtoRequest<User>;
 
 public record UserDtoResponse(
     int Id,
     string Email,
     string PhoneNumber,
-    UserRole[] Roles,
-    PersonDtoResponse? Person,
+    string[] Roles,
+    ProfileDtoResponse? Profile,
     BarberShopDtoResponse? BarberShop
 ) : IDtoResponse<User>;
+
+// public record UserDtoResponse(
+//     int Id,
+//     string Email,
+//     string PhoneNumber
+// ) : IDtoResponse<User>;
 
 public record UserDtoChangeEmailRequest(
     string Email

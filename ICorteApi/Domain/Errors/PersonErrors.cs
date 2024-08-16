@@ -3,6 +3,6 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Domain.Errors;
 
-public sealed class PersonErrors : BaseErrors<Person>, IPersonErrors
+public sealed class ProfileErrors : BaseErrors<Profile>, IProfileErrors
 {
 }

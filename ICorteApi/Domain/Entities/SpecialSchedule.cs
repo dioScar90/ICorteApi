@@ -43,4 +43,14 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, DateOn
             
         throw new Exception("Dados enviados inválidos");
     }
+    
+    public override SpecialScheduleDtoResponse CreateDto() =>
+        new(
+            Date,
+            BarberShopId,
+            Notes,
+            OpenTime,
+            CloseTime,
+            IsClosed
+        );
 }

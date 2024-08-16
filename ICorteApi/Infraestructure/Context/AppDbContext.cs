@@ -8,7 +8,7 @@ namespace ICorteApi.Infraestructure.Context;
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<User, ApplicationRole, int>(options)
 {
-    public DbSet<Person> People { get; set; }
+    public DbSet<Profile> Profiles { get; set; }
     public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
@@ -19,7 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
-    public DbSet<User> Users { get; set; }
+    // public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,7 +58,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         {
             var barberShop = BarberShops
                 .FirstOrDefault(bs => !bs.IsDeleted && bs.OwnerId == user.Id);
-                
+
             if (barberShop is not null)
             {
                 barberShop.DeleteEntity();
@@ -78,7 +78,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         {
             var address = Addresses
                 .FirstOrDefault(a => !a.IsDeleted && a.BarberShopId == barberShop.Id);
-                
+
             if (address is not null)
             {
                 address.DeleteEntity();

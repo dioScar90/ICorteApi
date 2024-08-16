@@ -78,4 +78,18 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override BarberShopDtoResponse CreateDto() =>
+        new(
+            Id,
+            Name,
+            Description,
+            ComercialNumber,
+            ComercialEmail,
+            Address?.CreateDto(),
+            RecurringSchedules?.Select(b => b.CreateDto()).ToArray(),
+            SpecialSchedules?.Select(b => b.CreateDto()).ToArray(),
+            Services?.Select(b => b.CreateDto()).ToArray(),
+            Reports?.Select(b => b.CreateDto()).ToArray()
+        );
 }

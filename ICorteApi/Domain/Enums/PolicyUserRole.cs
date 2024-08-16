@@ -2,7 +2,7 @@ namespace ICorteApi.Domain.Enums;
 
 public enum PolicyUserRole
 {
-    Free,
+    FreeIfAuthenticated,
     ClientOrHigh,
     ClientOnly,
     BarberShopOrHigh,

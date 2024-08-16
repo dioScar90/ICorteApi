@@ -58,4 +58,17 @@ public sealed class Address : BasePrimaryKeyEntity<Address, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override AddressDtoResponse CreateDto() =>
+        new(
+            Id,
+            Street,
+            Number,
+            Complement,
+            Neighborhood,
+            City,
+            State,
+            PostalCode,
+            Country
+        );
 }

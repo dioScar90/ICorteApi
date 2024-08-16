@@ -42,4 +42,13 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Da
             
         throw new Exception("Dados enviados inválidos");
     }
+    
+    public override RecurringScheduleDtoResponse CreateDto() =>
+        new(
+            DayOfWeek,
+            BarberShopId,
+            OpenTime,
+            CloseTime,
+            IsActive
+        );
 }

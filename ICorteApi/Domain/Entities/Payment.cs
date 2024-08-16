@@ -40,4 +40,11 @@ public sealed class Payment : BasePrimaryKeyEntity<Payment, int>
             
         throw new Exception("Dados enviados inválidos");
     }
+
+    public override PaymentDtoResponse CreateDto() =>
+        new(
+            Id,
+            PaymentType,
+            Amount
+        );
 }
