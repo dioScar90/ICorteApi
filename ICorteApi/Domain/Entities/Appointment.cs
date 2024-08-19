@@ -17,9 +17,9 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
     public int ClientId { get; init; }
     public User Client { get; set; }
     
-    public ICollection<Message> Messages { get; init; }
-    public ICollection<Payment> Payments { get; init; }
-    public ICollection<ServiceAppointment> ServiceAppointments { get; init; }
+    public ICollection<Message> Messages { get; init; } = [];
+    public ICollection<Payment> Payments { get; init; } = [];
+    public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
 
     private Appointment() {}
 

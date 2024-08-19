@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
+public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
@@ -41,10 +41,8 @@ public partial class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where 
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
         typeof(IPrimaryKeyEntity<TEntity, int>).IsAssignableFrom(typeof(TEntity));
-        
-    [GeneratedRegex(@"([a-z0-9])([A-Z])")]
-    private static partial Regex MyRegex();
-    private static string CamelCaseToSnakeCase(string name) => MyRegex().Replace(name, "$1_$2").ToLower();
+    
+    private static string CamelCaseToSnakeCase(string name) => Regex.Replace(name, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
 
     private static bool IsCompositeKeyName(string name) => name.StartsWith("Id") && name.Length > 2;
     

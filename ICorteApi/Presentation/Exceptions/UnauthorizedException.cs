@@ -1,5 +1,7 @@
+using ICorteApi.Domain.Errors;
+
 namespace ICorteApi.Presentation.Exceptions;
 
-public class UnauthorizedException(string message) : Exception(message)
+public sealed class UnauthorizedException(string message, params Error[]? errors) : BaseException(message, errors)
 {
 }

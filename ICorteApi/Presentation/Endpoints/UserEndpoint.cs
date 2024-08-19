@@ -22,14 +22,14 @@ public static class UserEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
-        group.MapPost("register", RegisterUser)
-            .AllowAnonymous();
-
         group.MapGet("me", GetMe);
         group.MapPatch("changeEmail", UpdateUserEmail);
         group.MapPatch("changePassword", UpdateUserPassword);
         group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber);
         group.MapDelete(INDEX, DeleteUser);
+
+        group.MapPost("register", RegisterUser)
+            .AllowAnonymous();
 
         return app;
     }
@@ -67,7 +67,7 @@ public static class UserEndpoint
         var resp = await service.GetMeAsync();
 
         if (!resp.IsSuccess)
-            errors.ThrowNotFoundException();
+            errors.ThrowNotFoundException(resp.Error);
 
         var dto = resp.Value!.CreateDto();
         return Results.Ok(dto);
@@ -81,10 +81,10 @@ public static class UserEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateEmailAsync(dto);
+        var resp = await service.UpdateEmailAsync(dto);
 
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+        if (!resp.IsSuccess)
+            errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
@@ -97,10 +97,10 @@ public static class UserEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdatePasswordAsync(dto);
+        var resp = await service.UpdatePasswordAsync(dto);
 
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+        if (!resp.IsSuccess)
+            errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
@@ -113,10 +113,10 @@ public static class UserEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdatePhoneNumberAsync(dto);
+        var resp = await service.UpdatePhoneNumberAsync(dto);
 
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+        if (!resp.IsSuccess)
+            errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
@@ -124,10 +124,10 @@ public static class UserEndpoint
     public static async Task<IResult> DeleteUser(IUserService service, IUserErrors errors)
     {
         int userId = service.GetMyUserId();
-        var response = await service.DeleteAsync(userId);
+        var resp = await service.DeleteAsync(userId);
 
-        if (!response.IsSuccess)
-            errors.ThrowDeleteException();
+        if (!resp.IsSuccess)
+            errors.ThrowDeleteException(resp.Error);
 
         return Results.NoContent();
     }

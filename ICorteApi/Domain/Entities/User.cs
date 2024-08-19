@@ -8,9 +8,9 @@ public sealed class User : BaseUserEntity
 {
     public Profile Profile { get; set; }
     public BarberShop OwnedBarberShop { get; set; }
-    public ICollection<Appointment> Appointments { get; set; }
-    public ICollection<Report> Reports { get; set; }
-    public ICollection<Message> Messages { get; set; }
+    public ICollection<Appointment> Appointments { get; set; } = [];
+    public ICollection<Report> Reports { get; set; } = [];
+    public ICollection<Message> Messages { get; set; } = [];
 
     private readonly HashSet<UserRole> _roles = [];
 

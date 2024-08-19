@@ -14,17 +14,17 @@ public sealed class ExceptionHandler : IExceptionHandler
         {
             Title = GetTitleForProblemDetails(exception),
             Status = GetStatusCodeForProblemDetails(exception),
-            Detail = exception.Message ?? null
+            Detail = exception.Message ?? null,
         };
-        
-        if (exception is UnprocessableEntity br && br.Errors is not null)
+
+        if (exception is BaseException ex && ex.Errors.Count > 0)
         {
             problemDetails.Extensions = new Dictionary<string, object?>
             {
-                ["errors"] = br.Errors
+                ["errors"] = ex.Errors
             };
         }
-
+        
         httpContext.Response.StatusCode = problemDetails.Status.Value;
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);

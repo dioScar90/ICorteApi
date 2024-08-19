@@ -46,12 +46,12 @@ public static class BarberShopEndpoint
         IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var response = await service.GetByIdAsync(id);
+        var resp = await service.GetByIdAsync(id);
 
-        if (!response.IsSuccess)
-            return Results.NotFound();
+        if (!resp.IsSuccess)
+            errors.ThrowNotFoundException(resp.Error);
 
-        var barberShopDto = response.Value!.CreateDto();
+        var barberShopDto = resp.Value!.CreateDto();
         return Results.Ok(barberShopDto);
     }
     
@@ -65,12 +65,12 @@ public static class BarberShopEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         int ownerId = userService.GetMyUserId();
-        var response = await service.CreateAsync(dto, ownerId);
+        var resp = await service.CreateAsync(dto, ownerId);
 
-        if (!response.IsSuccess)
-            errors.ThrowCreateException();
+        if (!resp.IsSuccess)
+            errors.ThrowCreateException(resp.Error);
         
-        return GetCreatedResult(response.Value!.Id);
+        return GetCreatedResult(resp.Value!.Id);
     }
 
     public static async Task<IResult> UpdateBarberShop(
@@ -83,10 +83,10 @@ public static class BarberShopEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         
-        var response = await service.UpdateAsync(dto, id);
+        var resp = await service.UpdateAsync(dto, id);
 
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+        if (!resp.IsSuccess)
+            errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
@@ -97,10 +97,10 @@ public static class BarberShopEndpoint
         IUserService userService,
         IBarberShopErrors errors)
     {
-        var response = await service.DeleteAsync(id);
+        var resp = await service.DeleteAsync(id);
 
-        if (!response.IsSuccess)
-            errors.ThrowDeleteException();
+        if (!resp.IsSuccess)
+            errors.ThrowDeleteException(resp.Error);
         
         return Results.NoContent();
     }

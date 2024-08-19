@@ -26,6 +26,7 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             nameof(BarberShop)          => ("barbearia", true),
             nameof(Message)             => ("mensagem", true),
             nameof(Payment)             => ("pagamento", true),
+            nameof(Profile)             => ("perfil", true),
             nameof(RecurringSchedule)   => ("horário de funcionamento", false),
             nameof(Report)              => ("avaliação", true),
             nameof(Service)             => ("serviço", false),
@@ -40,60 +41,42 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             .Where(a => !string.IsNullOrWhiteSpace(a) && a.Length > 1)
             .Select(a => a.Length > 2 ? char.ToUpper(a[0]) + a[1..].ToLower() : a.ToLower())
         );
+        
+    public void ThrowCreateException(params Error[]? errors)
+    {
+        string message = $"Não foi possível criar {_the} {_entity}";
+        throw new BadRequestException(message, errors);
+    }
 
-    private string CreateErrorMessage() => $"Não foi possível criar {_the} {_entity}";
-    private string UpdateErrorMessage() => $"Não foi possível atualizar {_the} {_entity}";
-    private string DeleteErrorMessage() => $"Não foi possível excluir {_the} {_entity}";
+    public void ThrowUpdateException(params Error[]? errors)
+    {
+        string message = $"Não foi possível atualizar {_the} {_entity}";
+        throw new BadRequestException(message, errors);
+    }
+    
+    public void ThrowDeleteException(params Error[]? errors)
+    {
+        string message = $"Não foi possível excluir {_the} {_entity}";
+        throw new BadRequestException(message, errors);
+    }
+    
+    public void ThrowBadRequestException(params Error[]? errors)
+    {
+        string message = $"Não foi possível concluir a operação {_the} {_entity}";
+        throw new BadRequestException(message, errors);
+    }
 
-    private string NotFoundEntityMessage()
+    public void ThrowNotFoundException(params Error[]? errors)
     {
         string encontrada = _isFemale ? "encontrada" : "encontrado";
-        return $"{_entity} não {encontrada}";
+        string message = $"{_entity} não {encontrada}";
+        throw new NotFoundException(message, errors);
     }
 
-    private string ValidationErrorMessage()
+    public void ThrowValidationException(params Error[]? errors)
     {
         string da = _isFemale ? "da" : "do";
-        return $"Erro ao tentar validar um ou mais itens {da} {_entity}";
-    }
-    
-    public void ThrowCreateException()
-    {
-        throw new BadRequestException(CreateErrorMessage());
-    }
-
-    public void ThrowUpdateException()
-    {
-        throw new BadRequestException(UpdateErrorMessage());
-    }
-    
-    public void ThrowDeleteException()
-    {
-        throw new BadRequestException(DeleteErrorMessage());
-    }
-
-    public void ThrowNotFoundException()
-    {
-        throw new NotFoundException(NotFoundEntityMessage());
-    }
-
-    public void ThrowValidationException(Error[] errors)
-    {
-        throw new UnprocessableEntity(ValidationErrorMessage(), errors);
-    }
-
-    public void ThrowValidationException(IDictionary<string, string[]> errors)
-    {
-        throw new UnprocessableEntity(ValidationErrorMessage(), errors);
-    }
-
-    public void ThrowBadRequestException(string? message = null)
-    {
-        string finalMessage = "Não foi possível concluir a operação";
-
-        if (!string.IsNullOrWhiteSpace(message))
-            finalMessage += ": " + message;
-
-        throw new BadRequestException(finalMessage);
+        string message = $"Um ou mais itens {da} {_entity} inválidos";
+        throw new UnprocessableEntity(message, errors);
     }
 }

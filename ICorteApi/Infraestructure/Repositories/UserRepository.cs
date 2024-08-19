@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
@@ -10,30 +11,60 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, AppDbContext context)
-    : IUserRepository
+public sealed class UserRepository : IUserRepository
 {
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly UserManager<User> _userManager = userManager;
-    private readonly AppDbContext _context = context;
-    private readonly DbSet<User> _dbSet = context.Set<User>();
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
+    private readonly AppDbContext _context;
+    private readonly DbSet<User> _dbSet;
+
+    private readonly int? _userId;
+    private readonly User? _user;
+    
+    public UserRepository(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, SignInManager<User> signInManager, AppDbContext context)
+    {
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _context = context;
+        _dbSet = _context.Set<User>();
+
+        if (httpContextAccessor.HttpContext?.User is ClaimsPrincipal user)
+        {
+            _userId = int.TryParse(_userManager.GetUserId(user), out int userId) ? userId : default;
+            _user = userManager.GetUserAsync(user).GetAwaiter().GetResult();
+        }
+
+    }
+
+    private async Task RegenerateUserCookieAsync(User user) => await _signInManager.RefreshSignInAsync(user);
 
     public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
+        // List<Error> errors = [];
 
         try
         {
             var userResult = await _userManager.CreateAsync(newUser, password);
 
             if (!userResult.Succeeded)
+            {
+                // foreach (var err in userResult.Errors)
+                //     errors.Add(new(err.Code, err.Description));
                 throw new Exception(userResult.Errors.First().Description);
+            }
 
             var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
 
             if (!roleResult.Succeeded)
+            {
+                // foreach (var err in userResult.Errors)
+                //     errors.Add(new(err.Code, err.Description));
                 throw new Exception(roleResult.Errors.First().Description);
+            }
 
+            await RegenerateUserCookieAsync(newUser);
+        
             await transaction.CommitAsync();
             return Response.Success(newUser);
         }
@@ -43,27 +74,15 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             return Response.Failure<User>(new("TransactionError", ex.Message));
         }
     }
-
-    private string? GetUserId()
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        if (user is null)
-            return null;
-
-        return _userManager.GetUserId(user);
-    }
-
-    public int? GetMyUserId() => int.TryParse(GetUserId(), out int userId) ? userId : null;
-
+    
+    public int? GetMyUserId() => _userId;
+    
     public async Task<UserRole[]> GetUserRolesAsync()
     {
-        var user = await GetCurrentUser();
-
-        if (user is null)
+        if (_user is null)
             return [];
 
-        var roles = await _userManager.GetRolesAsync(user);
+        var roles = await _userManager.GetRolesAsync(_user);
 
         if (roles is null)
             return [];
@@ -73,16 +92,6 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
             .Where(role => role.HasValue)
             .Select(role => role!.Value)
             .ToArray();
-    }
-
-    private async Task<User?> GetCurrentUser()
-    {
-        var userId = GetUserId();
-
-        if (userId is null)
-            return null;
-
-        return await _userManager.FindByIdAsync(userId);
     }
 
     public async Task<ISingleResponse<User>> GetMeAsync()
@@ -114,61 +123,60 @@ public sealed class UserRepository(IHttpContextAccessor httpContextAccessor, Use
 
     public async Task<IResponse> AddUserRoleAsync(UserRole role)
     {
-        var user = (await GetCurrentUser())!;
-        var res = await _userManager.AddToRoleAsync(user, Enum.GetName(role)!);
+        var res = await _userManager.AddToRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
 
-        UpdatedUserEntityNow(user);
+        UpdatedUserEntityNow(_user!);
+        
+        await RegenerateUserCookieAsync(_user!);
         return Response.Success();
     }
 
     public async Task<IResponse> RemoveFromRoleAsync(UserRole role)
     {
-        var user = (await GetCurrentUser())!;
-        var res = await _userManager.RemoveFromRoleAsync(user, Enum.GetName(role)!);
+        var res = await _userManager.RemoveFromRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
 
-        UpdatedUserEntityNow(user);
+        UpdatedUserEntityNow(_user!);
+        
+        await RegenerateUserCookieAsync(_user!);
         return Response.Success();
     }
 
     public async Task<IResponse> UpdateEmailAsync(string newEmail)
     {
-        var user = (await GetCurrentUser())!;
-        var res = await _userManager.SetEmailAsync(user, newEmail);
+        var res = await _userManager.SetEmailAsync(_user!, newEmail);
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
 
-        UpdatedUserEntityNow(user);
+        UpdatedUserEntityNow(_user!);
         return Response.Success();
     }
 
     public async Task<IResponse> UpdatePasswordAsync(string currentPassword, string newPassword)
     {
-        var user = (await GetCurrentUser())!;
-        var res = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        var res = await _userManager.ChangePasswordAsync(_user!, currentPassword, newPassword);
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
 
-        UpdatedUserEntityNow(user);
+        UpdatedUserEntityNow(_user!);
         return Response.Success();
     }
 
     public async Task<IResponse> UpdatePhoneNumberAsync(string newPhoneNumber)
     {
-        var user = (await GetCurrentUser())!;
-        var res = await _userManager.SetPhoneNumberAsync(user, newPhoneNumber);
+        var res = await _userManager.SetPhoneNumberAsync(_user!, newPhoneNumber);
 
         if (!res.Succeeded)
             return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
 
-        UpdatedUserEntityNow(user);
+        UpdatedUserEntityNow(_user!);
         return Response.Success();
     }
 

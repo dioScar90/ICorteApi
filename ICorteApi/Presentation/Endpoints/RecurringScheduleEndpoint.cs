@@ -50,14 +50,9 @@ public static class RecurringScheduleEndpoint
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
-
-        var address = res.Value!;
-
-        if (address.BarberShopId != barberShopId)
-            errors.ThrowBadRequestException();
-
-        var addressDto = address.CreateDto();
-        return Results.Ok(addressDto);
+            
+        var scheduleDto = res.Value!.CreateDto();
+        return Results.Ok(scheduleDto);
     }
 
     public static async Task<IResult> GetAllRecurringSchedules(

@@ -62,7 +62,7 @@ public static class ReportEndpoint
         var res = await service.GetAllAsync(page, pageSize);
 
         if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error.Description);
+            errors.ThrowBadRequestException(res.Error);
 
         var dtos = res.Values!
             .Select(c => c.CreateDto())

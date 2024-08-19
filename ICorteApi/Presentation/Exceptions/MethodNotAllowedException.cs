@@ -1,5 +1,7 @@
+using ICorteApi.Domain.Errors;
+
 namespace ICorteApi.Presentation.Exceptions;
 
-public class MethodNotAllowedException(string message) : Exception(message)
+public sealed class MethodNotAllowedException(string message, params Error[]? errors) : BaseException(message, errors)
 {
 }

@@ -16,10 +16,10 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
     public User Owner { get; init; }
 
     public Address Address { get; init; }
-    public ICollection<RecurringSchedule> RecurringSchedules { get; init; }
-    public ICollection<SpecialSchedule> SpecialSchedules { get; init; }
-    public ICollection<Service> Services { get; init; }
-    public ICollection<Report> Reports { get; init; }
+    public ICollection<RecurringSchedule> RecurringSchedules { get; init; } = [];
+    public ICollection<SpecialSchedule> SpecialSchedules { get; init; } = [];
+    public ICollection<Service> Services { get; init; } = [];
+    public ICollection<Report> Reports { get; init; } = [];
 
     private BarberShop() {}
 

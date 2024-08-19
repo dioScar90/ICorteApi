@@ -8,7 +8,10 @@ public class UserDtoChangeEmailRequestValidator : AbstractValidator<UserDtoChang
     public UserDtoChangeEmailRequestValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("O e-mail é obrigatório")
-            .EmailAddress().WithMessage("O e-mail não é válido");
+            .NotEmpty().WithMessage("O email é obrigatório")
+            .DependentRules(() => {
+                RuleFor(dx => dx.Email)
+                    .EmailAddress().WithMessage("O email não é válido");
+            });
     }
 }

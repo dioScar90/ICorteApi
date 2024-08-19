@@ -19,7 +19,7 @@ public sealed class Service : BasePrimaryKeyEntity<Service, int>
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; init; }
 
-    public ICollection<ServiceAppointment> ServiceAppointments { get; init; }
+    public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
 
     private Service() {}
 

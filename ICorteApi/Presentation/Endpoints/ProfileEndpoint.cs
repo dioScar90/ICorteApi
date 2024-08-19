@@ -50,7 +50,7 @@ public static class ProfileEndpoint
         var resp = await service.GetByIdAsync(id);
 
         if (!resp.IsSuccess)
-            errors.ThrowNotFoundException();
+            errors.ThrowNotFoundException(resp.Error);
 
         return Results.Ok(resp.Value!.CreateDto());
     }
@@ -65,10 +65,10 @@ public static class ProfileEndpoint
         int userId = userService.GetMyUserId();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var res = await service.CreateAsync(dto, userId);
+        var resp = await service.CreateAsync(dto, userId);
 
-        if (!res.IsSuccess)
-            errors.ThrowCreateException();
+        if (!resp.IsSuccess)
+            errors.ThrowCreateException(resp.Error);
 
         return GetCreatedResult();
     }
@@ -83,10 +83,10 @@ public static class ProfileEndpoint
         int userId = userService.GetMyUserId();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var res = await service.UpdateAsync(dto, userId);
+        var resp = await service.UpdateAsync(dto, userId);
 
-        if (!res.IsSuccess)
-            errors.ThrowUpdateException();
+        if (!resp.IsSuccess)
+            errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
@@ -97,10 +97,10 @@ public static class ProfileEndpoint
         IProfileErrors errors)
     {
         int userId = userService.GetMyUserId();
-        var response = await service.DeleteAsync(userId);
+        var resp = await service.DeleteAsync(userId);
 
-        if (!response.IsSuccess)
-            errors.ThrowDeleteException();
+        if (!resp.IsSuccess)
+            errors.ThrowDeleteException(resp.Error);
 
         return Results.NoContent();
     }

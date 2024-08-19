@@ -4,11 +4,10 @@ namespace ICorteApi.Domain.Interfaces;
 
 public interface IBaseErrors<TEntity> where TEntity : class, IBaseTableEntity
 {
-    void ThrowCreateException();
-    void ThrowUpdateException();
-    void ThrowDeleteException();
-    void ThrowNotFoundException();
-    void ThrowValidationException(Error[] errors);
-    void ThrowValidationException(IDictionary<string, string[]> errors);
-    void ThrowBadRequestException(string? message = null);
+    void ThrowCreateException(params Error[]? errors);
+    void ThrowUpdateException(params Error[]? errors);
+    void ThrowDeleteException(params Error[]? errors);
+    void ThrowNotFoundException(params Error[]? errors);
+    void ThrowValidationException(params Error[]? errors);
+    void ThrowBadRequestException(params Error[]? errors);
 }

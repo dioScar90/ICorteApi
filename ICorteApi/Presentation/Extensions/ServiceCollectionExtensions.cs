@@ -103,26 +103,21 @@ public static class ServiceCollectionExtensions
         // Configuração de autenticação e autorização
         // After .NET 8 it's not necessary to use `AddAuthentication` here.
         services.AddAuthorizationBuilder()
-
-            .AddPolicy(nameof(PolicyUserRole.FreeIfAuthenticated), policy =>
+            .AddPolicy(nameof(PolicyUserRole.AdminOnly), policy =>
                 policy.RequireRole(
-                    nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-
-            .AddPolicy(nameof(PolicyUserRole.ClientOrHigh), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-
-            .AddPolicy(nameof(PolicyUserRole.ClientOnly), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Client), nameof(UserRole.Admin)))
-
+                    nameof(UserRole.Admin)))
             .AddPolicy(nameof(PolicyUserRole.BarberShopOrHigh), policy =>
                 policy.RequireRole(
                     nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-
-            .AddPolicy(nameof(PolicyUserRole.AdminOnly), policy =>
+            .AddPolicy(nameof(PolicyUserRole.ClientOnly), policy =>
                 policy.RequireRole(
-                    nameof(UserRole.Admin)));
+                    nameof(UserRole.Client), nameof(UserRole.Admin)))
+            .AddPolicy(nameof(PolicyUserRole.ClientOrHigh), policy =>
+                policy.RequireRole(
+                    nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
+            .AddPolicy(nameof(PolicyUserRole.FreeIfAuthenticated), policy =>
+                policy.RequireRole(
+                    nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)));
 
         return services;
     }
