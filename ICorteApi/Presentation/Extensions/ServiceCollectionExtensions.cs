@@ -10,6 +10,8 @@ using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Presentation.Exceptions;
+using ICorteApi.Settings;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Presentation.Extensions;
@@ -190,6 +192,25 @@ public static class ServiceCollectionExtensions
         // Configuração de autenticação por cookies
         services.ConfigureApplicationCookie(options =>
             {
+                options.Events.OnSigningIn = context =>
+                {
+                    var currentToken = SessionTokenManager.GetCurrentToken();
+                    context.Properties.Items["SessionToken"] = currentToken;
+                    return Task.CompletedTask;
+                };
+
+                options.Events.OnValidatePrincipal = context =>
+                {
+                    if (context.Properties.Items.TryGetValue("SessionToken", out var sessionToken))
+                    {
+                        if (sessionToken != SessionTokenManager.GetCurrentToken())
+                        {
+                            context.RejectPrincipal(); // Rejeitar o principal se o token não corresponder
+                        }
+                    }
+                    return Task.CompletedTask;
+                };
+
                 options.Cookie.HttpOnly = true;
 
                 options.LoginPath = "/auth/login";
@@ -217,6 +238,16 @@ public static class ServiceCollectionExtensions
                 // Define o tempo de vida do cookie de autenticação, ou seja, quanto tempo o cookie permanece válido antes de expirar.
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
             });
+
+        return services;
+    }
+    
+    public static IServiceCollection AddCustomDataProtection(this IServiceCollection services)
+    {
+        _ = services.AddDataProtection()
+            .SetApplicationName("ICorteApi")
+            .PersistKeysToFileSystem(new DirectoryInfo(@"./keys")) // Local onde as chaves são armazenadas
+            .ProtectKeysWithDpapi(); // Proteção adicional para as chaves
 
         return services;
     }

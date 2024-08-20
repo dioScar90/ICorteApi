@@ -70,6 +70,8 @@ app.UseAuthorization();
 app.ConfigureMyEndpoints();
 
 app.UseExceptionHandler("/error");
-// app.UseMiddleware<GlobalExceptionHandler>();
+
+// Regenera o token de sessão na inicialização
+SessionTokenManager.RegenerateToken();
 
 app.Run();
