@@ -2,7 +2,7 @@ namespace ICorteApi.Domain.Errors;
 
 public sealed record Error(string Code, string Description)
 {
-    public static readonly Error None = new(string.Empty, string.Empty);
+    // public static readonly Error None = new(string.Empty, string.Empty);
     public static readonly Error NullValue = new(string.Empty, string.Empty);
     public static readonly Error CreateError = new("Server Error", "Não foi possível criar o item");
     public static readonly Error UpdateError = new("Server Error", "Não foi possível atualizar o item");
@@ -15,4 +15,5 @@ public sealed record Error(string Code, string Description)
     public static readonly Error TEntityNotFound = new("Not Found", "Item não encontrado");
     public static readonly Error BadSave = new("Bad Request", "Não foi possível concluir a operação, tente novamente");
     public static readonly Error Unauthorized = new("Unauthorized", "Não autorizado");
+    public static Error TransactionError(string description) => new("TransactionError", description);
 }

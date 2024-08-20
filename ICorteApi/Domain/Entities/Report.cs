@@ -42,10 +42,14 @@ public sealed class Report : BasePrimaryKeyEntity<Report, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Report> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is ReportDtoRequest dto)
-            UpdateByReportDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case ReportDtoRequest dto:
+                UpdateByReportDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override ReportDtoResponse CreateDto() =>

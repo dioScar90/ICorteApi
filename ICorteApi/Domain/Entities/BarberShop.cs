@@ -73,10 +73,14 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
     
     public override void UpdateEntityByDto(IDtoRequest<BarberShop> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is BarberShopDtoRequest dto)
-            UpdateByBarberShopDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case BarberShopDtoRequest dto:
+                UpdateByBarberShopDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override BarberShopDtoResponse CreateDto() =>

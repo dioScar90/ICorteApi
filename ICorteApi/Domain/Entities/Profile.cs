@@ -36,10 +36,14 @@ public sealed class Profile : BasePrimaryKeyEntity<Profile, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Profile> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is ProfileDtoRequest dto)
-            UpdateByUserDto(dto, utcNow);
-
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case ProfileDtoRequest dto:
+                UpdateByUserDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override ProfileDtoResponse CreateDto() =>

@@ -5,7 +5,7 @@ namespace ICorteApi.Domain.Interfaces;
 public interface IResponse
 {
     bool IsSuccess { get; }
-    Error Error { get; }
+    Error[]? Error { get; }
 }
 
 public interface ISingleResponse<T> : IResponse where T : class, IBaseTableEntity

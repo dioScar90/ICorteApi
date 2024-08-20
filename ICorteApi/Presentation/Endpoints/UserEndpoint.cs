@@ -19,14 +19,18 @@ public static class UserEndpoint
     public static IEndpointRouteBuilder MapUserEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .WithTags(ENDPOINT_NAME);
 
-        group.MapGet("me", GetMe);
-        group.MapPatch("changeEmail", UpdateUserEmail);
-        group.MapPatch("changePassword", UpdateUserPassword);
-        group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber);
-        group.MapDelete(INDEX, DeleteUser);
+        group.MapGet("me", GetMe)
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+        group.MapPatch("changeEmail", UpdateUserEmail)
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+        group.MapPatch("changePassword", UpdateUserPassword)
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+        group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber)
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+        group.MapDelete(INDEX, DeleteUser)
+            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
         group.MapPost("register", RegisterUser)
             .AllowAnonymous();
@@ -55,7 +59,7 @@ public static class UserEndpoint
         var result = await service.CreateAsync(dto);
 
         if (!result.IsSuccess)
-            errors.ThrowCreateException();
+            errors.ThrowCreateException(result.Error);
 
         return GetCreatedResult();
     }

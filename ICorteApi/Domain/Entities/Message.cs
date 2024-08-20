@@ -47,13 +47,17 @@ public sealed class Message : BasePrimaryKeyEntity<Message, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Message> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is MessageDtoRequest dto)
-            UpdateByMessageDto(dto, utcNow);
-
-        if (requestDto is MessageIsReadDtoRequest isReadDto)
-            UpdateIsReadProp(isReadDto, utcNow);
-
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case MessageDtoRequest dto:
+                UpdateByMessageDto(dto, utcNow);
+                break;
+            case MessageIsReadDtoRequest isReadDto:
+                UpdateIsReadProp(isReadDto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override MessageDtoResponse CreateDto() =>

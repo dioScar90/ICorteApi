@@ -35,10 +35,14 @@ public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment, 
     
     public override void UpdateEntityByDto(IDtoRequest<ServiceAppointment> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is ServiceAppointmentDtoRequest dto)
-            UpdateByServiceAppointmentDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case ServiceAppointmentDtoRequest dto:
+                UpdateByServiceAppointmentDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
     
     public override ServiceAppointmentDtoResponse CreateDto() =>

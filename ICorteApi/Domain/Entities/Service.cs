@@ -45,10 +45,14 @@ public sealed class Service : BasePrimaryKeyEntity<Service, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Service> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is ServiceDtoRequest dto)
-            UpdateByServiceDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case ServiceDtoRequest dto:
+                UpdateByServiceDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override ServiceDtoResponse CreateDto() =>

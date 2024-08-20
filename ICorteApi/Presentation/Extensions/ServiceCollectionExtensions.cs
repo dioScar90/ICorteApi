@@ -92,8 +92,35 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddExceptionHandlers(this IServiceCollection services)
     {
         // After .NET 8 we can use IExceptionHandler interface
-        services.AddExceptionHandler<ExceptionHandler>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+
+        // // Se estiver usando .NET 8 ou superior
+        // services.AddExceptionHandler<GlobalExceptionHandler>();
+
+        // // Adiciona suporte para detalhes de problemas HTTP
+        // services.AddProblemDetails(options =>
+        // {
+        //     options.CustomizeProblemDetails = (con)
+        //     options.IncludeExceptionDetailInProblemDetails = (context, exception) =>
+        //         context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+
+        //     options.Map<UnauthorizedAccessException>(ex => new ProblemDetails
+        //     {
+        //         Status = StatusCodes.Status403Forbidden,
+        //         Title = "Forbidden",
+        //         Detail = ex.Message
+        //     });
+
+        //     options.Map<NotFoundException>(ex => new ProblemDetails
+        //     {
+        //         Status = StatusCodes.Status404NotFound,
+        //         Title = "Not Found",
+        //         Detail = ex.Message
+        //     });
+
+        //     // Adicione mapeamentos personalizados conforme necessário
+        // });
 
         return services;
     }
@@ -102,6 +129,8 @@ public static class ServiceCollectionExtensions
     {
         // Configuração de autenticação e autorização
         // After .NET 8 it's not necessary to use `AddAuthentication` here.
+        // The use of `AddAuthorization` can be converted to the new `AddAuthorizationBuilder`.
+        // https://learn.microsoft.com/en-us/aspnet/core/diagnostics/asp0025?view=aspnetcore-8.0
         services.AddAuthorizationBuilder()
             .AddPolicy(nameof(PolicyUserRole.AdminOnly), policy =>
                 policy.RequireRole(
@@ -124,10 +153,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddIdentityConfigurations(this IServiceCollection services)
     {
-        // services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = false);
-
         services.AddIdentity<User, ApplicationRole>(options =>
-        // services.AddIdentityApiEndpoints<User>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -142,13 +168,11 @@ public static class ServiceCollectionExtensions
                 options.Lockout.AllowedForNewUsers = true;
 
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                // options.User.AllowedUserNameCharacters = "a-zA-Z0-9-._@#$+";
                 options.User.RequireUniqueEmail = true; // Ajustado para exigir e-mails únicos
 
                 options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedPhoneNumber = false;
             })
-            // .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<AppDbContext>()
 
             // This `AddDefaultUI` above is necessary to not display
@@ -167,9 +191,22 @@ public static class ServiceCollectionExtensions
         services.ConfigureApplicationCookie(options =>
             {
                 options.Cookie.HttpOnly = true;
+
                 options.LoginPath = "/auth/login";
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+
                 options.LogoutPath = "/auth/logout";
+
                 options.AccessDeniedPath = "/auth/access-denied";
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
 
                 // Útil para prolongar a sessão ativa se o usuário estiver ativo.
                 options.SlidingExpiration = true;

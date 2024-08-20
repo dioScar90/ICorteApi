@@ -38,10 +38,14 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, DateOn
     
     public override void UpdateEntityByDto(IDtoRequest<SpecialSchedule> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is SpecialScheduleDtoRequest dto)
-            UpdateBySpecialScheduleDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case SpecialScheduleDtoRequest dto:
+                UpdateBySpecialScheduleDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
     
     public override SpecialScheduleDtoResponse CreateDto() =>

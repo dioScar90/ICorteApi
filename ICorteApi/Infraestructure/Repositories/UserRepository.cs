@@ -41,7 +41,7 @@ public sealed class UserRepository : IUserRepository
     public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
-        // List<Error> errors = [];
+        List<Error> errors = [];
 
         try
         {
@@ -49,18 +49,20 @@ public sealed class UserRepository : IUserRepository
 
             if (!userResult.Succeeded)
             {
-                // foreach (var err in userResult.Errors)
-                //     errors.Add(new(err.Code, err.Description));
-                throw new Exception(userResult.Errors.First().Description);
+                foreach (var err in userResult.Errors)
+                    errors.Add(new(err.Code, err.Description));
+                
+                throw new Exception();
             }
 
             var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
 
             if (!roleResult.Succeeded)
             {
-                // foreach (var err in userResult.Errors)
-                //     errors.Add(new(err.Code, err.Description));
-                throw new Exception(roleResult.Errors.First().Description);
+                foreach (var err in userResult.Errors)
+                    errors.Add(new(err.Code, err.Description));
+                
+                throw new Exception();
             }
 
             await RegenerateUserCookieAsync(newUser);
@@ -71,8 +73,12 @@ public sealed class UserRepository : IUserRepository
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return Response.Failure<User>(new("TransactionError", ex.Message));
+
+            if (errors.Count == 0)
+                errors.Add(Error.TransactionError(ex.Message));
         }
+
+        return Response.Failure<User>([..errors]);
     }
     
     public int? GetMyUserId() => _userId;
@@ -126,8 +132,11 @@ public sealed class UserRepository : IUserRepository
         var res = await _userManager.AddToRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
-            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
-
+        {
+            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
+            return Response.Failure(errors);
+        }
+        
         UpdatedUserEntityNow(_user!);
         
         await RegenerateUserCookieAsync(_user!);
@@ -139,7 +148,10 @@ public sealed class UserRepository : IUserRepository
         var res = await _userManager.RemoveFromRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
-            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
+        {
+            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
+            return Response.Failure(errors);
+        }
 
         UpdatedUserEntityNow(_user!);
         
@@ -152,7 +164,10 @@ public sealed class UserRepository : IUserRepository
         var res = await _userManager.SetEmailAsync(_user!, newEmail);
 
         if (!res.Succeeded)
-            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
+        {
+            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
+            return Response.Failure(errors);
+        }
 
         UpdatedUserEntityNow(_user!);
         return Response.Success();
@@ -163,7 +178,10 @@ public sealed class UserRepository : IUserRepository
         var res = await _userManager.ChangePasswordAsync(_user!, currentPassword, newPassword);
 
         if (!res.Succeeded)
-            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
+        {
+            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
+            return Response.Failure(errors);
+        }
 
         UpdatedUserEntityNow(_user!);
         return Response.Success();
@@ -174,7 +192,10 @@ public sealed class UserRepository : IUserRepository
         var res = await _userManager.SetPhoneNumberAsync(_user!, newPhoneNumber);
 
         if (!res.Succeeded)
-            return Response.Failure(new(res.Errors.First().Code, res.Errors.First().Description));
+        {
+            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
+            return Response.Failure(errors);
+        }
 
         UpdatedUserEntityNow(_user!);
         return Response.Success();
@@ -189,29 +210,39 @@ public sealed class UserRepository : IUserRepository
     public async Task<IResponse> DeleteAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
+        List<Error> errors = [];
 
         try
         {
-            // Remove from all rules.
             string[] roles = Enum.GetNames(typeof(UserRole));
             var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
 
             if (!roleResult.Succeeded)
-                throw new Exception(roleResult.Errors.First().Description);
-
+            {
+                errors.AddRange(roleResult.Errors.Select(err => new Error(err.Code, err.Description)));
+                throw new Exception();
+            }
+            
             DeleteUserEntity(user);
             var res = await _userManager.DeleteAsync(user);
 
             if (!res.Succeeded)
-                throw new Exception(res.Errors.First().Description);
-
+            {
+                errors.AddRange(res.Errors.Select(err => new Error(err.Code, err.Description)));
+                throw new Exception();
+            }
+            
             await transaction.CommitAsync();
             return Response.Success();
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return Response.Failure<User>(new("TransactionError", ex.Message));
+
+            if (errors.Count == 0)
+                errors.Add(Error.TransactionError(ex.Message));
         }
+
+        return Response.Failure<User>([..errors]);
     }
 }

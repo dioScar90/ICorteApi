@@ -53,10 +53,14 @@ public sealed class Address : BasePrimaryKeyEntity<Address, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Address> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is AddressDtoRequest dto)
-            UpdateByAddressDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case AddressDtoRequest dto:
+                UpdateByAddressDto(dto, utcNow);
+                break;
+            default:
+                throw new Exception("Dados enviados inválidos");
+        }
     }
 
     public override AddressDtoResponse CreateDto() =>

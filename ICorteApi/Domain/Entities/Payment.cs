@@ -35,10 +35,14 @@ public sealed class Payment : BasePrimaryKeyEntity<Payment, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Payment> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is PaymentDtoRequest dto)
-            UpdateByPaymentDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case PaymentDtoRequest dto:
+                UpdateByPaymentDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override PaymentDtoResponse CreateDto() =>

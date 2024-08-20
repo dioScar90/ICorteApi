@@ -51,10 +51,14 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
 
     public override void UpdateEntityByDto(IDtoRequest<Appointment> requestDto, DateTime? utcNow = null)
     {
-        if (requestDto is AppointmentDtoRequest dto)
-            UpdateByAppointmentDto(dto, utcNow);
-            
-        throw new Exception("Dados enviados inválidos");
+        switch (requestDto)
+        {
+            case AppointmentDtoRequest dto:
+                UpdateByAppointmentDto(dto, utcNow);
+                break;
+            default:
+                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
+        }
     }
 
     public override AppointmentDtoResponse CreateDto() =>

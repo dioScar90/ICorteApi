@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
+using ICorteApi.Presentation.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,26 +13,26 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("SqliteConnection"),
         assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
     )
-    // Alternativas de banco de dados descomentadas conforme necessidade
-    //.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"), assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-    //.UseInMemoryDatabase("AppDb")
+// Alternativas de banco de dados descomentadas conforme necessidade
+//.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"), assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+//.UseInMemoryDatabase("AppDb")
 );
 
 builder.Services.AddHttpContextAccessor();
 
-// Adicionando serviços de aplicação
+// Most important applications services
+// This order was suggested by Chat GPT
 builder.Services
+    .AddIdentityConfigurations()
     .AddRepositories()
     .AddServices()
     .AddErrors()
     .AddValidators()
-    .AddExceptionHandlers();
-    
-builder.Services
     .AddAuthorizationRules()
-    .AddIdentityConfigurations()
+    .AddCookieConfiguration()
     .AddAntiCsrfConfiguration()
-    .AddCookieConfiguration();
+    .AddExceptionHandlers()
+;
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -61,12 +62,14 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 
-app.UseAuthentication();
+// After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
+// when `AddAuthorization` or `UseAuthorization` is also present.
 app.UseAuthorization();
 
 // Configuring all application endpoints.
 app.ConfigureMyEndpoints();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler("/error");
+// app.UseMiddleware<GlobalExceptionHandler>();
 
 app.Run();
