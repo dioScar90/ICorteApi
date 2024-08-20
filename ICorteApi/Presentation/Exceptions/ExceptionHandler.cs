@@ -14,10 +14,10 @@ public sealed class ExceptionHandler : IExceptionHandler
         {
             Title = GetTitleForProblemDetails(exception),
             Status = GetStatusCodeForProblemDetails(exception),
-            Detail = exception.Message ?? null,
+            Detail = GetErrorMessageForProblemDetails(exception),
         };
 
-        if (exception is BaseException ex && ex.Errors.Count > 0)
+        if (exception is BaseException ex and { Errors.Count: > 0 })
         {
             problemDetails.Extensions = new Dictionary<string, object?>
             {
@@ -26,7 +26,6 @@ public sealed class ExceptionHandler : IExceptionHandler
         }
         
         httpContext.Response.StatusCode = problemDetails.Status.Value;
-
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
         
         return true;
@@ -54,5 +53,17 @@ public sealed class ExceptionHandler : IExceptionHandler
             UnprocessableEntity         => StatusCodes.Status422UnprocessableEntity,
             MethodNotAllowedException   => StatusCodes.Status405MethodNotAllowed,
             _ => StatusCodes.Status500InternalServerError
+        };
+
+    private static string? GetErrorMessageForProblemDetails(Exception exception) => exception switch
+        {
+            UnauthorizedException       => exception.Message ?? null,
+            NotFoundException           => exception.Message ?? null,
+            BadRequestException         => exception.Message ?? null,
+            ForbiddenException          => exception.Message ?? null,
+            ConflictException           => exception.Message ?? null,
+            UnprocessableEntity         => exception.Message ?? null,
+            MethodNotAllowedException   => exception.Message ?? null,
+            _ => exception.ToString()
         };
 }
