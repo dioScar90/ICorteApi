@@ -23,14 +23,18 @@ public static class UserEndpoint
 
         group.MapGet("me", GetMe)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            
         group.MapPatch("changeEmail", UpdateUserEmail)
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
         group.MapPatch("changePassword", UpdateUserPassword)
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
         group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber)
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
         group.MapDelete(INDEX, DeleteUser)
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapPost("register", RegisterUser)
             .AllowAnonymous();

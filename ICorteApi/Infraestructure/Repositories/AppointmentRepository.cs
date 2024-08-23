@@ -5,6 +5,6 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class AppointmentRepository(AppDbContext context)
-    : BasePrimaryKeyRepository<Appointment, int>(context), IAppointmentRepository
+    : BaseRepository<Appointment>(context), IAppointmentRepository
 {
 }

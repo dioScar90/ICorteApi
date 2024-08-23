@@ -7,7 +7,7 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(ISpecialScheduleRepository repository)
-    : BaseCompositeKeyService<SpecialSchedule, DateOnly, int>(repository), ISpecialScheduleService
+    : BaseService<SpecialSchedule>(repository), ISpecialScheduleService
 {
     public async Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dtoRequest, int barberShopId)
     {
@@ -15,15 +15,20 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
         var entity = new SpecialSchedule(dto, barberShopId);
-        return await CreateByEntityAsync(entity);
+        return await CreateAsync(entity);
     }
 
-    public override async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
+    public async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return await _repository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+        return await GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+    }
+    
+    public async Task<ICollectionResponse<SpecialSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    {
+        return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
     }
 
-    public override async Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dtoRequest, DateOnly date, int barberShopId)
+    public async Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dtoRequest, DateOnly date, int barberShopId)
     {
         var resp = await GetByIdAsync(date, barberShopId);
 
@@ -33,10 +38,10 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dtoRequest);
 
-        return await _repository.UpdateAsync(entity);
+        return await UpdateAsync(entity);
     }
 
-    public override async Task<IResponse> DeleteAsync(DateOnly date, int barberShopId)
+    public async Task<IResponse> DeleteAsync(DateOnly date, int barberShopId)
     {
         var resp = await GetByIdAsync(date, barberShopId);
 
@@ -44,6 +49,6 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
             return resp;
 
         var entity = resp.Value!;
-        return await _repository.DeleteAsync(entity);
+        return await DeleteAsync(entity);
     }
 }

@@ -5,6 +5,6 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class MessageRepository(AppDbContext context)
-    : BasePrimaryKeyRepository<Message, int>(context), IMessageRepository
+    : BaseRepository<Message>(context), IMessageRepository
 {
 }

@@ -5,6 +5,7 @@ using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -41,11 +42,12 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> GetService(
+        int barberShopId,
         int id,
         IServiceService service,
         IServiceErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var res = await service.GetByIdAsync(id, barberShopId);
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
@@ -57,13 +59,13 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> GetAllServices(
-        int? page,
-        int? pageSize,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         int barberShopId,
-        IMessageService service,
-        IMessageErrors errors)
+        IServiceService service,
+        IServiceErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize);
+        var res = await service.GetAllAsync(page, pageSize, barberShopId);
 
         if (!res.IsSuccess)
             errors.ThrowBadRequestException(res.Error);
@@ -93,6 +95,7 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> UpdateService(
+        int barberShopId,
         int id,
         ServiceDtoRequest dto,
         IValidator<ServiceDtoRequest> validator,
@@ -101,7 +104,7 @@ public static class ServiceEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateAsync(dto, id);
+        var response = await service.UpdateAsync(dto, id, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowUpdateException();
@@ -110,11 +113,12 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> DeleteService(
+        int barberShopId,
         int id,
         IServiceService service,
         IServiceErrors errors)
     {
-        var response = await service.DeleteAsync(id);
+        var response = await service.DeleteAsync(id, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();

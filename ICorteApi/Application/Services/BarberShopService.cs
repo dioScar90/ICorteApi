@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
@@ -7,7 +8,7 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(IBarberShopRepository repository)
-    : BasePrimaryKeyService<BarberShop, int>(repository), IBarberShopService
+    : BaseService<BarberShop>(repository), IBarberShopService
 {
     public async Task<ISingleResponse<BarberShop>> CreateAsync(IDtoRequest<BarberShop> dtoRequest, int ownerId)
     {
@@ -15,16 +16,48 @@ public sealed class BarberShopService(IBarberShopRepository repository)
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
         var entity = new BarberShop(dto, ownerId);
-        return await CreateByEntityAsync(entity);
+        return await CreateAsync(entity);
     }
 
-    public override async Task<IResponse> DeleteAsync(int id)
+    private async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id, int ownerId, bool includes = false)
     {
-        var resp = await GetByIdAsync(id);
+        if (!includes)
+            return await GetByIdAsync(x => x.Id == id && x.OwnerId == ownerId);
+        
+        return await GetByIdAsync(
+            x => x.Id == id && x.OwnerId == ownerId,
+            x => x.Address,
+            x => x.RecurringSchedules,
+            x => x.SpecialSchedules,
+            x => x.Services);
+    }
+
+    public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
+    {
+        return await GetByIdAsync(x => x.Id == id);
+    }
+    
+    public async Task<IResponse> UpdateAsync(IDtoRequest<BarberShop> dtoRequest, int id, int ownerId)
+    {
+        var resp = await GetByIdAsync(id, ownerId);
 
         if (!resp.IsSuccess)
             return resp;
-        
-        return await _repository.DeleteAsync(resp.Value!);
+
+        var entity = resp.Value!;
+        entity.UpdateEntityByDto(dtoRequest);
+
+        return await UpdateAsync(entity);
+    }
+
+    public async Task<IResponse> DeleteAsync(int id, int ownerId)
+    {
+        var resp = await GetByIdAsync(id, ownerId, true);
+
+        if (!resp.IsSuccess)
+            return resp;
+
+        var entity = resp.Value!;
+        return await DeleteAsync(entity);
     }
 }

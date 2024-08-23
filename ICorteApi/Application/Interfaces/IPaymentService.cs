@@ -3,8 +3,10 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IPaymentService
-    : IBasePrimaryKeyService<Payment, int>, IHasOneForeignKeyService<Payment, int>
+public interface IPaymentService : IService<Payment>
 {
-    new Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dtoRequest, int appointmentId);
+    Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dtoRequest, int appointmentId);
+    Task<ISingleResponse<Payment>> GetByIdAsync(int id, int appointmentId);
+    Task<ICollectionResponse<Payment>> GetAllAsync(int? page, int? pageSize, int appointmentId);
+    Task<IResponse> DeleteAsync(int id, int appointmentId);
 }

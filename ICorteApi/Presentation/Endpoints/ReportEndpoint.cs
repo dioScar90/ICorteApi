@@ -5,6 +5,7 @@ using ICorteApi.Presentation.Enums;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,18 +18,22 @@ public static class ReportEndpoint
     public static IEndpointRouteBuilder MapReportEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME);
+
+        group.MapPost(INDEX, CreateReport)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
         group.MapGet(INDEX, GetAllReports)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
         group.MapGet("{id}", GetReport)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapPost(INDEX, CreateReport);
-        group.MapPut("{id}", UpdateReport);
-        group.MapDelete("{id}", DeleteReport);
+        group.MapPut("{id}", UpdateReport)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
+
+        group.MapDelete("{id}", DeleteReport)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
         return app;
     }
@@ -38,37 +43,6 @@ public static class ReportEndpoint
         string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Report + "/" + newId;
         object value = new { Message = "Pagamento criado com sucesso" };
         return Results.Created(uri, value);
-    }
-
-    public static async Task<IResult> GetReport(
-        int id,
-        IReportService service,
-        IReportErrors errors)
-    {
-        var res = await service.GetByIdAsync(id);
-
-        if (!res.IsSuccess)
-            errors.ThrowNotFoundException();
-
-        return Results.Ok(res.Value!.CreateDto());
-    }
-
-    public static async Task<IResult> GetAllReports(
-        int? page,
-        int? pageSize,
-        IReportService service,
-        IReportErrors errors)
-    {
-        var res = await service.GetAllAsync(page, pageSize);
-
-        if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error);
-
-        var dtos = res.Values!
-            .Select(c => c.CreateDto())
-            .ToList();
-
-        return Results.Ok(dtos);
     }
 
     public static async Task<IResult> CreateReport(
@@ -90,16 +64,54 @@ public static class ReportEndpoint
         return GetCreatedResult(res.Value!.Id, barberShopId);
     }
 
+    public static async Task<IResult> GetReport(
+        int barberShopId,
+        int id,
+        IReportService service,
+        IUserService userService,
+        IReportErrors errors)
+    {
+        int clientId = userService.GetMyUserId();
+        var res = await service.GetByIdAsync(id, clientId, barberShopId);
+
+        if (!res.IsSuccess)
+            errors.ThrowNotFoundException();
+
+        return Results.Ok(res.Value!.CreateDto());
+    }
+
+    public static async Task<IResult> GetAllReports(
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        int barberShopId,
+        IReportService service,
+        IReportErrors errors)
+    {
+        var res = await service.GetAllAsync(page, pageSize, barberShopId);
+
+        if (!res.IsSuccess)
+            errors.ThrowBadRequestException(res.Error);
+
+        var dtos = res.Values!
+            .Select(c => c.CreateDto())
+            .ToList();
+
+        return Results.Ok(dtos);
+    }
+
     public static async Task<IResult> UpdateReport(
+        int barberShopId,
         int id,
         ReportDtoRequest dto,
         IValidator<ReportDtoRequest> validator,
         IReportService service,
+        IUserService userService,
         IReportErrors errors)
     {
+        int clientId = userService.GetMyUserId();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var res = await service.UpdateAsync(dto, id);
+        var res = await service.UpdateAsync(dto, id, clientId, barberShopId);
 
         if (!res.IsSuccess)
             errors.ThrowUpdateException();
@@ -108,11 +120,14 @@ public static class ReportEndpoint
     }
 
     public static async Task<IResult> DeleteReport(
+        int barberShopId,
         int id,
         IReportService service,
+        IUserService userService,
         IReportErrors errors)
     {
-        var res = await service.DeleteAsync(id);
+        int clientId = userService.GetMyUserId();
+        var res = await service.DeleteAsync(id, clientId, barberShopId);
 
         if (!res.IsSuccess)
             errors.ThrowDeleteException();

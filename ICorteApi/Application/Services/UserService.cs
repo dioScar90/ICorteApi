@@ -13,6 +13,15 @@ public sealed class UserService(IUserRepository repository) : IUserService
 {
     private readonly IUserRepository _repository = repository;
 
+    public async Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
+    {
+        if (dtoRequest is not UserDtoRegisterRequest dto)
+            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+
+        var entity = new User(dto);
+        return await _repository.CreateUserAsync(entity, dto.Password);
+    }
+
     public async Task<ISingleResponse<User>> GetMeAsync()
     {
         return await _repository.GetMeAsync();
@@ -68,14 +77,5 @@ public sealed class UserService(IUserRepository repository) : IUserService
             return Response.Failure(Error.UserNotFound);
 
         return await _repository.DeleteAsync(user);
-    }
-
-    public async Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
-    {
-        if (dtoRequest is not UserDtoRegisterRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
-
-        var entity = new User(dto);
-        return await _repository.CreateUserAsync(entity, dto.Password);
     }
 }

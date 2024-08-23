@@ -7,7 +7,7 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class ProfileService(IProfileRepository repository)
-    : BasePrimaryKeyService<Profile, int>(repository), IProfileService
+    : BaseService<Profile>(repository), IProfileService
 {
     new private readonly IProfileRepository _repository = repository;
 
@@ -16,17 +16,25 @@ public sealed class ProfileService(IProfileRepository repository)
         if (dtoRequest is not ProfileDtoRegisterRequest dto)
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
-        var profile = new Profile(dto, userId);
-        return await _repository.CreateAsync(profile, dto.PhoneNumber);
+        var entity = new Profile(dto, userId);
+        return await _repository.CreateAsync(entity, dto.PhoneNumber);
     }
-
-    public override async Task<IResponse> DeleteAsync(int id)
+    
+    public async Task<ISingleResponse<Profile>> GetByIdAsync(int id, int userId)
     {
-        var resp = await GetByIdAsync(id);
+        return await GetByIdAsync(x => x.Id == id && x.Id == userId);
+    }
+    
+    public async Task<IResponse> UpdateAsync(IDtoRequest<Profile> dtoRequest, int id, int userId)
+    {
+        var resp = await GetByIdAsync(id, userId);
 
         if (!resp.IsSuccess)
             return resp;
 
-        return await _repository.DeleteAsync(resp.Value!);
+        var entity = resp.Value!;
+        entity.UpdateEntityByDto(dtoRequest);
+
+        return await UpdateAsync(entity);
     }
 }

@@ -4,7 +4,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Message : BasePrimaryKeyEntity<Message, int>
+public sealed class Message : BaseEntity<Message>
 {
     public string Content { get; private set; }
     public DateTime SentAt { get; private set; }

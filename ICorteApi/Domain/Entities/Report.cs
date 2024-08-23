@@ -5,7 +5,7 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Report : BasePrimaryKeyEntity<Report, int>
+public sealed class Report : BaseEntity<Report>
 {
     public string? Title { get; private set; }
     public string? Content { get; private set; }
@@ -17,7 +17,7 @@ public sealed class Report : BasePrimaryKeyEntity<Report, int>
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; init; }
 
-    private Report() {}
+    private Report() { }
 
     public Report(ReportDtoRequest dto, int? clientId = null, int? barberShopId = null)
     {
@@ -36,7 +36,7 @@ public sealed class Report : BasePrimaryKeyEntity<Report, int>
         Title = dto.Title;
         Content = dto.Content;
         Rating = dto.Rating;
-        
+
         UpdatedAt = utcNow;
     }
 

@@ -5,6 +5,6 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class AddressRepository(AppDbContext context)
-    : BasePrimaryKeyRepository<Address, int>(context), IAddressRepository
+    : BaseRepository<Address>(context), IAddressRepository
 {
 }

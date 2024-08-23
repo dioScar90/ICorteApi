@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentValidation;
 using ICorteApi.Application.Dtos;
 
@@ -20,6 +21,10 @@ public class ServiceDtoRequestValidator : AbstractValidator<ServiceDtoRequest>
             .GreaterThan(0).WithMessage("Preço precisa ser maior que R$ 0,00");
 
         RuleFor(x => x.Duration)
-            .NotNull().WithMessage("Duração do serivço não pode estar vazia");
+            .NotNull().WithMessage("Duração do serivço não pode estar vazia")
+            // .Must(TimeSpanChecker).WithMessage("Duração precisa estar no formato \"mm:ss\" ou \"hh:mm:ss\"");
+            .Must(TimeSpanChecker).WithMessage("Tempo de duração inválido");
     }
+    
+    private static bool TimeSpanChecker(string value) => Regex.IsMatch(value, @"^[\d{2}\:]\d{2}\:\d{2}\:\d{2}$");
 }

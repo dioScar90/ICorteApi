@@ -5,6 +5,6 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class ServiceRepository(AppDbContext context)
-    : BasePrimaryKeyRepository<Service, int>(context), IServiceRepository
+    : BaseRepository<Service>(context), IServiceRepository
 {
 }

@@ -19,7 +19,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
-    // public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

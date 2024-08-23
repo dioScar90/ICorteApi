@@ -20,9 +20,7 @@ public static class AddressEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
         
-        group.MapGet("{id}", GetAddress)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-        
+        group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
@@ -38,14 +36,15 @@ public static class AddressEndpoint
     }
 
     public static async Task<IResult> GetAddress(
+        int barberShopId,
         int id,
         IAddressService service,
         IAddressErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var res = await service.GetByIdAsync(id, barberShopId);
 
         if (!res.IsSuccess)
-            errors.ThrowNotFoundException();
+            errors.ThrowNotFoundException(res.Error);
 
         var address = res.Value!;
         
@@ -71,6 +70,7 @@ public static class AddressEndpoint
     }
 
     public static async Task<IResult> UpdateAddress(
+        int barberShopId,
         int id,
         AddressDtoRequest dto,
         IValidator<AddressDtoRequest> validator,
@@ -79,20 +79,21 @@ public static class AddressEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateAsync(dto, id);
+        var response = await service.UpdateAsync(dto, id, barberShopId);
 
         if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+            errors.ThrowUpdateException(response.Error);
 
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteAddress(
+        int barberShopId,
         int id,
         IAddressService service,
         IAddressErrors errors)
     {
-        var response = await service.DeleteAsync(id);
+        var response = await service.DeleteAsync(id, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();

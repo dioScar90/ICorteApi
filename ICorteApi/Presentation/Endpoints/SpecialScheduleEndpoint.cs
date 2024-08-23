@@ -5,6 +5,7 @@ using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,8 +18,7 @@ public static class SpecialScheduleEndpoint
     public static IEndpointRouteBuilder MapSpecialScheduleEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            .WithTags(ENDPOINT_NAME);
 
         group.MapGet(INDEX, GetAllSpecialSchedules)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
@@ -26,9 +26,14 @@ public static class SpecialScheduleEndpoint
         group.MapGet("{date}", GetSpecialSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateSpecialSchedule);
-        group.MapPut("{date}", UpdateSpecialSchedule);
-        group.MapDelete("{date}", DeleteSpecialSchedule);
+        group.MapPost(INDEX, CreateSpecialSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
+        group.MapPut("{date}", UpdateSpecialSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
+        group.MapDelete("{date}", DeleteSpecialSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         return app;
     }
@@ -56,13 +61,13 @@ public static class SpecialScheduleEndpoint
     }
 
     public static async Task<IResult> GetAllSpecialSchedules(
-        int? page,
-        int? pageSize,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         int barberShopId,
         ISpecialScheduleService service,
         ISpecialScheduleErrors errors)
     {
-        var response = await service.GetAllAsync(page, pageSize);
+        var response = await service.GetAllAsync(page, pageSize, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowNotFoundException();

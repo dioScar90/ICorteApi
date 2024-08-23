@@ -9,7 +9,7 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class BarberShopRepository(AppDbContext context, IUserRepository userRepository)
-    : BasePrimaryKeyRepository<BarberShop, int>(context), IBarberShopRepository
+    : BaseRepository<BarberShop>(context), IBarberShopRepository
 {
     private readonly IUserRepository _userRepository = userRepository;
     

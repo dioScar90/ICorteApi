@@ -2,7 +2,6 @@ namespace ICorteApi.Domain.Errors;
 
 public sealed record Error(string Code, string Description)
 {
-    // public static readonly Error None = new(string.Empty, string.Empty);
     public static readonly Error NullValue = new(string.Empty, string.Empty);
     public static readonly Error CreateError = new("Server Error", "Não foi possível criar o item");
     public static readonly Error UpdateError = new("Server Error", "Não foi possível atualizar o item");

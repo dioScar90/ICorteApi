@@ -5,15 +5,15 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Payment : BasePrimaryKeyEntity<Payment, int>
+public sealed class Payment : BaseEntity<Payment>
 {
     public PaymentType PaymentType { get; private set; }
     public decimal Amount { get; private set; }
-    
+
     public int AppointmentId { get; init; }
     public Appointment Appointment { get; init; }
 
-    private Payment() {}
+    private Payment() { }
 
     public Payment(PaymentDtoRequest dto, int? appointmentId = null)
     {
@@ -29,7 +29,7 @@ public sealed class Payment : BasePrimaryKeyEntity<Payment, int>
 
         PaymentType = dto.PaymentType;
         Amount = dto.Amount;
-        
+
         UpdatedAt = utcNow;
     }
 

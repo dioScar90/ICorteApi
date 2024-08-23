@@ -4,15 +4,15 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, DateOnly, int>
+public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 {
-    public DateOnly Date { get => Id1; init => Id1 = value; }
+    public DateOnly Date { get; init; }
     public string? Notes { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
     public bool IsClosed { get; set; } = false;
 
-    public int BarberShopId { get => Id2; init => Id2 = value; }
+    public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; set; }
 
     private SpecialSchedule() {}

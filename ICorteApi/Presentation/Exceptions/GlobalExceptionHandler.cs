@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Presentation.Exceptions;
 
@@ -24,19 +25,28 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             Detail = GetErrorMessageForProblemDetails(exception),
         };
 
-        if (exception is BaseException ex and { Errors.Count: > 0 })
+        if (IsAnExceptionForProblemDetails(exception))
         {
-            problemDetails.Extensions = new Dictionary<string, object?>
-            {
-                ["errors"] = ex.Errors
-            };
-        }
+            problemDetails.Extensions ??= new Dictionary<string, object?>();
 
+            if (exception is BaseException bEx)
+                problemDetails.Extensions["errors"] = bEx.Errors;
+
+            if (exception is DbUpdateException dbEx)
+                problemDetails.Extensions["realProblem"] = dbEx.InnerException?.Message ?? "Unknown problem";
+        }
+        
         httpContext.Response.StatusCode = problemDetails.Status.Value;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
         return true;
     }
+
+    private static bool IsAnExceptionForProblemDetails(Exception exception) =>
+        exception
+            is BaseException
+            or DbUpdateException
+        ;
 
     private static bool IsMappedExceptionType(Exception exception) =>
         exception
@@ -54,7 +64,9 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             or InvalidOperationException
             or KeyNotFoundException
             or NotSupportedException
-            or TimeoutException;
+            or TimeoutException
+            or DbUpdateException
+        ;
 
     private static string GetTitleForProblemDetails(Exception exception) => exception switch
         {
@@ -76,6 +88,9 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             KeyNotFoundException        => "KeyNotFound",
             NotSupportedException       => "NotSupported",
             TimeoutException            => "Timeout",
+
+            // EF Excceptions
+            DbUpdateException           => "DbUpdate",
 
             _ => "ServerError"
         };
@@ -101,6 +116,9 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         NotSupportedException => StatusCodes.Status405MethodNotAllowed,
         TimeoutException => StatusCodes.Status504GatewayTimeout,
 
+        // EF Excceptions
+        DbUpdateException => StatusCodes.Status500InternalServerError,
+
         _ => StatusCodes.Status500InternalServerError
     };
 
@@ -124,6 +142,9 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         KeyNotFoundException ex => ex?.Message ?? null,
         NotSupportedException ex => ex?.Message ?? null,
         TimeoutException ex => ex?.Message ?? null,
+
+        // EF Excceptions
+        DbUpdateException ex => ex?.Message ?? null,
 
         _ => exception?.Message ?? "Erro desconhecido"
     };
@@ -166,4 +187,28 @@ Descrição: Disparada quando uma operação assíncrona, como uma chamada de ba
 Status Code: 504 Gateway Timeout
 
 Esses códigos de status podem ser usados
+*/
+
+
+
+
+
+/*
+No Entity Framework, as exceptions mais comuns que você pode encontrar são:
+
+DbUpdateException: Ocorre quando há um erro ao salvar alterações no banco de dados. Pode envolver problemas de relacionamento, violação de chave estrangeira, ou qualquer falha ao aplicar as mudanças no banco.
+
+DbUpdateConcurrencyException: Lançada quando ocorre um conflito de concorrência durante uma operação de salvamento. Por exemplo, se dois usuários tentarem modificar a mesma entidade ao mesmo tempo.
+
+DbEntityValidationException: Usada no EF6, ocorre quando as validações de dados falham. No EF Core, validações são feitas com ValidationAttribute.
+
+InvalidOperationException: Ocorre em várias situações, como ao tentar acessar uma propriedade de navegação não carregada ou usar o contexto depois que ele foi descartado.
+
+ArgumentNullException: Lançada quando um argumento obrigatório é null, como ao tentar adicionar uma entidade sem chave primária.
+
+NotSupportedException: Ocorre quando uma operação não é suportada, como usar um método não traduzível para SQL em uma consulta LINQ.
+
+SqlException: Derivada de erros específicos do SQL Server, como timeout, deadlock ou problemas de conexão.
+
+Essas exceptions cobrem a maioria dos erros que você pode enfrentar ao usar o Entity Framework.
 */

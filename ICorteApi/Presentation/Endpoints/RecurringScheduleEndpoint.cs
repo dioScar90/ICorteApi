@@ -5,6 +5,7 @@ using FluentValidation;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -17,18 +18,22 @@ public static class RecurringScheduleEndpoint
     public static IEndpointRouteBuilder MapRecurringScheduleEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            .WithTags(ENDPOINT_NAME);
 
-        group.MapGet(INDEX, GetAllRecurringSchedules)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        group.MapPost(INDEX, CreateRecurringSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         group.MapGet("{dayOfWeek}", GetRecurringSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateRecurringSchedule);
-        group.MapPut("{dayOfWeek}", UpdateRecurringSchedule);
-        group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule);
+        group.MapGet(INDEX, GetAllRecurringSchedules)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapPut("{dayOfWeek}", UpdateRecurringSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            
+        group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         return app;
     }
@@ -56,13 +61,13 @@ public static class RecurringScheduleEndpoint
     }
 
     public static async Task<IResult> GetAllRecurringSchedules(
-        int? page,
-        int? pageSize,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         int barberShopId,
         IRecurringScheduleService service,
         IRecurringScheduleErrors errors)
     {
-        var response = await service.GetAllAsync(page, pageSize);
+        var response = await service.GetAllAsync(page, pageSize, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowNotFoundException();

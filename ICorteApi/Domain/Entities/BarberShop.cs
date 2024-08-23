@@ -4,7 +4,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
+public sealed class BarberShop : BaseEntity<BarberShop>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -21,7 +21,7 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
     public ICollection<Service> Services { get; init; } = [];
     public ICollection<Report> Reports { get; init; } = [];
 
-    private BarberShop() {}
+    private BarberShop() { }
 
     public BarberShop(BarberShopDtoRequest dto, int? ownerId = null)
     {
@@ -47,7 +47,7 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
 
         OwnerId = ownerId ?? default;
     }
-    
+
     private void UpdateByBarberShopDto(BarberShopDtoRequest dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
@@ -56,21 +56,13 @@ public sealed class BarberShop : BasePrimaryKeyEntity<BarberShop, int>
         Description = dto.Description ?? null;
         ComercialNumber = dto.ComercialNumber;
         ComercialEmail = dto.ComercialEmail;
-
-        var itemsToUpdateByRecurringSchedules =
-            from os in dto.RecurringSchedules
-            join bs in RecurringSchedules on os.DayOfWeek equals bs.DayOfWeek
-            select new { bs, os };
-
-        foreach (var updatingItems in itemsToUpdateByRecurringSchedules)
-            updatingItems.bs.UpdateEntityByDto(updatingItems.os, utcNow);
-
+        
         if (dto.Address is not null)
             Address?.UpdateEntityByDto(dto.Address, utcNow);
-
+        
         UpdatedAt = utcNow;
     }
-    
+
     public override void UpdateEntityByDto(IDtoRequest<BarberShop> requestDto, DateTime? utcNow = null)
     {
         switch (requestDto)

@@ -5,6 +5,7 @@ using ICorteApi.Presentation.Enums;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -23,7 +24,6 @@ public static class MessageEndpoint
         group.MapGet(INDEX, GetAllMessages);
         group.MapGet("{id}", GetMessage);
         group.MapPost(INDEX, CreateMessage);
-        group.MapPut("{id}", UpdateMessage);
         group.MapDelete("{id}", DeleteMessage);
 
         return app;
@@ -38,10 +38,11 @@ public static class MessageEndpoint
     
     public static async Task<IResult> GetMessage(
         int id,
+        int appointmentId,
         IMessageService service,
         IMessageErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var res = await service.GetByIdAsync(id, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
@@ -50,12 +51,13 @@ public static class MessageEndpoint
     }
 
     public static async Task<IResult> GetAllMessages(
-        int? page,
-        int? pageSize,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        int appointmentId,
         IMessageService service,
         IMessageErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize);
+        var res = await service.GetAllAsync(page, pageSize, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowBadRequestException(res.Error);
@@ -85,30 +87,14 @@ public static class MessageEndpoint
 
         return GetCreatedResult(res.Value!.Id, appointmentId);
     }
-
-    public static async Task<IResult> UpdateMessage(
-        int id,
-        MessageDtoRequest dto,
-        IValidator<MessageDtoRequest> validator,
-        IMessageService service,
-        IMessageErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        
-        var res = await service.UpdateAsync(dto, id);
-
-        if (!res.IsSuccess)
-            errors.ThrowUpdateException();
-
-        return Results.NoContent();
-    }
-
+    
     public static async Task<IResult> DeleteMessage(
+        int appointmentId,
         int id,
         IMessageService service,
         IMessageErrors errors)
     {
-        var res = await service.DeleteAsync(id);
+        var res = await service.DeleteAsync(id, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowDeleteException();

@@ -5,7 +5,7 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Address : BasePrimaryKeyEntity<Address, int>
+public sealed class Address : BaseEntity<Address>
 {
     public string Street { get; private set; }
     public string Number { get; private set; }
@@ -19,7 +19,7 @@ public sealed class Address : BasePrimaryKeyEntity<Address, int>
     public int BarberShopId { get; init; }
     public BarberShop? BarberShop { get; init; }
 
-    private Address() {}
+    private Address() { }
 
     public Address(AddressDtoRequest dto, int? barberShopId = null)
     {

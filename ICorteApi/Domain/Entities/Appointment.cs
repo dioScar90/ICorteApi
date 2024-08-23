@@ -5,7 +5,7 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
+public sealed class Appointment : BaseEntity<Appointment>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly StartTime { get; private set; }
@@ -16,12 +16,12 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
 
     public int ClientId { get; init; }
     public User Client { get; set; }
-    
+
     public ICollection<Message> Messages { get; init; } = [];
     public ICollection<Payment> Payments { get; init; } = [];
     public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
 
-    private Appointment() {}
+    private Appointment() { }
 
     public Appointment(AppointmentDtoRequest dto, int? clientId = null)
     {
@@ -34,7 +34,7 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
 
         ClientId = clientId ?? default;
     }
-    
+
     private void UpdateByAppointmentDto(AppointmentDtoRequest dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
@@ -45,7 +45,7 @@ public sealed class Appointment : BasePrimaryKeyEntity<Appointment, int>
         Notes = dto.Notes;
         TotalPrice = dto.TotalPrice;
         Status = dto.Status;
-        
+
         UpdatedAt = utcNow;
     }
 

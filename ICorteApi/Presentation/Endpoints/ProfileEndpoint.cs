@@ -18,20 +18,16 @@ public static class ProfileEndpoint
     public static IEndpointRouteBuilder MapProfileEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            .WithTags(ENDPOINT_NAME);
             
         group.MapPost(INDEX, CreateProfile)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
-        group.MapGet("{id}", GetProfileById);
-            // .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        group.MapGet("{id}", GetProfileById)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{id}", UpdateProfile);
-            // .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-
-        // group.MapDelete("{id}", DeleteProfile)
-        //     .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        group.MapPut("{id}", UpdateProfile)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
             
         return app;
     }
@@ -46,9 +42,11 @@ public static class ProfileEndpoint
     public static async Task<IResult> GetProfileById(
         int id,
         IProfileService service,
+        IUserService userService,
         IProfileErrors errors)
     {
-        var resp = await service.GetByIdAsync(id);
+        int userId = userService.GetMyUserId();
+        var resp = await service.GetByIdAsync(id, userId);
 
         if (!resp.IsSuccess)
             errors.ThrowNotFoundException(resp.Error);
@@ -83,34 +81,18 @@ public static class ProfileEndpoint
         IProfileErrors errors,
         IUserErrors userErrors)
     {
-        if (userService.GetMyUserId() != id)
+        int userId = userService.GetMyUserId();
+
+        if (userId != id)
             userErrors.ThrowWrongUserIdException(id);
         
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var resp = await service.UpdateAsync(dto, id);
+        var resp = await service.UpdateAsync(dto, id, userId);
 
         if (!resp.IsSuccess)
             errors.ThrowUpdateException(resp.Error);
 
         return Results.NoContent();
     }
-
-    // public static async Task<IResult> DeleteProfile(
-    //     int id,
-    //     IProfileService service,
-    //     IUserService userService,
-    //     IProfileErrors errors,
-    //     IUserErrors userErrors)
-    // {
-    //     if (userService.GetMyUserId() != id)
-    //         userErrors.ThrowWrongUserIdException(id);
-        
-    //     var resp = await service.DeleteAsync(id);
-
-    //     if (!resp.IsSuccess)
-    //         errors.ThrowDeleteException(resp.Error);
-
-    //     return Results.NoContent();
-    // }
 }

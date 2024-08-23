@@ -1,24 +1,40 @@
+using System.Linq.Expressions;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) : IBaseService<TEntity>
+public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) : IService<TEntity>
     where TEntity : class, IBaseTableEntity
 {
     protected readonly IBaseRepository<TEntity> _repository = repository;
     
-    public async Task<ISingleResponse<TEntity>> CreateByEntityAsync(TEntity entity)
+    protected async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
     {
         return await _repository.CreateAsync(entity);
     }
     
-    public async Task<ICollectionResponse<TEntity>> GetAllAsync(int? pageAux, int? pageSizeAux)
+    protected async Task<ISingleResponse<TEntity>> GetByIdAsync(
+        Expression<Func<TEntity, bool>> filterId,
+        params Expression<Func<TEntity, object>>[] includes)
     {
-        int page = pageAux is null or <= 0 ? 1 : (int)pageAux;
-        int pageSize = pageSizeAux is null or <= 0 ? 1 : (int)pageSizeAux;
-        
-        return await _repository.GetAllAsync(page, pageSize);
+        return await _repository.GetByIdAsync(filterId, includes);
+    }
+    
+    protected async Task<ICollectionResponse<TEntity>> GetAllAsync(GetAllProperties<TEntity> props)
+    {
+        return await _repository.GetAllAsync(props);
+    }
+
+    protected async Task<IResponse> UpdateAsync(TEntity entity)
+    {
+        return await _repository.UpdateAsync(entity);
+    }
+
+    protected async Task<IResponse> DeleteAsync(TEntity entity)
+    {
+        return await _repository.DeleteAsync(entity);
     }
 }

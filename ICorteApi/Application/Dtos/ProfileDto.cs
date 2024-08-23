@@ -15,7 +15,7 @@ public record ProfileDtoRequest(
     string FirstName,
     string LastName,
     Gender Gender,
-    string PhoneNumber,
+    // string PhoneNumber,
     string? ImageUrl = null
 ) : IDtoRequest<Profile>;
 

@@ -4,7 +4,7 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IProfileRepository
-    : IBasePrimaryKeyRepository<Profile, int>
+    : IBaseRepository<Profile>
 {
     Task<ISingleResponse<Profile>> CreateAsync(Profile profile, string phoneNumber);
 }

@@ -3,8 +3,10 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IAddressService
-    : IBasePrimaryKeyService<Address, int>, IHasOneForeignKeyService<Address, int>
+public interface IAddressService : IService<Address>
 {
-    new Task<ISingleResponse<Address>> CreateAsync(IDtoRequest<Address> dtoRequest, int barberShopId);
+    Task<ISingleResponse<Address>> CreateAsync(IDtoRequest<Address> dtoRequest, int barberShopId);
+    Task<ISingleResponse<Address>> GetByIdAsync(int id, int barberShopId);
+    Task<IResponse> UpdateAsync(IDtoRequest<Address> dtoRequest, int id, int barberShopId);
+    Task<IResponse> DeleteAsync(int id, int barberShopId);
 }

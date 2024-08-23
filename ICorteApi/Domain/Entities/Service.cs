@@ -6,7 +6,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Service : BasePrimaryKeyEntity<Service, int>
+public sealed class Service : BaseEntity<Service>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -21,13 +21,15 @@ public sealed class Service : BasePrimaryKeyEntity<Service, int>
 
     public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
 
-    private Service() {}
+    private Service() { }
 
     public Service(ServiceDtoRequest dto, int? barberShopId = null)
     {
         Name = dto.Name;
         Description = dto.Description;
         Price = dto.Price;
+        Duration = TimeSpan.TryParse(dto.Duration, out TimeSpan duration) ? duration : default;
+        Duration = new TimeSpan();
 
         BarberShopId = barberShopId ?? default;
     }
@@ -39,7 +41,8 @@ public sealed class Service : BasePrimaryKeyEntity<Service, int>
         Name = dto.Name;
         Description = dto.Description;
         Price = dto.Price;
-        
+        Duration = TimeSpan.TryParse(dto.Duration, out TimeSpan duration) ? duration : Duration;
+
         UpdatedAt = utcNow;
     }
 

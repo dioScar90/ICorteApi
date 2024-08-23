@@ -5,16 +5,15 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Interfaces;
 
-public interface IBaseUserEntity : IPrimaryKeyEntity<User, int>
+public interface IBaseUserEntity : IBaseEntity<User>
 {
     void UpdatedUserNow();
 }
 
-public interface IPrimaryKeyEntity<TEntity, TKey> : IBaseTableEntity<TEntity>
+public interface IBaseEntity<TEntity> : IBaseTableEntity<TEntity>
     where TEntity : class, IBaseTableEntity
-    where TKey : IEquatable<TKey>
 {
-    TKey Id { get; }
+    int Id { get; }
     DateTime CreatedAt { get; }
     DateTime? UpdatedAt { get; }
     bool IsDeleted { get; }
@@ -24,9 +23,17 @@ public interface IPrimaryKeyEntity<TEntity, TKey> : IBaseTableEntity<TEntity>
 
 public interface ICompositeKeyEntity<TEntity, TKey1, TKey2> : IBaseTableEntity<TEntity>
     where TEntity : class, IBaseTableEntity
+    where TKey1 : IEquatable<TKey1>
+    where TKey2 : IEquatable<TKey2>
 {
-    TKey1 Id1 { get; }
-    TKey2 Id2 { get; }
+    DateTime CreatedAt { get; }
+    DateTime? UpdatedAt { get; }
+    bool IsActive { get; }
+}
+
+public interface ICompositeKeyEntity<TEntity> : IBaseTableEntity<TEntity>
+    where TEntity : class, IBaseTableEntity
+{
     DateTime CreatedAt { get; }
     DateTime? UpdatedAt { get; }
     bool IsActive { get; }
@@ -39,4 +46,4 @@ public interface IBaseTableEntity<TEntity> : IBaseTableEntity
     IDtoResponse<TEntity> CreateDto();
 }
 
-public interface IBaseTableEntity {}
+public interface IBaseTableEntity { }

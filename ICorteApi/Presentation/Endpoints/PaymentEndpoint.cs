@@ -5,6 +5,7 @@ using ICorteApi.Presentation.Enums;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
 using ICorteApi.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -23,7 +24,6 @@ public static class PaymentEndpoint
         group.MapGet(INDEX, GetAllPayments);
         group.MapGet("{id}", GetPayment);
         group.MapPost(INDEX, CreatePayment);
-        group.MapPut("{id}", UpdatePayment);
         group.MapDelete("{id}", DeletePayment);
 
         return app;
@@ -37,11 +37,12 @@ public static class PaymentEndpoint
     }
     
     public static async Task<IResult> GetPayment(
+        int appointmentId,
         int id,
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var res = await service.GetByIdAsync(id, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
@@ -50,12 +51,13 @@ public static class PaymentEndpoint
     }
 
     public static async Task<IResult> GetAllPayments(
-        int? page,
-        int? pageSize,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        int appointmentId,
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize);
+        var res = await service.GetAllAsync(page, pageSize, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowBadRequestException(res.Error);
@@ -83,30 +85,14 @@ public static class PaymentEndpoint
 
         return GetCreatedResult(res.Value!.Id, appointmentId);
     }
-
-    public static async Task<IResult> UpdatePayment(
-        int id,
-        PaymentDtoRequest dto,
-        IValidator<PaymentDtoRequest> validator,
-        IPaymentService service,
-        IPaymentErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        
-        var res = await service.UpdateAsync(dto, id);
-
-        if (!res.IsSuccess)
-            errors.ThrowUpdateException();
-
-        return Results.NoContent();
-    }
-
+    
     public static async Task<IResult> DeletePayment(
+        int appointmentId,
         int id,
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.DeleteAsync(id);
+        var res = await service.DeleteAsync(id, appointmentId);
 
         if (!res.IsSuccess)
             errors.ThrowDeleteException();

@@ -3,6 +3,6 @@ using ICorteApi.Domain.Entities;
 namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IServiceRepository
-    : IBasePrimaryKeyRepository<Service, int>
+    : IBaseRepository<Service>
 {
 }

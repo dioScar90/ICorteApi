@@ -36,11 +36,12 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> GetAppointment(
+        int barberShopId,
         int id,
         IAppointmentService service,
         IAppointmentErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var res = await service.GetByIdAsync(id, barberShopId);
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
@@ -71,6 +72,7 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> UpdateAppointment(
+        int barberShopId,
         int id,
         AppointmentDtoRequest dto,
         IValidator<AppointmentDtoRequest> validator,
@@ -79,7 +81,7 @@ public static class AppointmentEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateAsync(dto, id);
+        var response = await service.UpdateAsync(dto, id, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowUpdateException();
@@ -88,11 +90,12 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> DeleteAppointment(
+        int barberShopId,
         int id,
         IAppointmentService service,
         IAppointmentErrors errors)
     {
-        var response = await service.DeleteAsync(id);
+        var response = await service.DeleteAsync(id, barberShopId);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();

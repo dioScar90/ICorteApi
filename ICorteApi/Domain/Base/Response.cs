@@ -42,8 +42,8 @@ public abstract record Response : IResponse
         where TValue : class, IBaseTableEntity => new(values, true);
     
     public static CollectionResponseWithPagination<TValue> Success<TValue>(
-        ICollection<TValue> values, int totalItems, int totalPages, int currentPage, int pageSize)
-        where TValue : class, IBaseTableEntity => new(values, true, totalItems, totalPages, currentPage, pageSize);
+        ICollection<TValue> values, ResponsePagination? pagination)
+        where TValue : class, IBaseTableEntity => new(values, true, pagination);
 
     public static Response Failure(params Error[]? error) => new FailureResponse(error);
 
@@ -69,18 +69,23 @@ public record CollectionResponse<TValue>(ICollection<TValue> Values, bool IsSucc
 }
 
 public record CollectionResponseWithPagination<TValue>(
-    ICollection<TValue> Values, bool IsSuccess,
-    int TotalItems, int TotalPages, int CurrentPage, int PageSize)
+    ICollection<TValue> Values,
+    bool IsSuccess,
+    IResponsePagination? Pagination)
     : Response(IsSuccess), ICollectionResponseWithPagination<TValue> where TValue : class, IBaseTableEntity
 {
     [NotNull]
     public ICollection<TValue> Values { get; init; } = Values;
-    public int TotalItems { get; init; } = TotalItems;
-    public int TotalPages { get; init; } = TotalPages;
-    public int CurrentPage { get; init; } = CurrentPage;
-    public int PageSize { get; init; } = PageSize;
+    public IResponsePagination? Pagination { get; init; } = Pagination;
 }
 
 public record SuccessResponse() : Response(true);
 
 public record FailureResponse(params Error[]? Error) : Response(false, Error);
+
+public record ResponsePagination(
+    int TotalItems,
+    int TotalPages,
+    int CurrentPage,
+    int PageSize
+) : IResponsePagination;

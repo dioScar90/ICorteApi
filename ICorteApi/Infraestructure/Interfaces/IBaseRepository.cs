@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Interfaces;
@@ -8,11 +9,11 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>
 {
     Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity);
 
-    Task<ICollectionResponse<TEntity>> GetAllAsync(
-        int page,
-        int pageSize,
-        Expression<Func<TEntity, bool>>? filter = null,
-        params Expression<Func<TEntity, object>>[]? includes);
+    Task<ISingleResponse<TEntity>> GetByIdAsync(
+        Expression<Func<TEntity, bool>> filterId,
+        params Expression<Func<TEntity, object>>[] includes);
+        
+    Task<ICollectionResponse<TEntity>> GetAllAsync(IGetAllProperties<TEntity> props);
 
     Task<IResponse> UpdateAsync(TEntity entity);
 

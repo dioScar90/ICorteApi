@@ -4,12 +4,12 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment, int, int>
+public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment>
 {
-    public int AppointmentId { get => Id1; init => Id1 = value; }
+    public int AppointmentId { get; init; }
     public Appointment Appointment { get; init; }
 
-    public int ServiceId { get => Id2; init => Id2 = value; }
+    public int ServiceId { get; init; }
     public Service Service { get; init; }
 
     private ServiceAppointment() {}

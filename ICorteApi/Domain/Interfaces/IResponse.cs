@@ -20,8 +20,13 @@ public interface ICollectionResponse<T> : IResponse where T : class, IBaseTableE
 
 public interface ICollectionResponseWithPagination<T> : ICollectionResponse<T> where T : class, IBaseTableEntity
 {
+    IResponsePagination Pagination { get; }
+}
+
+public interface IResponsePagination
+{
     int TotalItems { get; }
     int TotalPages { get; }
     int CurrentPage { get; }
     int PageSize { get; }
-}
+};

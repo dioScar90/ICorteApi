@@ -4,14 +4,14 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, DayOfWeek, int>
+public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 {
-    public DayOfWeek DayOfWeek { get => Id1; init => Id1 = value; }
+    public DayOfWeek DayOfWeek { get; init; }
 
     public TimeOnly OpenTime { get; private set; }
     public TimeOnly CloseTime { get; private set; }
 
-    public int BarberShopId { get => Id2; init => Id2 = value; }
+    public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; set; }
 
     private RecurringSchedule() {}

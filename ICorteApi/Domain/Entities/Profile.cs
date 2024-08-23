@@ -4,7 +4,7 @@ using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Profile : BasePrimaryKeyEntity<Profile, int>
+public sealed class Profile : BaseEntity<Profile>
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }

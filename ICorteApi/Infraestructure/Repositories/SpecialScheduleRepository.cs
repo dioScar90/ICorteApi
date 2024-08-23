@@ -5,6 +5,6 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class SpecialScheduleRepository(AppDbContext context)
-    : BaseCompositeKeyRepository<SpecialSchedule, DateOnly, int>(context), ISpecialScheduleRepository
+    : BaseRepository<SpecialSchedule>(context), ISpecialScheduleRepository
 {
 }

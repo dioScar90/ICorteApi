@@ -3,8 +3,9 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IProfileService
-    : IBasePrimaryKeyService<Profile, int>, IHasOneForeignKeyService<Profile, int>
+public interface IProfileService : IService<Profile>
 {
-    new Task<ISingleResponse<Profile>> CreateAsync(IDtoRequest<Profile> dtoRequest, int userId);
+    Task<ISingleResponse<Profile>> CreateAsync(IDtoRequest<Profile> dtoRequest, int userId);
+    Task<ISingleResponse<Profile>> GetByIdAsync(int id, int userId);
+    Task<IResponse> UpdateAsync(IDtoRequest<Profile> dtoRequest, int id, int userId);
 }

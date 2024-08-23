@@ -8,11 +8,11 @@ public record BarberShopDtoRequest(
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    AddressDtoRequest? Address,
-    RecurringScheduleDtoRequest[]? RecurringSchedules,
-    SpecialScheduleDtoRequest[]? SpecialSchedules,
-    ServiceDtoRequest[]? Services,
-    ReportDtoRequest[]? Reports
+    AddressDtoRequest? Address = null,
+    RecurringScheduleDtoRequest[]? RecurringSchedules = null,
+    SpecialScheduleDtoRequest[]? SpecialSchedules = null,
+    ServiceDtoRequest[]? Services = null,
+    ReportDtoRequest[]? Reports = null
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoResponse(

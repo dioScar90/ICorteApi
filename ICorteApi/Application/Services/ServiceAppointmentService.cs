@@ -6,14 +6,14 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class ServiceAppointmentService(IServiceAppointmentRepository repository)
-    : BaseCompositeKeyService<ServiceAppointment, int, int>(repository), IServiceAppointmentService
+    : BaseService<ServiceAppointment>(repository), IServiceAppointmentService
 {
-    public override async Task<ISingleResponse<ServiceAppointment>> GetByIdAsync(int appointmentId, int serviceId)
+    public async Task<ISingleResponse<ServiceAppointment>> GetByIdAsync(int appointmentId, int serviceId)
     {
-        return await _repository.GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
+        return await GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
     }
 
-    public override async Task<IResponse> UpdateAsync(IDtoRequest<ServiceAppointment> dtoRequest, int appointmentId, int serviceId)
+    public async Task<IResponse> UpdateAsync(IDtoRequest<ServiceAppointment> dtoRequest, int appointmentId, int serviceId)
     {
         var resp = await GetByIdAsync(appointmentId, serviceId);
 
@@ -23,10 +23,10 @@ public sealed class ServiceAppointmentService(IServiceAppointmentRepository repo
         var entity = resp.Value!;
         entity.UpdateEntityByDto(dtoRequest);
 
-        return await _repository.UpdateAsync(entity);
+        return await UpdateAsync(entity);
     }
 
-    public override async Task<IResponse> DeleteAsync(int appointmentId, int serviceId)
+    public async Task<IResponse> DeleteAsync(int appointmentId, int serviceId)
     {
         var resp = await GetByIdAsync(appointmentId, serviceId);
 
@@ -34,6 +34,6 @@ public sealed class ServiceAppointmentService(IServiceAppointmentRepository repo
             return resp;
 
         var entity = resp.Value!;
-        return await _repository.DeleteAsync(entity);
+        return await DeleteAsync(entity);
     }
 }

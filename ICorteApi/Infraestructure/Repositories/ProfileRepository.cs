@@ -9,7 +9,7 @@ using ICorteApi.Infraestructure.Interfaces;
 namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class ProfileRepository(AppDbContext context, IUserRepository userRepository)
-    : BasePrimaryKeyRepository<Profile, int>(context), IProfileRepository
+    : BaseRepository<Profile>(context), IProfileRepository
 {
     private readonly IUserRepository _userRepository = userRepository;
 

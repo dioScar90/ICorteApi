@@ -23,7 +23,7 @@ public static class BarberShopEndpoint
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("{id}", GetBarberShop)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
         
         group.MapPut("{id}", UpdateBarberShop)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
@@ -83,7 +83,8 @@ public static class BarberShopEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         
-        var resp = await service.UpdateAsync(dto, id);
+        int ownerId = userService.GetMyUserId();
+        var resp = await service.UpdateAsync(dto, id, ownerId);
 
         if (!resp.IsSuccess)
             errors.ThrowUpdateException(resp.Error);
@@ -97,7 +98,8 @@ public static class BarberShopEndpoint
         IUserService userService,
         IBarberShopErrors errors)
     {
-        var resp = await service.DeleteAsync(id);
+        int ownerId = userService.GetMyUserId();
+        var resp = await service.DeleteAsync(id, ownerId);
 
         if (!resp.IsSuccess)
             errors.ThrowDeleteException(resp.Error);

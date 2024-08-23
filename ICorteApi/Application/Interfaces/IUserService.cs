@@ -5,8 +5,9 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IUserService : IService<User>, IHasNoForeignKeyService<User>
+public interface IUserService : IService<User>
 {
+    Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest);
     Task<ISingleResponse<User>> GetMeAsync();
     Task<User> GetMyUserAsync();
     int GetMyUserId();
