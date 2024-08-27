@@ -21,7 +21,7 @@ public sealed class RecurringScheduleService(IRecurringScheduleRepository reposi
 
     public async Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return await GetByIdAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
+        return await base.GetByIdAsync(dayOfWeek, barberShopId);
     }
     
     public async Task<ICollectionResponse<RecurringSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId)

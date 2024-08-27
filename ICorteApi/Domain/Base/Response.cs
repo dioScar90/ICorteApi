@@ -6,11 +6,8 @@ namespace ICorteApi.Domain.Base;
 
 public abstract record Response : IResponse
 {
-    protected Response(bool isSuccess, params Error[]? error)
+    protected Response(bool isSuccess, params Error[] error)
     {
-        // if ((isSuccess && error != Error.None) || (!isSuccess && error == Error.None))
-        //     throw new ArgumentException("Invalid error", nameof(error));
-        
         if (!IsValidResponseConstruction(isSuccess, error))
             throw new ArgumentException("Invalid error", nameof(error));
 
@@ -18,12 +15,12 @@ public abstract record Response : IResponse
         Error = error;
     }
 
-    private static bool IsValidResponseConstruction(bool isSuccess, Error[]? error)
+    private static bool IsValidResponseConstruction(bool isSuccess, Error[] error)
     {
-        if (isSuccess && error is { Length: > 0 })
+        if (isSuccess && error.Length > 0)
             return false;
 
-        if (!isSuccess && error is not { Length: > 0 })
+        if (!isSuccess && error.Length == 0)
             return false;
 
         return true;
@@ -31,7 +28,7 @@ public abstract record Response : IResponse
 
     public bool IsSuccess { get; }
 
-    public Error[]? Error { get; }
+    public Error[] Error { get; }
 
     public static Response Success() => new SuccessResponse();
 
@@ -45,23 +42,23 @@ public abstract record Response : IResponse
         ICollection<TValue> values, ResponsePagination? pagination)
         where TValue : class, IBaseTableEntity => new(values, true, pagination);
 
-    public static Response Failure(params Error[]? error) => new FailureResponse(error);
+    public static Response Failure(params Error[] error) => new FailureResponse(error);
 
-    public static SingleResponse<TValue> Failure<TValue>(params Error[]? error)
+    public static SingleResponse<TValue> Failure<TValue>(params Error[] error)
         where TValue : class, IBaseTableEntity => new(default, false, error);
 
-    public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[]? error)
+    public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[] error)
         where TValue : class, IBaseTableEntity => new(default, false, error);
 }
 
-public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[]? Error)
+public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[] Error)
     : Response(IsSuccess, Error), ISingleResponse<TValue> where TValue : class, IBaseTableEntity
 {
     [NotNull]
     public TValue Value { get; init; } = Value;
 }
 
-public record CollectionResponse<TValue>(ICollection<TValue> Values, bool IsSuccess, params Error[]? Error)
+public record CollectionResponse<TValue>(ICollection<TValue> Values, bool IsSuccess, params Error[] Error)
     : Response(IsSuccess, Error), ICollectionResponse<TValue> where TValue : class, IBaseTableEntity
 {
     [NotNull]
@@ -81,7 +78,7 @@ public record CollectionResponseWithPagination<TValue>(
 
 public record SuccessResponse() : Response(true);
 
-public record FailureResponse(params Error[]? Error) : Response(false, Error);
+public record FailureResponse(params Error[] Error) : Response(false, Error);
 
 public record ResponsePagination(
     int TotalItems,

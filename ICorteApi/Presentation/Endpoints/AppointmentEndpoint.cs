@@ -11,7 +11,7 @@ namespace ICorteApi.Presentation.Endpoints;
 public static class AppointmentEndpoint
 {
     private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Appointment;
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment;
     private static readonly string ENDPOINT_NAME = EndpointNames.Appointment;
 
     public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
@@ -28,20 +28,19 @@ public static class AppointmentEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId, int barberShopId)
+    public static IResult GetCreatedResult(int newId)
     {
-        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Appointment + "/" + newId;
+        string uri = EndpointPrefixes.Appointment + "/" + newId;
         object value = new { Message = "Agendamento criado com sucesso" };
         return Results.Created(uri, value);
     }
 
     public static async Task<IResult> GetAppointment(
-        int barberShopId,
         int id,
         IAppointmentService service,
         IAppointmentErrors errors)
     {
-        var res = await service.GetByIdAsync(id, barberShopId);
+        var res = await service.GetByIdAsync(id);
 
         if (!res.IsSuccess)
             errors.ThrowNotFoundException();
@@ -53,7 +52,6 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> CreateAppointment(
-        int barberShopId,
         AppointmentDtoRequest dto,
         IValidator<AppointmentDtoRequest> validator,
         IAppointmentService service,
@@ -68,20 +66,21 @@ public static class AppointmentEndpoint
         if (!response.IsSuccess)
             errors.ThrowCreateException();
 
-        return GetCreatedResult(response.Value!.Id, barberShopId);
+        return GetCreatedResult(response.Value!.Id);
     }
 
     public static async Task<IResult> UpdateAppointment(
-        int barberShopId,
         int id,
         AppointmentDtoRequest dto,
         IValidator<AppointmentDtoRequest> validator,
         IAppointmentService service,
+        IUserService userService,
         IAppointmentErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var response = await service.UpdateAsync(dto, id, barberShopId);
+        int clientId = (await userService.GetMeAsync()).Value!.Id;
+        var response = await service.UpdateAsync(dto, id, clientId);
 
         if (!response.IsSuccess)
             errors.ThrowUpdateException();
@@ -90,12 +89,13 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> DeleteAppointment(
-        int barberShopId,
         int id,
         IAppointmentService service,
+        IUserService userService,
         IAppointmentErrors errors)
     {
-        var response = await service.DeleteAsync(id, barberShopId);
+        int clientId = (await userService.GetMeAsync()).Value!.Id;
+        var response = await service.DeleteAsync(id, clientId);
 
         if (!response.IsSuccess)
             errors.ThrowDeleteException();

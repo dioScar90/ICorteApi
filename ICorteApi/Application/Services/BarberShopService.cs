@@ -22,7 +22,7 @@ public sealed class BarberShopService(IBarberShopRepository repository)
     private async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id, int ownerId, bool includes = false)
     {
         if (!includes)
-            return await GetByIdAsync(x => x.Id == id && x.OwnerId == ownerId);
+            return await GetByIdAsync(id);
         
         return await GetByIdAsync(
             x => x.Id == id && x.OwnerId == ownerId,
@@ -34,7 +34,7 @@ public sealed class BarberShopService(IBarberShopRepository repository)
 
     public async Task<ISingleResponse<BarberShop>> GetByIdAsync(int id)
     {
-        return await GetByIdAsync(x => x.Id == id);
+        return await base.GetByIdAsync(id);
     }
     
     public async Task<IResponse> UpdateAsync(IDtoRequest<BarberShop> dtoRequest, int id, int ownerId)

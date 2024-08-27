@@ -17,6 +17,12 @@ public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) 
     }
     
     protected async Task<ISingleResponse<TEntity>> GetByIdAsync(
+        params object[] primaryKeys)
+    {
+        return await _repository.GetByIdAsync(primaryKeys);
+    }
+    
+    protected async Task<ISingleResponse<TEntity>> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes)
     {

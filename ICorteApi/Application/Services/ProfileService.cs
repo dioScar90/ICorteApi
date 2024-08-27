@@ -1,6 +1,8 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
@@ -22,7 +24,15 @@ public sealed class ProfileService(IProfileRepository repository)
     
     public async Task<ISingleResponse<Profile>> GetByIdAsync(int id, int userId)
     {
-        return await GetByIdAsync(x => x.Id == id && x.Id == userId);
+        var resp = await GetByIdAsync(id);
+        
+        if (!resp.IsSuccess)
+            return resp;
+
+        if (resp.Value!.Id != userId)
+            return Response.Failure<Profile>(Error.TEntityNotFound);
+
+        return resp;
     }
     
     public async Task<IResponse> UpdateAsync(IDtoRequest<Profile> dtoRequest, int id, int userId)

@@ -20,7 +20,7 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
 
     public async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return await GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+        return await base.GetByIdAsync(date, barberShopId);
     }
     
     public async Task<ICollectionResponse<SpecialSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId)

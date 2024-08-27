@@ -7,7 +7,7 @@ public record ServiceDtoRequest(
     string Name,
     string Description,
     decimal Price,
-    string Duration
+    TimeSpan Duration
 ) : IDtoRequest<Service>;
 
 public record ServiceDtoResponse(

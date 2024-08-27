@@ -1,68 +1,135 @@
 [
-    {
-        "email": "lionel@messi.com.br",
-        "password": "Dunno#2024"
-    }
-    ,
-    {
-        "firstName": "Lionel",
-        "lastName": "Messi",
-        "gender": 1,
-        "phoneNumber": "11912345678",
-        "imageUrl": null
-    }
-    ,
-    {
-        "name": "Barbearia de Messi",
-        "description": "Que, bobo!?",
-        "comercialNumber": "18981234567",
-        "comercialEmail": "lionel@messi.com.br",
-        "address": {
-            "street": "R Jose Santo de Dios",
-            "number": "10",
-            "neighborhood": "Centro",
-            "city": "Barcelona",
-            "state": 25,
-            "postalCode": "19167000",
-            "country": "Brasil"
-        },
-        "recurringSchedules": [
-            {
-                "dayOfWeek": 1,
-                "openTime": "09:00:00",
-                "closeTime": "18:00:00",
-                "isActive": true
+    [
+        {
+            "email": "lionel@messi.com.br",
+            "password": "Dunno#2024"
+        }
+        ,
+        {
+            "firstName": "Lionel",
+            "lastName": "Messi",
+            "gender": 1,
+            "phoneNumber": "11912345678",
+            "imageUrl": null
+        }
+        ,
+        {
+            "name": "Barbearia de Messi",
+            "description": "Que, bobo!?",
+            "comercialNumber": "18981234567",
+            "comercialEmail": "lionel@messi.com.br",
+            "address": {
+                "street": "R Jose Santo de Dios",
+                "number": "10",
+                "neighborhood": "Centro",
+                "city": "Barcelona",
+                "state": 25,
+                "postalCode": "19167000",
+                "country": "Brasil"
             },
-            {
-                "dayOfWeek": 2,
-                "openTime": "09:00:00",
-                "closeTime": "18:00:00",
-                "isActive": true
+            "recurringSchedules": [
+                {
+                    "dayOfWeek": 1,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 2,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 3,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 4,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 5,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 6,
+                    "openTime": "09:00:00",
+                    "closeTime": "12:00:00"
+                }
+            ]
+        }
+    ],
+    [
+        {
+            "email": "pato@abbondanzieri.com",
+            "password": "Dunno#2024"
+        }
+        ,
+        {
+            "firstName": "Pato",
+            "lastName": "Abbondanzieri",
+            "gender": 1,
+            "phoneNumber": "19988145678",
+            "imageUrl": null
+        }
+        ,
+        {
+            "name": "Barbearia de Abbondanzieri",
+            "description": "Que, bobo!?",
+            "comercialNumber": "19988145678",
+            "comercialEmail": "pato@abbondanzieri.com",
+            "address": {
+                "street": "R Jose Santo de Dios",
+                "number": "10",
+                "neighborhood": "Centro",
+                "city": "Barcelona",
+                "state": 25,
+                "postalCode": "19167000",
+                "country": "Brasil"
             },
-            {
-                "dayOfWeek": 3,
-                "openTime": "09:00:00",
-                "closeTime": "18:00:00",
-                "isActive": true
-            },
-            {
-                "dayOfWeek": 4,
-                "openTime": "09:00:00",
-                "closeTime": "18:00:00",
-                "isActive": true
-            },
-            {
-                "dayOfWeek": 5,
-                "openTime": "09:00:00",
-                "closeTime": "18:00:00",
-                "isActive": true
-            },
-            {
-                "dayOfWeek": 6,
-                "openTime": "09:00:00",
-                "closeTime": "12:00:00",
-                "isActive": true
-            }
-        ]
-    }
+            "recurringSchedules": [
+                {
+                    "dayOfWeek": 1,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 2,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 3,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 4,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                },
+                {
+                    "dayOfWeek": 5,
+                    "openTime": "09:00:00",
+                    "closeTime": "18:00:00"
+                }
+            ],
+            "specialSchedules": [
+                {
+                    "date": "2024-09-02",
+                    "openTime": null,
+                    "closeTime": null,
+                    "isClosed": true
+                },
+                {
+                    "date": "2024-09-07",
+                    "openTime": "08:00:00",
+                    "closeTime": "12:00:00",
+                    "isClosed": false
+                }
+            ]
+        }
+    ]
 ]

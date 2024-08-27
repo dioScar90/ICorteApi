@@ -1,6 +1,8 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
@@ -20,7 +22,15 @@ public sealed class MessageService(IMessageRepository repository)
 
     public async Task<ISingleResponse<Message>> GetByIdAsync(int id, int appointmentId)
     {
-        return await GetByIdAsync(x => x.Id == id && x.AppointmentId == appointmentId);
+        var resp = await GetByIdAsync(id);
+        
+        if (!resp.IsSuccess)
+            return resp;
+
+        if (resp.Value!.AppointmentId != appointmentId)
+            return Response.Failure<Message>(Error.TEntityNotFound);
+
+        return resp;
     }
     
     public async Task<ICollectionResponse<Message>> GetAllAsync(int? page, int? pageSize, int appointmentId)

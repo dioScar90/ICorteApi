@@ -1,6 +1,8 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
@@ -20,7 +22,15 @@ public sealed class ReportService(IReportRepository repository)
 
     public async Task<ISingleResponse<Report>> GetByIdAsync(int id, int clientId, int barberShopId)
     {
-        return await GetByIdAsync(x => x.Id == id && x.ClientId == clientId && x.BarberShopId == barberShopId);
+        var resp = await GetByIdAsync(id);
+        
+        if (!resp.IsSuccess)
+            return resp;
+            
+        if (resp.Value!.ClientId != clientId || resp.Value!.BarberShopId != barberShopId)
+            return Response.Failure<Report>(Error.TEntityNotFound);
+
+        return resp;
     }
     
     public async Task<ICollectionResponse<Report>> GetAllAsync(int? page, int? pageSize, int barberShopId)

@@ -21,16 +21,6 @@ public interface IBaseEntity<TEntity> : IBaseTableEntity<TEntity>
     void DeleteEntity();
 }
 
-public interface ICompositeKeyEntity<TEntity, TKey1, TKey2> : IBaseTableEntity<TEntity>
-    where TEntity : class, IBaseTableEntity
-    where TKey1 : IEquatable<TKey1>
-    where TKey2 : IEquatable<TKey2>
-{
-    DateTime CreatedAt { get; }
-    DateTime? UpdatedAt { get; }
-    bool IsActive { get; }
-}
-
 public interface ICompositeKeyEntity<TEntity> : IBaseTableEntity<TEntity>
     where TEntity : class, IBaseTableEntity
 {

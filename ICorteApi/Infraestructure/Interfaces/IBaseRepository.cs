@@ -9,6 +9,8 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>
 {
     Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity);
 
+    Task<ISingleResponse<TEntity>> GetByIdAsync(params object[] primaryKeys);
+
     Task<ISingleResponse<TEntity>> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes);

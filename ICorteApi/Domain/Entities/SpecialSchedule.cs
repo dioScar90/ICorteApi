@@ -10,7 +10,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
     public string? Notes { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
-    public bool IsClosed { get; set; } = false;
+    public bool IsClosed { get; set; }
 
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; set; }
@@ -22,16 +22,20 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
         Date = dto.Date;
         BarberShopId = barberShopId ?? default;
         
+        Notes = dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
+        IsClosed = dto is { OpenTime: null, CloseTime: null };
     }
     
     private void UpdateBySpecialScheduleDto(SpecialScheduleDtoRequest dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
-
+        
+        Notes = dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
+        IsClosed = dto is { OpenTime: null, CloseTime: null };
 
         UpdatedAt = utcNow;
     }

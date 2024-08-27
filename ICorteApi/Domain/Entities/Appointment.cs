@@ -12,7 +12,7 @@ public sealed class Appointment : BaseEntity<Appointment>
     public TimeOnly EndTime { get; private set; }
     public string? Notes { get; private set; }
     public decimal TotalPrice { get; private set; }
-    public AppointmentStatus Status { get; private set; }
+    public AppointmentStatus? Status { get; private set; }
 
     public int ClientId { get; init; }
     public User Client { get; set; }
@@ -27,12 +27,32 @@ public sealed class Appointment : BaseEntity<Appointment>
     {
         Date = dto.Date;
         StartTime = dto.StartTime;
-        EndTime = dto.EndTime;
+        EndTime = StartTime.AddHours(1);
         Notes = dto.Notes;
-        TotalPrice = dto.TotalPrice;
-        Status = dto.Status;
+        TotalPrice = 99.9M;
+        // Status = dto.Status;
+
+        ServiceAppointments = dto.ServiceIds.ToHashSet().Select(sId => new ServiceAppointment(sId, this)).ToArray();
+
+        Status = AppointmentStatus.Pending;
 
         ClientId = clientId ?? default;
+    }
+
+    private (ServiceAppointment[], int[]) GetServiceAppointmentsToAddAndToRemove(HashSet<int> serviceIds)
+    {
+        List<ServiceAppointment> itemsToRemove = [];
+        List<int> itemsToKeep = [];
+
+        foreach (var item in ServiceAppointments)
+        {
+            if (serviceIds.Contains(item.ServiceId))
+                itemsToKeep.Add(item.ServiceId);
+            else
+                itemsToRemove.Add(item);
+        }
+
+        return ([..itemsToRemove], [..serviceIds.Where(sId => !itemsToKeep.Contains(sId))]);
     }
 
     private void UpdateByAppointmentDto(AppointmentDtoRequest dto, DateTime? utcNow)
@@ -41,11 +61,32 @@ public sealed class Appointment : BaseEntity<Appointment>
 
         Date = dto.Date;
         StartTime = dto.StartTime;
-        EndTime = dto.EndTime;
+        // EndTime = dto.EndTime;
         Notes = dto.Notes;
-        TotalPrice = dto.TotalPrice;
-        Status = dto.Status;
+        // TotalPrice = dto.TotalPrice;
+        // Status = dto.Status;
 
+        // ServiceAppointments.Where(sa => dto.ServiceIds.Contains(sa.ServiceId));
+
+        // ServiceAppointments.Remove()
+
+
+        var (ServiceAppointmentsToRemove, serviceIdsToAdd) = GetServiceAppointmentsToAddAndToRemove([..dto.ServiceIds]);
+
+        foreach (var toRemove in ServiceAppointmentsToRemove)
+        {
+            // Console.WriteLine("\n\n\n");
+            // Console.WriteLine(toRemove.ServiceId);
+
+            ServiceAppointments.Remove(toRemove);
+        }
+        
+        foreach (var toAdd in serviceIdsToAdd)
+            ServiceAppointments.Add(new(toAdd, this));
+
+        Console.WriteLine("\n\n\n");
+        Console.WriteLine(string.Join(",", ServiceAppointments.Select(sa => sa.ServiceId)));
+        
         UpdatedAt = utcNow;
     }
 
@@ -66,9 +107,9 @@ public sealed class Appointment : BaseEntity<Appointment>
             Id,
             Date,
             StartTime,
-            EndTime,
+            ServiceAppointments.Aggregate(StartTime, (acc, curr) => acc.Add(curr.Service.Duration)),
             Notes,
-            TotalPrice,
-            Status
+            ServiceAppointments.Aggregate(0M, (acc, curr) => acc + curr.Service.Price),
+            Status ?? AppointmentStatus.Pending
         );
 }

@@ -5,13 +5,14 @@ using ICorteApi.Domain.Enums;
 namespace ICorteApi.Application.Dtos;
 
 public record AppointmentDtoRequest(
-    int BarberShopId,
+    // int BarberShopId,
     DateOnly Date,
     TimeOnly StartTime,
-    TimeOnly EndTime,
+    // TimeOnly EndTime,
     string? Notes,
-    decimal TotalPrice,
-    AppointmentStatus Status
+    // decimal TotalPrice,
+    // AppointmentStatus Status
+    int[] ServiceIds
 ) : IDtoRequest<Appointment>;
 
 public record AppointmentDtoResponse(

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -69,6 +70,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
         // This line is necessary for allow nullable types.
         Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
-        return underlyingType == typeof(DayOfWeek);
+        return underlyingType == typeof(DayOfWeek)
+            || underlyingType == typeof(Rating);
     }
 }

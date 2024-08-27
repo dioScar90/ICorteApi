@@ -6,6 +6,7 @@ using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
@@ -87,28 +88,21 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
 
         return Response.Failure<BarberShop>([..errors]);
     }
-    
-    public async Task<ICollectionResponse<BarberShop>> GetTop10BarbersWithAvailabilityAsync(int weekNumber)
-    {
-        var currentYear = DateTime.UtcNow.Year;
-        var startOfWeek = ISOWeek.ToDateTime(currentYear, weekNumber, DayOfWeek.Monday);
-        var endOfWeek = startOfWeek.AddDays(7);
 
-        var top10Barbers = await _dbSet
-            .Where(b => b.Reports.Any(r => r.Rating > 0))
-            .OrderByDescending(b => b.Reports.Average(r => (int)r.Rating))
+    public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(DayOfWeek startDayOfWeek, DayOfWeek endDayOfWeek, int take = 10)
+    {
+        return await _dbSet
+            .Where(b => b.Reports.Any(r => r.Rating > 0)) // Verifica se há ratings
+            .OrderByDescending(b => b.Reports.Average(r => (decimal)r.Rating)) // Ordena pela média dos ratings
             .Select(b => new 
             {
                 BarberShop = b,
                 Availability = b.RecurringSchedules
-                    .Where(s => s.OpenTime.HasValue && s.CloseTime.HasValue)
-                    .Where(s => s.DayOfWeek >= startOfWeek.DayOfWeek && s.DayOfWeek <= endOfWeek.DayOfWeek)
+                    .Where(s => s.DayOfWeek >= startDayOfWeek && s.DayOfWeek <= endDayOfWeek)
             })
-            .Where(b => b.Availability.Any())
-            .Take(10)
-            .Select(b => b.BarberShop)
-            .ToListAsync();
-
-        return Response.Success(top10Barbers);
+            .Where(b => b.Availability.Any()) // Filtra barbearias com disponibilidade
+            .Take(take) // Limita o número de resultados
+            .Select(b => b.BarberShop) // Seleciona as barbearias
+            .ToArrayAsync();
     }
 }

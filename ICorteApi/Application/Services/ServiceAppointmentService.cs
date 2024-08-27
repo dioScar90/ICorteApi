@@ -10,7 +10,7 @@ public sealed class ServiceAppointmentService(IServiceAppointmentRepository repo
 {
     public async Task<ISingleResponse<ServiceAppointment>> GetByIdAsync(int appointmentId, int serviceId)
     {
-        return await GetByIdAsync(x => x.AppointmentId == appointmentId && x.ServiceId == serviceId);
+        return await base.GetByIdAsync(appointmentId, serviceId);
     }
 
     public async Task<IResponse> UpdateAsync(IDtoRequest<ServiceAppointment> dtoRequest, int appointmentId, int serviceId)

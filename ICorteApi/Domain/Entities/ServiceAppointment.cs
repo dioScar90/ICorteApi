@@ -14,13 +14,10 @@ public sealed class ServiceAppointment : CompositeKeyEntity<ServiceAppointment>
 
     private ServiceAppointment() {}
 
-    public ServiceAppointment(ServiceAppointmentDtoRequest dto)
+    public ServiceAppointment(int serviceId, Appointment appointment)
     {
-        if (dto is not { AppointmentId: int, ServiceId: int })
-            throw new Exception("AppointmentId and ServiceId required");
-
-        AppointmentId = dto.AppointmentId;
-        ServiceId = dto.ServiceId;
+        Appointment = appointment;
+        ServiceId = serviceId;
     }
     
     private void UpdateByServiceAppointmentDto(ServiceAppointmentDtoRequest dto, DateTime? utcNow)

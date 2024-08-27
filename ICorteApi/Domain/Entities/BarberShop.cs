@@ -11,6 +11,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
     public string ComercialNumber { get; private set; }
     public string ComercialEmail { get; private set; }
     public string? ImageUrl { get; private set; }
+    public float Rating { get; private set; }
 
     public int OwnerId { get; init; }
     public User Owner { get; init; }
@@ -47,6 +48,8 @@ public sealed class BarberShop : BaseEntity<BarberShop>
 
         OwnerId = ownerId ?? default;
     }
+
+    public void UpdateRating(float rating) => Rating = rating;
 
     private void UpdateByBarberShopDto(BarberShopDtoRequest dto, DateTime? utcNow)
     {

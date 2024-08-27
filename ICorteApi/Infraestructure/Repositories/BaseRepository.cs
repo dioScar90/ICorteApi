@@ -23,6 +23,17 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     }
 
     public virtual async Task<ISingleResponse<TEntity>> GetByIdAsync(
+        params object[] primaryKeys)
+    {
+        var entity = await _dbSet.FindAsync(primaryKeys);
+        
+        if (entity is null)
+            return Response.Failure<TEntity>(Error.TEntityNotFound);
+
+        return Response.Success(entity);
+    }
+
+    public virtual async Task<ISingleResponse<TEntity>> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes)
     {
