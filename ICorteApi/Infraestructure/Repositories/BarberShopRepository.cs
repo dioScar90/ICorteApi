@@ -17,7 +17,7 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
     
     public override async Task<ISingleResponse<BarberShop>> CreateAsync(BarberShop barberShop)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -38,12 +38,12 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
                 throw new Exception();
             }
             
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success(barberShopResult.Value!);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
@@ -54,7 +54,7 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
 
     public override async Task<IResponse> DeleteAsync(BarberShop barberShop)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -75,12 +75,12 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
                 throw new Exception();
             }
                 
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success();
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));

@@ -1,7 +1,6 @@
 using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Infraestructure.Context;
 
@@ -18,7 +17,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<SpecialSchedule> SpecialSchedules { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
-    public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -108,13 +106,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .ToArray();
 
         foreach (var service in deletedServices)
-        {
-            var serviceAppointments = ServiceAppointments
-                .Where(sa => sa.ServiceId == service.Id)
-                .ToArray();
-
-            RemoveRange(serviceAppointments);
-        }
+            service.Appointments.Clear();
     }
 
     private void CheckForDeletedAppointments()
@@ -125,12 +117,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .ToArray();
 
         foreach (var appointment in deletedAppointments)
-        {
-            var serviceAppointments = ServiceAppointments
-                .Where(sa => sa.AppointmentId == appointment.Id)
-                .ToArray();
-
-            RemoveRange(serviceAppointments);
-        }
+            appointment.Services.Clear();
     }
 }

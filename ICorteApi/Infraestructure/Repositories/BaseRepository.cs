@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Linq.Expressions;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Errors;
@@ -5,6 +6,7 @@ using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
@@ -15,7 +17,10 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
 
     protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-
+    protected async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
+    protected async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
+    protected async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
+    
     public virtual async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
     {
         _dbSet.Add(entity);
@@ -37,7 +42,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes)
     {
-        IQueryable<TEntity> query = _dbSet.AsNoTracking();
+        IQueryable<TEntity> query = _dbSet;
         
         query = includes.Aggregate(query, (current, include) => current.Include(include));
         var entity = await query.SingleOrDefaultAsync(filterId);
@@ -50,7 +55,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     
     public virtual async Task<ICollectionResponse<TEntity>> GetAllAsync(IGetAllProperties<TEntity> props)
     {
-        IQueryable<TEntity> query = _dbSet.AsNoTracking();
+        IQueryable<TEntity> query = _dbSet.AsNoTrackingWithIdentityResolution();
         
         query = props.Includes.Aggregate(query, (current, include) => current.Include(include));
         query = query.Where(props.Filter);

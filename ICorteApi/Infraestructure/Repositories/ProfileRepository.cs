@@ -15,7 +15,7 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
 
     public async Task<ISingleResponse<Profile>> CreateAsync(Profile profile, string phoneNumber)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -44,12 +44,12 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
                 throw new Exception();
             }
 
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success(profileResult.Value!);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
@@ -60,7 +60,7 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
 
     public override async Task<IResponse> DeleteAsync(Profile profile)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -81,12 +81,12 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
                 throw new Exception();
             }
 
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success();
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));

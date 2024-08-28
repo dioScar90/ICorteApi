@@ -11,14 +11,11 @@ namespace ICorteApi.Infraestructure.Repositories;
 public sealed class AppointmentRepository(AppDbContext context)
     : BaseRepository<Appointment>(context), IAppointmentRepository
 {
-
     public async Task<ISingleResponse<Appointment>> GetByIdWithServicesAsync(int id)
     {
-        var appointment = await _dbSet.AsNoTracking()
-            .Include(x => x.ServiceAppointments)
-                .ThenInclude(sa => sa.Service)
+        var appointment = await _dbSet.Include(x => x.Services)
             .SingleOrDefaultAsync(x => x.Id == id);
-
+        
         if (appointment is null)
             return Response.Failure<Appointment>(Error.TEntityNotFound);
 

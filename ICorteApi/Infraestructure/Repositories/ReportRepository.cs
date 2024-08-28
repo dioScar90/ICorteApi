@@ -15,7 +15,7 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
 
     public override async Task<ISingleResponse<Report>> CreateAsync(Report report)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -36,12 +36,12 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
                 throw new Exception();
             }
             
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success(reportResult.Value!);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
@@ -52,7 +52,7 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
 
     public override async Task<IResponse> UpdateAsync(Report report)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -73,12 +73,12 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
                 throw new Exception();
             }
 
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success();
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
@@ -89,7 +89,7 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
 
     public override async Task<IResponse> DeleteAsync(Report report)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -110,12 +110,12 @@ public sealed class ReportRepository(AppDbContext context, IBarberShopRepository
                 throw new Exception();
             }
 
-            await transaction.CommitAsync();
+            await CommitAsync(transaction);
             return Response.Success();
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));

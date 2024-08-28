@@ -49,6 +49,11 @@ public abstract record Response : IResponse
 
     public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[] error)
         where TValue : class, IBaseTableEntity => new(default, false, error);
+
+    internal static IResponse Failure(Error removeError, Error[] errors)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[] Error)

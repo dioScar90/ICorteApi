@@ -9,5 +9,5 @@ public interface IServiceService : IService<Service>
     Task<ISingleResponse<Service>> GetByIdAsync(int id, int barberShopId);
     Task<ICollectionResponse<Service>> GetAllAsync(int? page, int? pageSize, int barberShopId);
     Task<IResponse> UpdateAsync(IDtoRequest<Service> dtoRequest, int id, int barberShopId);
-    Task<IResponse> DeleteAsync(int id, int barberShopId);
+    Task<IResponse> DeleteAsync(int id, int barberShopId, bool forceDelete);
 }

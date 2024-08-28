@@ -129,6 +129,50 @@
                     "closeTime": "12:00:00",
                     "isClosed": false
                 }
+            ],
+            "services": [
+                {
+                    "name": "Corte",
+                    "description": "Corte do bom",
+                    "price": 25,
+                    "duration": "00:30:00"
+                },
+                {
+                    "name": "Barba",
+                    "description": "A sua barba muito bem cuidada",
+                    "price": 15,
+                    "duration": "00:15:00"
+                },
+                {
+                    "name": "Barba e Cabelo",
+                    "description": "Você todo estiloso",
+                    "price": 38,
+                    "duration": "00:45:00"
+                },
+                {
+                    "name": "Conversa",
+                    "description": "Bora jogar conversa fora",
+                    "price": 99.9,
+                    "duration": "01:00:00"
+                }
+            ]
+        }
+    ],
+    [
+        {
+            "date": "2024-09-02",
+            "startTime": "12:00:00",
+            "notes": "Broaaaaaaa",
+            "serviceIds": [
+                1, 2
+            ]
+        },
+        {
+            "date": "2024-09-02",
+            "startTime": "14:00:00",
+            "notes": "Vamooooooooo",
+            "serviceIds": [
+                3, 4
             ]
         }
     ]

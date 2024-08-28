@@ -64,7 +64,7 @@ public static class AppointmentEndpoint
         var response = await service.CreateAsync(dto, clientId);
 
         if (!response.IsSuccess)
-            errors.ThrowCreateException();
+            errors.ThrowCreateException(response.Error);
 
         return GetCreatedResult(response.Value!.Id);
     }
@@ -83,7 +83,7 @@ public static class AppointmentEndpoint
         var response = await service.UpdateAsync(dto, id, clientId);
 
         if (!response.IsSuccess)
-            errors.ThrowUpdateException();
+            errors.ThrowUpdateException(response.Error);
 
         return Results.NoContent();
     }

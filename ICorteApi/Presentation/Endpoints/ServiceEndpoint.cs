@@ -18,8 +18,7 @@ public static class ServiceEndpoint
     public static IEndpointRouteBuilder MapServiceEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            .WithTags(ENDPOINT_NAME);
 
         group.MapGet("{id}", GetService)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
@@ -27,10 +26,15 @@ public static class ServiceEndpoint
         group.MapGet(INDEX, GetAllServices)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateService);
-        group.MapPut("{id}", UpdateService);
-        group.MapDelete("{id}", DeleteService);
+        group.MapPost(INDEX, CreateService)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
+        group.MapPut("{id}", UpdateService)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
+        group.MapDelete("{id}", DeleteService)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+            
         return app;
     }
     
@@ -113,15 +117,16 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> DeleteService(
+        bool? forceDelete,
         int barberShopId,
         int id,
         IServiceService service,
         IServiceErrors errors)
     {
-        var response = await service.DeleteAsync(id, barberShopId);
+        var response = await service.DeleteAsync(id, barberShopId, forceDelete is true);
 
         if (!response.IsSuccess)
-            errors.ThrowDeleteException();
+            errors.ThrowDeleteException(response.Error);
 
         return Results.NoContent();
     }

@@ -40,7 +40,7 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await _context.Database.BeginTransactionAsync();
         List<Error> errors = [];
 
         try

@@ -12,5 +12,8 @@ public class AppointmentMap : BaseMap<Appointment>
         builder.HasOne(a => a.Client)
             .WithMany(c => c.Appointments)
             .HasForeignKey(a => a.ClientId);
+
+        builder.HasMany(a => a.Services)
+            .WithMany(s => s.Appointments);
     }
 }

@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Infraestructure.Interfaces;
 

@@ -28,7 +28,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileRepository, ProfileRepository>();
         services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
-        services.AddScoped<IServiceAppointmentRepository, ServiceAppointmentRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -46,7 +45,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
         services.AddScoped<IReportService, ReportService>();
-        services.AddScoped<IServiceAppointmentService, ServiceAppointmentService>();
         services.AddScoped<IServiceService, ServiceService>();
         services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
         services.AddScoped<IUserService, UserService>();

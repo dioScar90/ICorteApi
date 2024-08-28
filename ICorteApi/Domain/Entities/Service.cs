@@ -19,10 +19,10 @@ public sealed class Service : BaseEntity<Service>
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; init; }
 
-    public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
+    public ICollection<Appointment> Appointments { get; init; } = [];
 
     private Service() { }
-
+    
     public Service(ServiceDtoRequest dto, int? barberShopId = null)
     {
         Console.WriteLine("\n\n");
@@ -30,7 +30,6 @@ public sealed class Service : BaseEntity<Service>
         Name = dto.Name;
         Description = dto.Description;
         Price = dto.Price;
-        // Duration = TimeSpan.TryParse(dto.Duration, out TimeSpan duration) ? duration : default;
         Duration = dto.Duration;
 
         BarberShopId = barberShopId ?? default;
@@ -48,7 +47,6 @@ public sealed class Service : BaseEntity<Service>
         Name = dto.Name;
         Description = dto.Description;
         Price = dto.Price;
-        // Duration = TimeSpan.TryParse(dto.Duration, out TimeSpan duration) ? duration : Duration;
         Duration = dto.Duration;
 
         UpdatedAt = utcNow;

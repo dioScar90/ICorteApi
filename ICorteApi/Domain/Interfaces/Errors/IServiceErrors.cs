@@ -1,3 +1,4 @@
+
 using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Domain.Interfaces;

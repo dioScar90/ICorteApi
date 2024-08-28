@@ -1,6 +1,8 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
@@ -9,6 +11,8 @@ namespace ICorteApi.Application.Services;
 public sealed class ServiceService(IServiceRepository repository)
     : BaseService<Service>(repository), IServiceService
 {
+    new private readonly IServiceRepository _repository = repository;
+    
     public async Task<ISingleResponse<Service>> CreateAsync(IDtoRequest<Service> dtoRequest, int barberShopId)
     {
         if (dtoRequest is not ServiceDtoRequest dto)
@@ -41,7 +45,7 @@ public sealed class ServiceService(IServiceRepository repository)
         return await UpdateAsync(entity);
     }
     
-    public async Task<IResponse> DeleteAsync(int id, int barberShopId)
+    public async Task<IResponse> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
         var resp = await GetByIdAsync(id, barberShopId);
 
@@ -49,6 +53,15 @@ public sealed class ServiceService(IServiceRepository repository)
             return resp;
 
         var entity = resp.Value!;
-        return await DeleteAsync(entity);
+
+        var thereAreAppointments = !forceDelete && await _repository.CheckCorrelatedAppointmentsAsync(entity.Id);
+
+        if (!thereAreAppointments)
+            return await DeleteAsync(entity);
+            
+        var appointments = await _repository.GetCorrelatedAppointmentsAsync(entity.Id);
+        var errorApointments = appointments.Select(a => new Error("Datas", a.Date.ToString())).ToArray();
+
+        return Response.Failure([Error.RemoveError, ..errorApointments]);
     }
 }
