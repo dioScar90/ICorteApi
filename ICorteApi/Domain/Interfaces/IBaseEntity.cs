@@ -1,7 +1,5 @@
-using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Interfaces;
 

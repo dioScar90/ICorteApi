@@ -8,7 +8,7 @@ public record BarberShopDtoRequest(
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    AddressDtoRequest? Address = null,
+    AddressDtoCreate? Address = null,
     RecurringScheduleDtoRequest[]? RecurringSchedules = null,
     SpecialScheduleDtoRequest[]? SpecialSchedules = null,
     ServiceDtoRequest[]? Services = null,

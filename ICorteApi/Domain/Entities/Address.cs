@@ -21,7 +21,7 @@ public sealed class Address : BaseEntity<Address>
 
     private Address() { }
 
-    public Address(AddressDtoRequest dto, int? barberShopId = null)
+    public Address(AddressDtoCreate dto, int? barberShopId = null)
     {
         Street = dto.Street;
         Number = dto.Number;
@@ -35,7 +35,7 @@ public sealed class Address : BaseEntity<Address>
         BarberShopId = barberShopId ?? default;
     }
 
-    private void UpdateByAddressDto(AddressDtoRequest dto, DateTime? utcNow)
+    private void UpdateByAddressDto(AddressDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -55,7 +55,7 @@ public sealed class Address : BaseEntity<Address>
     {
         switch (requestDto)
         {
-            case AddressDtoRequest dto:
+            case AddressDtoUpdate dto:
                 UpdateByAddressDto(dto, utcNow);
                 break;
             default:

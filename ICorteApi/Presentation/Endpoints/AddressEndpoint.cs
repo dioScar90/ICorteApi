@@ -19,7 +19,7 @@ public static class AddressEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-        
+
         group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
         group.MapPut("{id}", UpdateAddress);
@@ -27,7 +27,7 @@ public static class AddressEndpoint
 
         return app;
     }
-    
+
     public static IResult GetCreatedResult(int newId, int barberShopId)
     {
         string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Address + "/" + newId;
@@ -47,15 +47,15 @@ public static class AddressEndpoint
             errors.ThrowNotFoundException(res.Error);
 
         var address = res.Value!;
-        
+
         var addressDto = address.CreateDto();
         return Results.Ok(addressDto);
     }
 
     public static async Task<IResult> CreateAddress(
         int barberShopId,
-        AddressDtoRequest dto,
-        IValidator<AddressDtoRequest> validator,
+        AddressDtoCreate dto,
+        IValidator<AddressDtoCreate> validator,
         IAddressService service,
         IAddressErrors errors)
     {
@@ -72,8 +72,8 @@ public static class AddressEndpoint
     public static async Task<IResult> UpdateAddress(
         int barberShopId,
         int id,
-        AddressDtoRequest dto,
-        IValidator<AddressDtoRequest> validator,
+        AddressDtoUpdate dto,
+        IValidator<AddressDtoUpdate> validator,
         IAddressService service,
         IAddressErrors errors)
     {

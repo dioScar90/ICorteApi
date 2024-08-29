@@ -25,24 +25,17 @@ public sealed class Service : BaseEntity<Service>
     
     public Service(ServiceDtoRequest dto, int? barberShopId = null)
     {
-        Console.WriteLine("\n\n");
-        Console.WriteLine(dto.Duration);
         Name = dto.Name;
         Description = dto.Description;
         Price = dto.Price;
         Duration = dto.Duration;
 
         BarberShopId = barberShopId ?? default;
-        
-        Console.WriteLine(Duration);
     }
 
     private void UpdateByServiceDto(ServiceDtoRequest dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
-
-        Console.WriteLine("\n\n");
-        Console.WriteLine(dto.Duration);
 
         Name = dto.Name;
         Description = dto.Description;
@@ -50,8 +43,6 @@ public sealed class Service : BaseEntity<Service>
         Duration = dto.Duration;
 
         UpdatedAt = utcNow;
-        
-        Console.WriteLine(Duration);
     }
 
     public override void UpdateEntityByDto(IDtoRequest<Service> requestDto, DateTime? utcNow = null)

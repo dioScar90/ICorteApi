@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
-public static class MessageEndpoint
+public static class ChatEndpoint
 {
     private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment + "{appointmentId}" + EndpointPrefixes.Message;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Message;
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment + "/{appointmentId}/" + EndpointPrefixes.Chat;
+    private static readonly string ENDPOINT_NAME = EndpointNames.Chat;
 
     public static IEndpointRouteBuilder MapMessageEndpoint(this IEndpointRouteBuilder app)
     {
@@ -31,7 +31,7 @@ public static class MessageEndpoint
     
     public static IResult GetCreatedResult(int newId, int appointmentId)
     {
-        string uri = EndpointPrefixes.Appointment + "/" + appointmentId + "/" + EndpointPrefixes.Message + "/" + newId;
+        string uri = EndpointPrefixes.Appointment + "/" + appointmentId + "/" + EndpointPrefixes.Chat + "/" + newId;
         object value = new { Message = "Mensagem enviada com sucesso" };
         return Results.Created(uri, value);
     }
@@ -39,7 +39,7 @@ public static class MessageEndpoint
     public static async Task<IResult> GetMessage(
         int id,
         int appointmentId,
-        IMessageService service,
+        IChatService service,
         IMessageErrors errors)
     {
         var res = await service.GetByIdAsync(id, appointmentId);
@@ -54,7 +54,7 @@ public static class MessageEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
-        IMessageService service,
+        IChatService service,
         IMessageErrors errors)
     {
         var res = await service.GetAllAsync(page, pageSize, appointmentId);
@@ -73,7 +73,7 @@ public static class MessageEndpoint
         int appointmentId,
         MessageDtoRequest dto,
         IValidator<MessageDtoRequest> validator,
-        IMessageService service,
+        IChatService service,
         IUserService userService,
         IMessageErrors errors)
     {
@@ -91,7 +91,7 @@ public static class MessageEndpoint
     public static async Task<IResult> DeleteMessage(
         int appointmentId,
         int id,
-        IMessageService service,
+        IChatService service,
         IMessageErrors errors)
     {
         var res = await service.DeleteAsync(id, appointmentId);

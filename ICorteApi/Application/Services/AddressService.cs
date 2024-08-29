@@ -13,7 +13,7 @@ public sealed class AddressService(IAddressRepository repository)
 {
     public async Task<ISingleResponse<Address>> CreateAsync(IDtoRequest<Address> dtoRequest, int barberShopId)
     {
-        if (dtoRequest is not AddressDtoRequest dto)
+        if (dtoRequest is not AddressDtoCreate dto)
             throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
 
         var entity = new Address(dto, barberShopId);

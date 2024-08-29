@@ -3,7 +3,7 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IMessageService : IService<Message>
+public interface IChatService : IService<Message>
 {
     Task<ISingleResponse<Message>> CreateAsync(IDtoRequest<Message> dtoRequest, int appointmentId, int senderId);
     Task<ISingleResponse<Message>> GetByIdAsync(int id, int appointmentId);

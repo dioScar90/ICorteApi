@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class AddressDtoRequestValidator : AbstractValidator<AddressDtoRequest>
+public class AddressDtoUpdateValidator : AbstractValidator<AddressDtoUpdate>
 {
-    public AddressDtoRequestValidator()
+    public AddressDtoUpdateValidator()
     {
         RuleFor(x => x.Street)
             .NotEmpty().WithMessage("Logradouro é obrigatório")

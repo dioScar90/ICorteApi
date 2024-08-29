@@ -20,6 +20,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
     public ICollection<RecurringSchedule> RecurringSchedules { get; init; } = [];
     public ICollection<SpecialSchedule> SpecialSchedules { get; init; } = [];
     public ICollection<Service> Services { get; init; } = [];
+    public ICollection<Appointment> Appointments { get; init; } = [];
     public ICollection<Report> Reports { get; init; } = [];
 
     private BarberShop() { }
@@ -31,7 +32,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
         ComercialNumber = dto.ComercialNumber;
         ComercialEmail = dto.ComercialEmail;
 
-        if (dto.Address is AddressDtoRequest addressDto)
+        if (dto.Address is AddressDtoCreate addressDto)
             Address = new(addressDto);
 
         if (dto.RecurringSchedules is RecurringScheduleDtoRequest[] rsDto)
@@ -59,10 +60,10 @@ public sealed class BarberShop : BaseEntity<BarberShop>
         Description = dto.Description ?? null;
         ComercialNumber = dto.ComercialNumber;
         ComercialEmail = dto.ComercialEmail;
-        
+
         if (dto.Address is not null)
             Address?.UpdateEntityByDto(dto.Address, utcNow);
-        
+
         UpdatedAt = utcNow;
     }
 

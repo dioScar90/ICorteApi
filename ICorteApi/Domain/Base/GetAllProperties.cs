@@ -45,8 +45,8 @@ public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
 
     private static (int, int) GetSanitizedPagination(int? page, int? pageSize)
     {
-        int realPage = Math.Max(1, page ?? 0);
-        int realPageSize = Math.Clamp(pageSize ?? 0, 1, 25);
+        int realPage = Math.Max(1, page ?? 1);
+        int realPageSize = Math.Clamp(pageSize ?? 25, 1, 25);
 
         return (realPage, realPageSize);
     }

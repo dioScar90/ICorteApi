@@ -14,6 +14,13 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
 {
     private readonly IServiceRepository _serviceRepository = serviceRepository;
     new private readonly IAppointmentRepository _repository = repository;
+
+    private static bool IsServicesFromUniqueBarberShopId(Service[] services)
+    {
+        var ids = services.Select(s => s.BarberShopId).ToHashSet();
+        return ids.Count == 1;
+    }
+
     public async Task<ISingleResponse<Appointment>> CreateAsync(AppointmentDtoRequest dtoRequest, int clientId)
     {
         if (dtoRequest is not AppointmentDtoRequest dto)
@@ -23,8 +30,11 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
             throw new ArgumentException("Selecione pelo menos um serviço", nameof(dtoRequest));
 
         var services = await GetSpecificServicesByIdsAsync(dto.ServiceIds);
-        var entity = new Appointment(dto, services, clientId);
 
+        if (!IsServicesFromUniqueBarberShopId(services))
+            throw new ArgumentException("Serviços escolhidos precisam todos pertencer à mesma barbearia", nameof(dtoRequest));
+
+        var entity = new Appointment(dto, services, clientId);
         return await CreateAsync(entity);
     }
 
@@ -40,12 +50,6 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
             
         return resp;
     }
-
-    private static void CheckClientIdAsync(Appointment appointment, int clientId)
-    {
-        if (appointment.ClientId != clientId)
-            throw new UnauthorizedException("Agendamento não pertence ao usuário");
-    }
     
     public async Task<IResponse> UpdateAsync(AppointmentDtoRequest dtoRequest, int id, int clientId)
     {
@@ -55,19 +59,28 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
             return resp;
 
         var appointment = resp.Value!;
-        CheckClientIdAsync(appointment, clientId);
+        
+        if (appointment.ClientId != clientId)
+            throw new UnauthorizedException("Agendamento não pertence ao usuário");
         
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
         
-        var serviceIdsToAdd = dtoRequest.ServiceIds.Except(currentServiceIds).ToArray();
         var serviceIdsToRemove = currentServiceIds.Except(dtoRequest.ServiceIds).ToArray();
+        var serviceIdsToAdd = dtoRequest.ServiceIds.Except(currentServiceIds).ToArray();
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
 
         if (serviceIdsToAdd.Length > 0)
-            appointment.AddServices(await GetSpecificServicesByIdsAsync(serviceIdsToAdd));
+        {
+            var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
 
+            if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
+                throw new ArgumentException("Serviços escolhidos precisam todos pertencer à mesma barbearia", nameof(dtoRequest));
+
+            appointment.AddServices(servicesToAdd);
+        }
+        
         appointment.UpdateEntityByDto(dtoRequest);
         return await UpdateAsync(appointment);
     }
@@ -80,7 +93,9 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
             return resp;
 
         var appointment = resp.Value!;
-        CheckClientIdAsync(appointment, clientId);
+        
+        if (appointment.ClientId != clientId)
+            throw new UnauthorizedException("Agendamento não pertence ao usuário");
 
         return await DeleteAsync(appointment);
     }

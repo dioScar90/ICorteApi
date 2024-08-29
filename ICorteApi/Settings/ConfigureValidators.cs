@@ -7,7 +7,8 @@ public static class ConfigureValidators
 {
     public static void AddAll(WebApplicationBuilder builder)
     {
-        builder.Services.AddValidatorsFromAssemblyContaining<AddressDtoRequestValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<AddressDtoCreateValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<AddressDtoUpdateValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<AppointmentDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<BarberShopDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<MessageDtoRequestValidator>();

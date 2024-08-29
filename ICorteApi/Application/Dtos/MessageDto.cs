@@ -9,6 +9,7 @@ public record MessageDtoRequest(
 ) : IDtoRequest<Message>;
 
 public record MessageIsReadDtoRequest(
+    int Id,
     bool IsRead
 ) : IDtoRequest<Message>;
 

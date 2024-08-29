@@ -97,16 +97,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             RemoveRange(recurringSchedules, specialSchedules, services);
         }
     }
-
+    
     private void CheckForDeletedServices()
     {
         var deletedServices = ChangeTracker.Entries<Service>()
             .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
             .Select(e => e.Entity)
             .ToArray();
-
+            
         foreach (var service in deletedServices)
-            service.Appointments.Clear();
+            foreach (var appointment in service.Appointments.ToArray())
+                service.Appointments.Remove(appointment);
     }
 
     private void CheckForDeletedAppointments()
@@ -115,8 +116,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .Where(e => e.State == EntityState.Modified && e.Entity.IsDeleted)
             .Select(e => e.Entity)
             .ToArray();
-
+            
         foreach (var appointment in deletedAppointments)
-            appointment.Services.Clear();
+            foreach (var service in appointment.Services.ToArray())
+                appointment.Services.Remove(service);
     }
 }

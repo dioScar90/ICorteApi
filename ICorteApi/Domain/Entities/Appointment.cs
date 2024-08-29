@@ -16,6 +16,9 @@ public sealed class Appointment : BaseEntity<Appointment>
     public int ClientId { get; init; }
     public User Client { get; set; }
 
+    public int BarberShopId { get; init; }
+    public BarberShop BarberShop { get; set; }
+
     public ICollection<Message> Messages { get; init; } = [];
     public ICollection<Payment> Payments { get; init; } = [];
     public ICollection<Service> Services { get; init; } = [];
@@ -33,6 +36,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         Status = AppointmentStatus.Pending;
 
         ClientId = clientId;
+        BarberShopId = services[0].BarberShopId;
     }
 
     public void AddServices(Service[] servicesToAdd)
@@ -56,39 +60,7 @@ public sealed class Appointment : BaseEntity<Appointment>
 
         Date = dto.Date;
         StartTime = dto.StartTime;
-        // EndTime = dto.EndTime;
         Notes = dto.Notes;
-        // TotalPrice = dto.TotalPrice;
-        // Status = dto.Status;
-
-        // ServiceAppointments.Where(sa => dto.ServiceIds.Contains(sa.ServiceId));
-
-        // ServiceAppointments.Remove()
-
-
-        // var (servicesToRemove, idsToAdd) = GetServiceAppointmentsToAddAndToRemove([..dto.ServiceIds]);
-
-        // foreach (var toRemove in ServiceAppointmentsToRemove)
-        // {
-        //     // Console.WriteLine("\n\n\n");
-        //     // Console.WriteLine(toRemove.ServiceId);
-
-        //     ServiceAppointments.Remove(toRemove);
-        // }
-        
-        // foreach (var toAdd in serviceIdsToAdd)
-        //     ServiceAppointments.Add(new(toAdd, this));
-
-        // Console.WriteLine("\n\n\n");
-        // Console.WriteLine(string.Join(",", ServiceAppointments.Select(sa => sa.ServiceId)));
-
-        // foreach (var toRemove in servicesToRemove)
-        //     Services.Remove(toRemove);
-
-        // foreach (var toAdd in idsToAdd)
-        //     Services.Add(new(toAdd));
-
-        // Services = services;
         
         UpdatedAt = utcNow;
     }

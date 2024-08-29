@@ -20,8 +20,9 @@ public static class AppointmentEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{id}", GetAppointment);
         group.MapPost(INDEX, CreateAppointment);
+        group.MapGet("{id}", GetAppointment);
+        // group.MapGet(INDEX, GetAllAppointments);
         group.MapPut("{id}", UpdateAppointment);
         group.MapDelete("{id}", DeleteAppointment);
 

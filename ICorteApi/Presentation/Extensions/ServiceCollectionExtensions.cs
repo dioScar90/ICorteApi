@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IBarberShopService, BarberShopService>();
-        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
@@ -71,7 +71,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddValidators(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<AddressDtoRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddressDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddressDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<AppointmentDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<PaymentDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<BarberShopDtoRequestValidator>();
@@ -239,7 +240,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     public static IServiceCollection AddCustomDataProtection(this IServiceCollection services)
     {
         _ = services.AddDataProtection()

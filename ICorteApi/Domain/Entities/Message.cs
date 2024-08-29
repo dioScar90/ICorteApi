@@ -66,7 +66,7 @@ public sealed class Message : BaseEntity<Message>
             Content,
             SentAt,
             IsRead,
-            Sender.Id,
+            SenderId,
             Sender.Profile.FirstName,
             Sender.Profile.LastName
         );

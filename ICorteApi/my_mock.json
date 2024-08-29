@@ -161,15 +161,15 @@
     [
         {
             "date": "2024-09-02",
-            "startTime": "12:00:00",
+            "startTime": "21:00:00",
             "notes": "Broaaaaaaa",
             "serviceIds": [
                 1, 2
             ]
         },
         {
-            "date": "2024-09-02",
-            "startTime": "14:00:00",
+            "date": "2024-09-04",
+            "startTime": "22:00:00",
             "notes": "Vamooooooooo",
             "serviceIds": [
                 3, 4
