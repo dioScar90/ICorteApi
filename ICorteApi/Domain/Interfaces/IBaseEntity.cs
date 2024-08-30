@@ -8,8 +8,12 @@ public interface IBaseUserEntity : IBaseEntity<User>
     void UpdatedUserNow();
 }
 
-public interface IBaseEntity<TEntity> : IBaseTableEntity<TEntity>
+public interface IBaseEntity<TEntity> : IBaseEntity, IBaseTableEntity<TEntity>
     where TEntity : class, IBaseTableEntity
+{
+}
+
+public interface IBaseEntity
 {
     int Id { get; }
     DateTime CreatedAt { get; }

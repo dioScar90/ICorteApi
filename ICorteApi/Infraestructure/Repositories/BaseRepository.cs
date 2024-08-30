@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.Linq.Expressions;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Errors;
@@ -87,16 +86,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 
     public virtual async Task<IResponse> DeleteAsync(TEntity entity)
     {
-        if (entity is IBaseEntity<TEntity> baseEntity)
-        {
-            baseEntity.DeleteEntity();
-            _dbSet.Update(entity); // Update because here it's soft delete
-        }
-        else
-        {
-            _dbSet.Remove(entity);
-        }
-
+        _dbSet.Remove(entity);
         return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
     }
 }

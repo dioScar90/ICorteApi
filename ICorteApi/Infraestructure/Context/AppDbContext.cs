@@ -1,6 +1,7 @@
 using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Context;
 
@@ -42,6 +43,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         CheckForDeletedBarberShops();
         CheckForDeletedServices();
         CheckForDeletedAppointments();
+
+        var entities = ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Deleted)
+            .ToList();
+
+        foreach (var entry in entities)
+        {
+            if (entry.Entity is IBaseEntity baseEntity)
+            {
+                entry.State = EntityState.Modified;
+                baseEntity.DeleteEntity();
+            }
+        }
     }
 
     private void CheckForDeletedUsers()
@@ -82,19 +96,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 Update(address);
             }
 
-            var recurringSchedules = RecurringSchedules
-                .Where(rs => rs.BarberShopId == barberShop.Id)
-                .ToArray();
+            var services = Services
+                .Where(s => s.BarberShopId == barberShop.Id)
+                .ToArray() ?? [];
+
+            if (services.Length > 0)
+                RemoveRange([..services]);
 
             var specialSchedules = SpecialSchedules
                 .Where(ss => ss.BarberShopId == barberShop.Id)
-                .ToArray();
+                .ToArray() ?? [];
 
-            var services = Services
-                .Where(s => s.BarberShopId == barberShop.Id)
-                .ToArray();
+            if (specialSchedules.Length > 0)
+                RemoveRange([..specialSchedules]);
 
-            RemoveRange(recurringSchedules, specialSchedules, services);
+            var recurringSchedules = RecurringSchedules
+                .Where(rs => rs.BarberShopId == barberShop.Id)
+                .ToArray() ?? [];
+
+            if (recurringSchedules.Length > 0)
+                RemoveRange([..recurringSchedules]);
         }
     }
     
