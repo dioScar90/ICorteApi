@@ -11,7 +11,7 @@ public sealed class BarberShopService(IBarberShopRepository repository, IBarberS
 {
     private readonly IBarberShopErrors _errors = errors;
 
-    public async Task<BarberShop?> CreateAsync(BarberShopDtoRequest dto, int ownerId)
+    public async Task<BarberShop?> CreateAsync(BarberShopDtoCreate dto, int ownerId)
     {
         var barberShop = new BarberShop(dto, ownerId);
         return await CreateAsync(barberShop);
@@ -35,7 +35,7 @@ public sealed class BarberShopService(IBarberShopRepository repository, IBarberS
         return await base.GetByIdAsync(id);
     }
     
-    public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id, int ownerId)
+    public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)
     {
         var barberShop = await GetByIdAsync(id);
 

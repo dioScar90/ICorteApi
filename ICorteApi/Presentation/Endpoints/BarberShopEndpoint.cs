@@ -55,8 +55,8 @@ public static class BarberShopEndpoint
     }
     
     public static async Task<IResult> CreateBarberShop(
-        BarberShopDtoRequest dto,
-        IValidator<BarberShopDtoRequest> validator,
+        BarberShopDtoCreate dto,
+        IValidator<BarberShopDtoCreate> validator,
         IBarberShopService service,
         IUserService userService,
         IBarberShopErrors errors)
@@ -74,8 +74,8 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> UpdateBarberShop(
         int id,
-        BarberShopDtoRequest dto,
-        IValidator<BarberShopDtoRequest> validator,
+        BarberShopDtoUpdate dto,
+        IValidator<BarberShopDtoUpdate> validator,
         IBarberShopService service,
         IUserService userService,
         IBarberShopErrors errors)
