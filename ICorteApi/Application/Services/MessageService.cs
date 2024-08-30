@@ -1,77 +1,75 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ChatService(IMessageRepository repository)
-    : BaseService<Message>(repository), IChatService
+public sealed class MessageService(IMessageRepository repository, IMessageErrors errors)
+    : BaseService<Message>(repository), IMessageService
 {
+    private readonly IMessageErrors _errors = errors;
     new private readonly IMessageRepository _repository = repository;
-    public async Task<ISingleResponse<Message>> CreateAsync(IDtoRequest<Message> dtoRequest, int appointmentId, int senderId)
-    {
-        if (dtoRequest is not MessageDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
-
-        var entity = new Message(dto, appointmentId, senderId);
-        return await CreateAsync(entity);
-    }
-
-    public async Task<ISingleResponse<Message>> GetByIdAsync(int id, int appointmentId)
-    {
-        var resp = await GetByIdAsync(id);
-        
-        if (!resp.IsSuccess)
-            return resp;
-
-        if (resp.Value!.AppointmentId != appointmentId)
-            return Response.Failure<Message>(Error.TEntityNotFound);
-
-        return resp;
-    }
     
-    public async Task<ICollectionResponse<Message>> GetAllAsync(int? page, int? pageSize, int appointmentId)
+    public async Task<Message?> CreateAsync(MessageDtoRequest dto, int appointmentId, int senderId)
+    {
+        var message = new Message(dto, appointmentId, senderId);
+        return await CreateAsync(message);
+    }
+
+    public async Task<Message?> GetByIdAsync(int id, int appointmentId)
+    {
+        var message = await GetByIdAsync(id);
+
+        if (message is null)
+            _errors.ThrowNotFoundException();
+
+        if (message!.AppointmentId != appointmentId)
+            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
+
+        return message;
+    }
+
+    public async Task<Message[]> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
         return await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
     }
-    
-    public async Task<IResponse> DeleteAsync(int id, int appointmentId)
+
+    public async Task<bool> DeleteAsync(int id, int appointmentId)
     {
-        var resp = await GetByIdAsync(id, appointmentId);
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        var message = await GetByIdAsync(id, appointmentId);
+        return await DeleteAsync(message!);
     }
-    
-    public async Task<ISingleResponse<Message>> SendMessageAsync(MessageDtoRequest dtoRequest, int appointmentId, int senderId)
+
+    public async Task<Message?> SendMessageAsync(MessageDtoRequest dtoRequest, int appointmentId, int senderId)
     {
         var entity = new Message(dtoRequest, appointmentId, senderId);
         return await CreateAsync(entity);
     }
-    
-    public async Task<IResponse> MarkMessageAsReadAsync(MessageIsReadDtoRequest[] dtoRequest, int senderId)
+
+    public async Task<bool> MarkMessageAsReadAsync(MessageIsReadDtoRequest[] dtoRequest, int senderId)
     {
         var ids = dtoRequest.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
         return await _repository.MarkMessageAsReadAsync(ids, senderId);
     }
-    
-    public async Task<IResponse> DeleteMessageAsync(int id, int appointmentId, int senderId)
+
+    public async Task<bool> DeleteMessageAsync(int id, int appointmentId, int senderId)
     {
-        var resp = await GetByIdAsync(x => x.Id == id && x.AppointmentId == appointmentId && x.SenderId == senderId);
+        var message = await GetByIdAsync(id);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (message is null)
+            _errors.ThrowNotFoundException();
 
-        return await DeleteAsync(resp.Value!);
+        if (message!.AppointmentId != appointmentId)
+            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
+
+        if (message.SenderId != senderId)
+            _errors.ThrowMessageNotBelongsToSenderException(senderId);
+
+        return await DeleteAsync(message);
     }
-    
+
     public async Task<MessageDtoResponse[]> GetLastMessagesAsync(int appointmentId, int senderId, int? lastMessageId)
     {
         return await _repository.GetLastMessagesAsync(appointmentId, senderId, lastMessageId);

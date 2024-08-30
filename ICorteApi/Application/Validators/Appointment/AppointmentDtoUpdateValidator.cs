@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class AppointmentDtoRequestValidator : AbstractValidator<AppointmentDtoRequest>
+public class AppointmentDtoUpdateValidator : AbstractValidator<AppointmentDtoUpdate>
 {
-    public AppointmentDtoRequestValidator()
+    public AppointmentDtoUpdateValidator()
     {
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Data do agendamento é obrigatória")

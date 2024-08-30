@@ -63,8 +63,8 @@ public static class AppointmentEndpoint
     // }
 
     public static async Task<IResult> CreateAppointment(
-        AppointmentDtoRequest dto,
-        IValidator<AppointmentDtoRequest> validator,
+        AppointmentDtoCreate dto,
+        IValidator<AppointmentDtoCreate> validator,
         IAppointmentService service,
         IUserService userService,
         IAppointmentErrors errors)
@@ -82,8 +82,8 @@ public static class AppointmentEndpoint
 
     public static async Task<IResult> UpdateAppointment(
         int id,
-        AppointmentDtoRequest dto,
-        IValidator<AppointmentDtoRequest> validator,
+        AppointmentDtoUpdate dto,
+        IValidator<AppointmentDtoUpdate> validator,
         IAppointmentService service,
         IUserService userService,
         IAppointmentErrors errors)

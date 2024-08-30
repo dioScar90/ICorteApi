@@ -28,18 +28,18 @@ public static class ChatEndpoint
 
         return app;
     }
-    
+
     public static IResult GetCreatedResult(int newId, int appointmentId)
     {
         string uri = EndpointPrefixes.Appointment + "/" + appointmentId + "/" + EndpointPrefixes.Chat + "/" + newId;
         object value = new { Message = "Mensagem enviada com sucesso" };
         return Results.Created(uri, value);
     }
-    
+
     public static async Task<IResult> GetMessage(
         int id,
         int appointmentId,
-        IChatService service,
+        IMessageService service,
         IMessageErrors errors)
     {
         var message = await service.GetByIdAsync(id, appointmentId);
@@ -54,11 +54,11 @@ public static class ChatEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
-        IChatService service,
+        IMessageService service,
         IMessageErrors errors)
     {
         var messages = await service.GetAllAsync(page, pageSize, appointmentId);
-        
+
         var dtos = messages?.Select(m => m.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
     }
@@ -67,7 +67,7 @@ public static class ChatEndpoint
         int appointmentId,
         MessageDtoRequest dto,
         IValidator<MessageDtoRequest> validator,
-        IChatService service,
+        IMessageService service,
         IUserService userService,
         IMessageErrors errors)
     {
@@ -81,11 +81,11 @@ public static class ChatEndpoint
 
         return GetCreatedResult(message!.Id, appointmentId);
     }
-    
+
     public static async Task<IResult> DeleteMessage(
         int appointmentId,
         int id,
-        IChatService service,
+        IMessageService service,
         IMessageErrors errors)
     {
         var result = await service.DeleteAsync(id, appointmentId);

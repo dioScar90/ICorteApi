@@ -25,7 +25,7 @@ public sealed class Appointment : BaseEntity<Appointment>
 
     private Appointment() { }
 
-    public Appointment(AppointmentDtoRequest dto, Service[] services, int clientId)
+    public Appointment(AppointmentDtoCreate dto, Service[] services, int clientId)
     {
         Date = dto.Date;
         StartTime = dto.StartTime;
@@ -54,7 +54,7 @@ public sealed class Appointment : BaseEntity<Appointment>
             Services.Remove(toRemove);
     }
     
-    private void UpdateByAppointmentDto(AppointmentDtoRequest dto, DateTime? utcNow)
+    private void UpdateByAppointmentDto(AppointmentDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -69,7 +69,7 @@ public sealed class Appointment : BaseEntity<Appointment>
     {
         switch (requestDto)
         {
-            case AppointmentDtoRequest dto:
+            case AppointmentDtoUpdate dto:
                 UpdateByAppointmentDto(dto, utcNow);
                 break;
             default:

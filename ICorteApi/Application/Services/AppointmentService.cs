@@ -19,7 +19,7 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
         return ids.Count == 1;
     }
 
-    public async Task<Appointment?> CreateAsync(AppointmentDtoRequest dto, int clientId)
+    public async Task<Appointment?> CreateAsync(AppointmentDtoCreate dto, int clientId)
     {
         if (dto.ServiceIds.Length == 0)
             _errors.ThrowEmptyServicesException();
@@ -43,7 +43,7 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
         return await _repository.GetByIdWithServicesAsync(id);
     }
 
-    public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id, int clientId)
+    public async Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId)
     {
         var appointment = await _repository.GetByIdWithServicesAsync(id);
 

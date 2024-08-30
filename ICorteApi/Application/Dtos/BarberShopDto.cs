@@ -3,7 +3,7 @@ using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
-public record BarberShopDtoRequest(
+public record BarberShopDtoCreate(
     string Name,
     string? Description,
     string ComercialNumber,
@@ -13,6 +13,14 @@ public record BarberShopDtoRequest(
     SpecialScheduleDtoRequest[]? SpecialSchedules = null,
     ServiceDtoRequest[]? Services = null,
     ReportDtoRequest[]? Reports = null
+) : IDtoRequest<BarberShop>;
+
+public record BarberShopDtoUpdate(
+    string Name,
+    string? Description,
+    string ComercialNumber,
+    string ComercialEmail,
+    AddressDtoCreate? Address = null
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoResponse(

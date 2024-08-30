@@ -25,34 +25,34 @@ public sealed class BarberShop : BaseEntity<BarberShop>
 
     private BarberShop() { }
 
-    public BarberShop(BarberShopDtoRequest dto, int? ownerId = null)
+    public BarberShop(BarberShopDtoCreate dto, int? ownerId = null)
     {
         Name = dto.Name;
         Description = dto.Description ?? default;
         ComercialNumber = dto.ComercialNumber;
         ComercialEmail = dto.ComercialEmail;
 
-        if (dto.Address is AddressDtoCreate addressDto)
-            Address = new(addressDto);
+        if (dto.Address is not null)
+            Address = new(dto.Address);
 
-        if (dto.RecurringSchedules is RecurringScheduleDtoRequest[] rsDto)
-            RecurringSchedules = rsDto.Select(rs => new RecurringSchedule(rs)).ToList();
+        if (dto.RecurringSchedules is not null)
+            RecurringSchedules = dto.RecurringSchedules.Select(rs => new RecurringSchedule(rs)).ToList();
 
-        if (dto.SpecialSchedules is SpecialScheduleDtoRequest[] ssDto)
-            SpecialSchedules = ssDto.Select(ss => new SpecialSchedule(ss)).ToList();
+        if (dto.SpecialSchedules is not null)
+            SpecialSchedules = dto.SpecialSchedules.Select(ss => new SpecialSchedule(ss)).ToList();
 
-        if (dto.Services is ServiceDtoRequest[] serviceDto)
-            Services = serviceDto.Select(s => new Service(s)).ToList();
+        if (dto.Services is not null)
+            Services = dto.Services.Select(s => new Service(s)).ToList();
 
-        if (dto.Reports is ReportDtoRequest[] reportDto)
-            Reports = reportDto.Select(r => new Report(r)).ToList();
+        if (dto.Reports is not null)
+            Reports = dto.Reports.Select(r => new Report(r)).ToList();
 
         OwnerId = ownerId ?? default;
     }
 
     public void UpdateRating(float rating) => Rating = rating;
 
-    private void UpdateByBarberShopDto(BarberShopDtoRequest dto, DateTime? utcNow)
+    private void UpdateByBarberShopDto(BarberShopDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -71,7 +71,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
     {
         switch (requestDto)
         {
-            case BarberShopDtoRequest dto:
+            case BarberShopDtoUpdate dto:
                 UpdateByBarberShopDto(dto, utcNow);
                 break;
             default:

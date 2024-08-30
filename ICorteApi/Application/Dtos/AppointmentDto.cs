@@ -4,7 +4,14 @@ using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
 
-public record AppointmentDtoRequest(
+public record AppointmentDtoCreate(
+    DateOnly Date,
+    TimeOnly StartTime,
+    string? Notes,
+    int[] ServiceIds
+) : IDtoRequest<Appointment>;
+
+public record AppointmentDtoUpdate(
     DateOnly Date,
     TimeOnly StartTime,
     string? Notes,
