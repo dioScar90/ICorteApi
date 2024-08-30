@@ -15,7 +15,7 @@ public sealed class Profile : BaseEntity<Profile>
 
     private Profile() { }
 
-    public Profile(ProfileDtoRegisterRequest dto, int userId)
+    public Profile(ProfileDtoCreate dto, int userId)
     {
         Id = userId;
         FirstName = dto.FirstName;
@@ -23,7 +23,7 @@ public sealed class Profile : BaseEntity<Profile>
         Gender = dto.Gender;
     }
 
-    private void UpdateByUserDto(ProfileDtoRequest dto, DateTime? utcNow)
+    private void UpdateByUserDto(ProfileDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -38,7 +38,7 @@ public sealed class Profile : BaseEntity<Profile>
     {
         switch (requestDto)
         {
-            case ProfileDtoRequest dto:
+            case ProfileDtoUpdate dto:
                 UpdateByUserDto(dto, utcNow);
                 break;
             default:

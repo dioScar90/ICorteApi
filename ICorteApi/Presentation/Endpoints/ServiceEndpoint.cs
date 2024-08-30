@@ -20,14 +20,14 @@ public static class ServiceEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
 
+        group.MapPost(INDEX, CreateService)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
         group.MapGet("{id}", GetService)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet(INDEX, GetAllServices)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-
-        group.MapPost(INDEX, CreateService)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         group.MapPut("{id}", UpdateService)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
@@ -45,21 +45,34 @@ public static class ServiceEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateService(
+        int barberShopId,
+        ServiceDtoRequest dto,
+        IValidator<ServiceDtoRequest> validator,
+        IServiceService service,
+        IServiceErrors errors)
+    {
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var serviceEntity = await service.CreateAsync(dto, barberShopId);
+
+        if (serviceEntity is null)
+            errors.ThrowCreateException();
+
+        return GetCreatedResult(serviceEntity!.Id, serviceEntity.BarberShopId);
+    }
+
     public static async Task<IResult> GetService(
         int barberShopId,
         int id,
         IServiceService service,
         IServiceErrors errors)
     {
-        var res = await service.GetByIdAsync(id, barberShopId);
+        var serviceEntity = await service.GetByIdAsync(id, barberShopId);
 
-        if (!res.IsSuccess)
+        if (serviceEntity is null)
             errors.ThrowNotFoundException();
-
-        var address = res.Value!;
-        
-        var addressDto = address.CreateDto();
-        return Results.Ok(addressDto);
+            
+        return Results.Ok(serviceEntity!.CreateDto());
     }
 
     public static async Task<IResult> GetAllServices(
@@ -69,33 +82,10 @@ public static class ServiceEndpoint
         IServiceService service,
         IServiceErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize, barberShopId);
-
-        if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error);
-            
-        var dtos = res.Values!
-            .Select(c => c.CreateDto())
-            .ToList();
-
+        var services = await service.GetAllAsync(page, pageSize, barberShopId);
+        
+        var dtos = services?.Select(c => c.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
-    }
-
-    public static async Task<IResult> CreateService(
-        int barberShopId,
-        ServiceDtoRequest dto,
-        IValidator<ServiceDtoRequest> validator,
-        IServiceService service,
-        IServiceErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
-        var response = await service.CreateAsync(dto, barberShopId);
-
-        if (!response.IsSuccess)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(response.Value!.Id, barberShopId);
     }
 
     public static async Task<IResult> UpdateService(
@@ -107,10 +97,9 @@ public static class ServiceEndpoint
         IServiceErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdateAsync(dto, id, barberShopId);
 
-        var response = await service.UpdateAsync(dto, id, barberShopId);
-
-        if (!response.IsSuccess)
+        if (!result)
             errors.ThrowUpdateException();
 
         return Results.NoContent();
@@ -123,10 +112,10 @@ public static class ServiceEndpoint
         IServiceService service,
         IServiceErrors errors)
     {
-        var response = await service.DeleteAsync(id, barberShopId, forceDelete is true);
+        var result = await service.DeleteAsync(id, barberShopId, forceDelete is true);
 
-        if (!response.IsSuccess)
-            errors.ThrowDeleteException(response.Error);
+        if (!result)
+            errors.ThrowDeleteException();
 
         return Results.NoContent();
     }

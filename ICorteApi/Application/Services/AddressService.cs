@@ -1,59 +1,46 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class AddressService(IAddressRepository repository)
+public sealed class AddressService(IAddressRepository repository, IAddressErrors errors)
     : BaseService<Address>(repository), IAddressService
 {
-    public async Task<ISingleResponse<Address>> CreateAsync(IDtoRequest<Address> dtoRequest, int barberShopId)
-    {
-        if (dtoRequest is not AddressDtoCreate dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+    private readonly IAddressErrors _errors = errors;
 
-        var entity = new Address(dto, barberShopId);
-        return await CreateAsync(entity);
+    public async Task<Address?> CreateAsync(AddressDtoCreate dto, int barberShopId)
+    {
+        var address = new Address(dto, barberShopId);
+        return await CreateAsync(address);
     }
 
-    public async Task<ISingleResponse<Address>> GetByIdAsync(int id, int barberShopId)
+    public async Task<Address?> GetByIdAsync(int id, int barberShopId)
     {
-        var resp = await GetByIdAsync(id);
-        
-        if (!resp.IsSuccess)
-            return resp;
+        var address = await GetByIdAsync(id);
 
-        if (resp.Value!.BarberShopId != barberShopId)
-            return Response.Failure<Address>(Error.TEntityNotFound);
+        if (address is null)
+            _errors.ThrowNotFoundException();
+            
+        if (address!.BarberShopId != barberShopId)
+            _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
 
-        return resp;
+        return address;
     }
     
-    public async Task<IResponse> UpdateAsync(IDtoRequest<Address> dtoRequest, int id, int barberShopId)
+    public async Task<bool> UpdateAsync(AddressDtoUpdate dto, int id, int barberShopId)
     {
-        var resp = await GetByIdAsync(id, barberShopId);
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
-
-        return await UpdateAsync(entity);
+        var address = await GetByIdAsync(id, barberShopId);
+        
+        address!.UpdateEntityByDto(dto);
+        return await UpdateAsync(address);
     }
 
-    public async Task<IResponse> DeleteAsync(int id, int barberShopId)
+    public async Task<bool> DeleteAsync(int id, int barberShopId)
     {
-        var resp = await GetByIdAsync(id, barberShopId);
-
-        if (!resp.IsSuccess)
-            return resp;
-
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        var address = await GetByIdAsync(id, barberShopId);
+        return await DeleteAsync(address!);
     }
 }

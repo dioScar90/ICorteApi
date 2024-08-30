@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
@@ -7,24 +6,23 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class RecurringScheduleService(IRecurringScheduleRepository repository)
+public sealed class RecurringScheduleService(IRecurringScheduleRepository repository, IRecurringScheduleErrors errors)
     : BaseService<RecurringSchedule>(repository), IRecurringScheduleService
 {
-    public async Task<ISingleResponse<RecurringSchedule>> CreateAsync(IDtoRequest<RecurringSchedule> dtoRequest, int barberShopId)
-    {
-        if (dtoRequest is not RecurringScheduleDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+    private readonly IRecurringScheduleErrors _errors = errors;
 
-        var entity = new RecurringSchedule(dto, barberShopId);
-        return await CreateAsync(entity);
+    public async Task<RecurringSchedule?> CreateAsync(RecurringScheduleDtoRequest dto, int barberShopId)
+    {
+        var schedule = new RecurringSchedule(dto, barberShopId);
+        return await CreateAsync(schedule);
     }
 
-    public async Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
+    public async Task<RecurringSchedule?> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
         return await base.GetByIdAsync(dayOfWeek, barberShopId);
     }
     
-    public async Task<ICollectionResponse<RecurringSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<RecurringSchedule[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
         return await GetAllAsync(
             new(
@@ -35,27 +33,30 @@ public sealed class RecurringScheduleService(IRecurringScheduleRepository reposi
         );
     }
     
-    public async Task<IResponse> UpdateAsync(IDtoRequest<RecurringSchedule> dtoRequest, DayOfWeek dayOfWeek, int barberShopId)
+    public async Task<bool> UpdateAsync(RecurringScheduleDtoRequest dtoRequest, DayOfWeek dayOfWeek, int barberShopId)
     {
-        var resp = await GetByIdAsync(dayOfWeek, barberShopId);
+        var schedule = await GetByIdAsync(dayOfWeek, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
+        if (schedule!.BarberShopId != barberShopId)
+            _errors.ThrowRecurringScheduleNotBelongsToBarberShopException(barberShopId);
 
-        return await UpdateAsync(entity);
+        schedule.UpdateEntityByDto(dtoRequest);
+        return await UpdateAsync(schedule);
     }
 
-    public async Task<IResponse> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
+    public async Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var resp = await GetByIdAsync(dayOfWeek, barberShopId);
+        var schedule = await GetByIdAsync(dayOfWeek, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        if (schedule!.BarberShopId != barberShopId)
+            _errors.ThrowRecurringScheduleNotBelongsToBarberShopException(barberShopId);
+        
+        return await DeleteAsync(schedule);
     }
 }

@@ -41,16 +41,26 @@ public static class AppointmentEndpoint
         IAppointmentService service,
         IAppointmentErrors errors)
     {
-        var res = await service.GetByIdAsync(id);
+        var appointment = await service.GetByIdAsync(id);
 
-        if (!res.IsSuccess)
+        if (appointment is null)
             errors.ThrowNotFoundException();
-
-        var address = res.Value!;
         
-        var addressDto = address.CreateDto();
-        return Results.Ok(addressDto);
+        return Results.Ok(appointment!.CreateDto());
     }
+
+    // public static async Task<IResult> GetAllAppointments(
+    //     int id,
+    //     IAppointmentService service,
+    //     IAppointmentErrors errors)
+    // {
+    //     var appointment = await service.GetByIdAsync(id);
+
+    //     if (appointment is null)
+    //         errors.ThrowNotFoundException();
+        
+    //     return Results.Ok(appointment!.CreateDto());
+    // }
 
     public static async Task<IResult> CreateAppointment(
         AppointmentDtoRequest dto,
@@ -61,13 +71,13 @@ public static class AppointmentEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int clientId = (await userService.GetMeAsync()).Value!.Id;
-        var response = await service.CreateAsync(dto, clientId);
+        int clientId = userService.GetMyUserId();
+        var appointment = await service.CreateAsync(dto, clientId);
 
-        if (!response.IsSuccess)
-            errors.ThrowCreateException(response.Error);
+        if (appointment is null)
+            errors.ThrowCreateException();
 
-        return GetCreatedResult(response.Value!.Id);
+        return GetCreatedResult(appointment!.Id);
     }
 
     public static async Task<IResult> UpdateAppointment(
@@ -80,11 +90,11 @@ public static class AppointmentEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int clientId = (await userService.GetMeAsync()).Value!.Id;
-        var response = await service.UpdateAsync(dto, id, clientId);
+        int clientId = userService.GetMyUserId();
+        var result = await service.UpdateAsync(dto, id, clientId);
 
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException(response.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -95,10 +105,10 @@ public static class AppointmentEndpoint
         IUserService userService,
         IAppointmentErrors errors)
     {
-        int clientId = (await userService.GetMeAsync()).Value!.Id;
-        var response = await service.DeleteAsync(id, clientId);
+        int clientId = userService.GetMyUserId();
+        var result = await service.DeleteAsync(id, clientId);
 
-        if (!response.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

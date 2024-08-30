@@ -1,33 +1,29 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class UserService(IUserRepository repository) : IUserService
+public sealed class UserService(IUserRepository repository, IUserErrors errors) : IUserService
 {
     private readonly IUserRepository _repository = repository;
+    private readonly IUserErrors _errors = errors;
 
-    public async Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest)
+    public async Task<User?> CreateAsync(UserDtoRegisterRequest dto)
     {
-        if (dtoRequest is not UserDtoRegisterRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
-
-        var entity = new User(dto);
-        return await _repository.CreateUserAsync(entity, dto.Password);
+        var user = new User(dto);
+        return await _repository.CreateUserAsync(user, dto.Password);
     }
 
-    public async Task<ISingleResponse<User>> GetMeAsync()
+    public async Task<User?> GetMeAsync()
     {
         return await _repository.GetMeAsync();
     }
 
-    public async Task<User> GetMyUserAsync() => (await GetMeAsync()).Value!;
+    public async Task<User> GetMyUserAsync() => (await GetMeAsync())!;
 
     public int GetMyUserId()
     {
@@ -39,43 +35,41 @@ public sealed class UserService(IUserRepository repository) : IUserService
         return await _repository.GetUserRolesAsync();
     }
 
-    public async Task<IResponse> AddUserRoleAsync(UserRole role)
+    public async Task<bool> AddUserRoleAsync(UserRole role)
     {
         return await _repository.AddUserRoleAsync(role);
     }
 
-    public async Task<IResponse> RemoveFromRoleAsync(UserRole role)
+    public async Task<bool> RemoveFromRoleAsync(UserRole role)
     {
         return await _repository.RemoveFromRoleAsync(role);
     }
     
-    public async Task<IResponse> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest)
+    public async Task<bool> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest)
     {
         return await _repository.UpdateEmailAsync(dtoRequest.Email);
     }
     
-    public async Task<IResponse> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest)
+    public async Task<bool> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest)
     {
         return await _repository.UpdatePasswordAsync(dtoRequest.CurrentPassword, dtoRequest.NewPassword);
     }
 
-    public async Task<IResponse> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest)
+    public async Task<bool> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest)
     {
         return await _repository.UpdatePhoneNumberAsync(dtoRequest.PhoneNumber);
     }
 
-    public async Task<IResponse> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var resp = await _repository.GetMeAsync();
+        var user = await _repository.GetMeAsync();
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (user is null)
+            _errors.ThrowNotFoundException();
 
-        var user = resp.Value!;
-
-        if (user.Id != id)
-            return Response.Failure(Error.UserNotFound);
-
+        if (user!.Id != id)
+            _errors.ThrowWrongUserIdException(id);
+        
         return await _repository.DeleteAsync(user);
     }
 }

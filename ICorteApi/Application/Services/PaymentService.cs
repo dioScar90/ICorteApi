@@ -1,51 +1,50 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class PaymentService(IPaymentRepository repository)
+public sealed class PaymentService(IPaymentRepository repository, IPaymentErrors errors)
     : BaseService<Payment>(repository), IPaymentService
 {
-    public async Task<ISingleResponse<Payment>> CreateAsync(IDtoRequest<Payment> dtoRequest, int appointmentId)
-    {
-        if (dtoRequest is not PaymentDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+    private readonly IPaymentErrors _errors = errors;
 
-        var entity = new Payment(dto, appointmentId);
-        return await CreateAsync(entity);
+    public async Task<Payment?> CreateAsync(PaymentDtoRequest dto, int appointmentId)
+    {
+        var payment = new Payment(dto, appointmentId);
+        return await CreateAsync(payment);
     }
 
-    public async Task<ISingleResponse<Payment>> GetByIdAsync(int id, int appointmentId)
+    public async Task<Payment?> GetByIdAsync(int id, int appointmentId)
     {
-        var resp = await GetByIdAsync(id);
+        var payment = await GetByIdAsync(id);
         
-        if (!resp.IsSuccess)
-            return resp;
+        if (payment is null)
+            _errors.ThrowNotFoundException();
 
-        if (resp.Value!.AppointmentId != appointmentId)
-            return Response.Failure<Payment>(Error.TEntityNotFound);
+        if (payment!.AppointmentId != appointmentId)
+            _errors.ThrowPaymentNotBelongsToAppointmentException(appointmentId);
 
-        return resp;
+        return payment;
     }
     
-    public async Task<ICollectionResponse<Payment>> GetAllAsync(int? page, int? pageSize, int appointmentId)
+    public async Task<Payment[]> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
         return await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
     }
 
-    public async Task<IResponse> DeleteAsync(int id, int appointmentId)
+    public async Task<bool> DeleteAsync(int id, int appointmentId)
     {
-        var resp = await GetByIdAsync(id, appointmentId);
+        var payment = await GetByIdAsync(id, appointmentId);
+        
+        if (payment is null)
+            _errors.ThrowNotFoundException();
 
-        if (!resp.IsSuccess)
-            return resp;
-
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        if (payment!.AppointmentId != appointmentId)
+            _errors.ThrowPaymentNotBelongsToAppointmentException(appointmentId);
+            
+        return await DeleteAsync(payment);
     }
 }

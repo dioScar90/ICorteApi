@@ -1,13 +1,13 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
 public interface ISpecialScheduleService : IService<SpecialSchedule>
 {
-    Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dtoRequest, int barberShopId);
-    Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId);
-    Task<ICollectionResponse<SpecialSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId);
-    Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dtoRequest, DateOnly date, int barberShopId);
-    Task<IResponse> DeleteAsync(DateOnly date, int barberShopId);
+    Task<SpecialSchedule?> CreateAsync(SpecialScheduleDtoRequest dto, int barberShopId);
+    Task<SpecialSchedule?> GetByIdAsync(DateOnly date, int barberShopId);
+    Task<SpecialSchedule[]> GetAllAsync(int? page, int? pageSize, int barberShopId);
+    Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId);
+    Task<bool> DeleteAsync(DateOnly date, int barberShopId);
 }

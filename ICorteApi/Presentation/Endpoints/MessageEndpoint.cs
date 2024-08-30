@@ -42,12 +42,12 @@ public static class ChatEndpoint
         IChatService service,
         IMessageErrors errors)
     {
-        var res = await service.GetByIdAsync(id, appointmentId);
+        var message = await service.GetByIdAsync(id, appointmentId);
 
-        if (!res.IsSuccess)
+        if (message is null)
             errors.ThrowNotFoundException();
 
-        return Results.Ok(res.Value!.CreateDto());
+        return Results.Ok(message!.CreateDto());
     }
 
     public static async Task<IResult> GetAllMessages(
@@ -57,15 +57,9 @@ public static class ChatEndpoint
         IChatService service,
         IMessageErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize, appointmentId);
-
-        if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error);
-            
-        var dtos = res.Values!
-            .Select(c => c.CreateDto())
-            .ToList();
-
+        var messages = await service.GetAllAsync(page, pageSize, appointmentId);
+        
+        var dtos = messages?.Select(m => m.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
     }
 
@@ -79,13 +73,13 @@ public static class ChatEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int senderId = (await userService.GetMeAsync()).Value!.Id;
-        var res = await service.CreateAsync(dto, appointmentId, senderId);
+        int senderId = userService.GetMyUserId();
+        var message = await service.CreateAsync(dto, appointmentId, senderId);
 
-        if (!res.IsSuccess)
+        if (message is null)
             errors.ThrowCreateException();
 
-        return GetCreatedResult(res.Value!.Id, appointmentId);
+        return GetCreatedResult(message!.Id, appointmentId);
     }
     
     public static async Task<IResult> DeleteMessage(
@@ -94,9 +88,9 @@ public static class ChatEndpoint
         IChatService service,
         IMessageErrors errors)
     {
-        var res = await service.DeleteAsync(id, appointmentId);
+        var result = await service.DeleteAsync(id, appointmentId);
 
-        if (!res.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

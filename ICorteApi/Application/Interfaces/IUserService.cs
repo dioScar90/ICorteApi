@@ -1,21 +1,20 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
 public interface IUserService : IService<User>
 {
-    Task<ISingleResponse<User>> CreateAsync(IDtoRequest<User> dtoRequest);
-    Task<ISingleResponse<User>> GetMeAsync();
+    Task<User?> CreateAsync(UserDtoRegisterRequest dtoRequest);
+    Task<User?> GetMeAsync();
     Task<User> GetMyUserAsync();
     int GetMyUserId();
     Task<UserRole[]> GetUserRolesAsync();
-    Task<IResponse> AddUserRoleAsync(UserRole role);
-    Task<IResponse> RemoveFromRoleAsync(UserRole role);
-    Task<IResponse> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest);
-    Task<IResponse> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest);
-    Task<IResponse> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest);
-    Task<IResponse> DeleteAsync(int id);
+    Task<bool> AddUserRoleAsync(UserRole role);
+    Task<bool> RemoveFromRoleAsync(UserRole role);
+    Task<bool> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest);
+    Task<bool> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest);
+    Task<bool> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest);
+    Task<bool> DeleteAsync(int id);
 }

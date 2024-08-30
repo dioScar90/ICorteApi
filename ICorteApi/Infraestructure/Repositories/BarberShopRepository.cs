@@ -1,91 +1,62 @@
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Errors;
+using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public sealed class BarberShopRepository(AppDbContext context, IUserRepository userRepository)
+public sealed class BarberShopRepository(AppDbContext context, IUserRepository userRepository, IBarberShopErrors errors)
     : BaseRepository<BarberShop>(context), IBarberShopRepository
 {
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly IBarberShopErrors _errors = errors;
     
     public override async Task<BarberShop?> CreateAsync(BarberShop barberShop)
     {
         var transaction = await BeginTransactionAsync();
-        List<Error> errors = [];
 
         try
         {
-            var barberShopResult = await base.CreateAsync(barberShop);
+            var newbarberShop = await base.CreateAsync(barberShop);
             
-            if (barberShopResult is null)
-            {
-                // errors.AddRange(barberShopResult);
-                throw new Exception();
-            }
+            if (newbarberShop is null)
+                _errors.ThrowCreateException();
             
-            var roleResult = await _userRepository.AddUserRoleAsync(UserRole.BarberShop);
-            
-            if (!roleResult)
-            {
-                // errors.AddRange(roleResult.Error!);
-                throw new Exception();
-            }
+            await _userRepository.AddUserRoleAsync(UserRole.BarberShop);
             
             await CommitAsync(transaction);
-            return barberShopResult;
+            return newbarberShop;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await RollbackAsync(transaction);
-
-            if (errors.Count == 0)
-                errors.Add(Error.TransactionError(ex.Message));
+            throw;
         }
-
-        return null;
-        // return Response.Failure<BarberShop>([..errors]);
     }
 
     public override async Task<bool> DeleteAsync(BarberShop barberShop)
     {
         var transaction = await BeginTransactionAsync();
-        List<Error> errors = [];
 
         try
         {
-            var barberShopResult = await base.DeleteAsync(barberShop);
+            var result = await base.DeleteAsync(barberShop);
             
-            if (!barberShopResult)
-            {
-                // errors.AddRange(barberShopResult.Error!);
-                throw new Exception();
-            }
+            if (!result)
+                _errors.ThrowDeleteException();
 
-            var roleResult = await _userRepository.RemoveFromRoleAsync(UserRole.BarberShop);
+            await _userRepository.RemoveFromRoleAsync(UserRole.BarberShop);
             
-            if (!roleResult)
-            {
-                // errors.AddRange(roleResult.Error!);
-                throw new Exception();
-            }
-                
             await CommitAsync(transaction);
-            return true;
+            return result;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await RollbackAsync(transaction);
-
-            if (errors.Count == 0)
-                errors.Add(Error.TransactionError(ex.Message));
+            throw;
         }
-
-        return false;
-        // return Response.Failure<BarberShop>([..errors]);
     }
 
     public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(DayOfWeek startDayOfWeek, DayOfWeek endDayOfWeek, int take = 10)

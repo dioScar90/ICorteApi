@@ -6,7 +6,7 @@ namespace ICorteApi.Infraestructure.Interfaces;
 public interface IUserRepository : IRepository<User>
 {
     Task<User?> CreateUserAsync(User newUser, string password);
-    Task<User?> GetMeAsync();
+    Task<User?> GetMeAsync(bool? dispatchIncludes = null);
     int? GetMyUserId();
     Task<UserRole[]> GetUserRolesAsync();
     Task<bool> AddUserRoleAsync(UserRole role);

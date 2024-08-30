@@ -1,13 +1,13 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
 public interface IServiceService : IService<Service>
 {
-    Task<ISingleResponse<Service>> CreateAsync(IDtoRequest<Service> dtoRequest, int barberShopId);
-    Task<ISingleResponse<Service>> GetByIdAsync(int id, int barberShopId);
-    Task<ICollectionResponse<Service>> GetAllAsync(int? page, int? pageSize, int barberShopId);
-    Task<IResponse> UpdateAsync(IDtoRequest<Service> dtoRequest, int id, int barberShopId);
-    Task<IResponse> DeleteAsync(int id, int barberShopId, bool forceDelete);
+    Task<Service?> CreateAsync(ServiceDtoRequest dto, int barberShopId);
+    Task<Service?> GetByIdAsync(int id, int barberShopId);
+    Task<Service[]> GetAllAsync(int? page, int? pageSize, int barberShopId);
+    Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId);
+    Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete);
 }

@@ -6,49 +6,51 @@ using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class SpecialScheduleService(ISpecialScheduleRepository repository)
+public sealed class SpecialScheduleService(ISpecialScheduleRepository repository, ISpecialScheduleErrors errors)
     : BaseService<SpecialSchedule>(repository), ISpecialScheduleService
 {
-    public async Task<ISingleResponse<SpecialSchedule>> CreateAsync(IDtoRequest<SpecialSchedule> dtoRequest, int barberShopId)
-    {
-        if (dtoRequest is not SpecialScheduleDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+    private readonly ISpecialScheduleErrors _errors = errors;
 
-        var entity = new SpecialSchedule(dto, barberShopId);
-        return await CreateAsync(entity);
+    public async Task<SpecialSchedule?> CreateAsync(SpecialScheduleDtoRequest dto, int barberShopId)
+    {
+        var schedule = new SpecialSchedule(dto, barberShopId);
+        return await CreateAsync(schedule);
     }
 
-    public async Task<ISingleResponse<SpecialSchedule>> GetByIdAsync(DateOnly date, int barberShopId)
+    public async Task<SpecialSchedule?> GetByIdAsync(DateOnly date, int barberShopId)
     {
         return await base.GetByIdAsync(date, barberShopId);
     }
     
-    public async Task<ICollectionResponse<SpecialSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<SpecialSchedule[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
         return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
     }
 
-    public async Task<IResponse> UpdateAsync(IDtoRequest<SpecialSchedule> dtoRequest, DateOnly date, int barberShopId)
+    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
     {
-        var resp = await GetByIdAsync(date, barberShopId);
+        var schedule = await GetByIdAsync(date, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
-
-        return await UpdateAsync(entity);
+        if (schedule!.BarberShopId != barberShopId)
+            _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
+        
+        schedule.UpdateEntityByDto(dto);
+        return await UpdateAsync(schedule);
     }
 
-    public async Task<IResponse> DeleteAsync(DateOnly date, int barberShopId)
+    public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
     {
-        var resp = await GetByIdAsync(date, barberShopId);
+        var schedule = await GetByIdAsync(date, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        if (schedule!.BarberShopId != barberShopId)
+            _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
+        
+        return await DeleteAsync(schedule);
     }
 }

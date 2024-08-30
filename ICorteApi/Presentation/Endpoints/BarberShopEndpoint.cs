@@ -46,13 +46,12 @@ public static class BarberShopEndpoint
         IBarberShopService service,
         IBarberShopErrors errors)
     {
-        var resp = await service.GetByIdAsync(id);
+        var barberShop = await service.GetByIdAsync(id);
 
-        if (!resp.IsSuccess)
-            errors.ThrowNotFoundException(resp.Error);
+        if (barberShop is null)
+            errors.ThrowNotFoundException();
 
-        var barberShopDto = resp.Value!.CreateDto();
-        return Results.Ok(barberShopDto);
+        return Results.Ok(barberShop!.CreateDto());
     }
     
     public static async Task<IResult> CreateBarberShop(
@@ -65,12 +64,12 @@ public static class BarberShopEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         int ownerId = userService.GetMyUserId();
-        var resp = await service.CreateAsync(dto, ownerId);
+        var barberShop = await service.CreateAsync(dto, ownerId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowCreateException(resp.Error);
+        if (barberShop is null)
+            errors.ThrowCreateException();
         
-        return GetCreatedResult(resp.Value!.Id);
+        return GetCreatedResult(barberShop!.Id);
     }
 
     public static async Task<IResult> UpdateBarberShop(
@@ -84,10 +83,10 @@ public static class BarberShopEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         
         int ownerId = userService.GetMyUserId();
-        var resp = await service.UpdateAsync(dto, id, ownerId);
+        var result = await service.UpdateAsync(dto, id, ownerId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowUpdateException(resp.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -99,10 +98,10 @@ public static class BarberShopEndpoint
         IBarberShopErrors errors)
     {
         int ownerId = userService.GetMyUserId();
-        var resp = await service.DeleteAsync(id, ownerId);
+        var result = await service.DeleteAsync(id, ownerId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowDeleteException(resp.Error);
+        if (!result)
+            errors.ThrowDeleteException();
         
         return Results.NoContent();
     }

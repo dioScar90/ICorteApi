@@ -1,50 +1,47 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ProfileService(IProfileRepository repository)
+public sealed class ProfileService(IProfileRepository repository, IProfileErrors errors)
     : BaseService<Profile>(repository), IProfileService
 {
     new private readonly IProfileRepository _repository = repository;
+    private readonly IProfileErrors _errors = errors;
 
-    public async Task<ISingleResponse<Profile>> CreateAsync(IDtoRequest<Profile> dtoRequest, int userId)
+    public async Task<Profile?> CreateAsync(ProfileDtoCreate dto, int userId)
     {
-        if (dtoRequest is not ProfileDtoRegisterRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
-
-        var entity = new Profile(dto, userId);
-        return await _repository.CreateAsync(entity, dto.PhoneNumber);
+        var profile = new Profile(dto, userId);
+        return await _repository.CreateAsync(profile, dto.PhoneNumber);
     }
-    
-    public async Task<ISingleResponse<Profile>> GetByIdAsync(int id, int userId)
+
+    public async Task<Profile?> GetByIdAsync(int id, int userId)
     {
-        var resp = await GetByIdAsync(id);
-        
-        if (!resp.IsSuccess)
-            return resp;
+        var profile = await GetByIdAsync(id);
 
-        if (resp.Value!.Id != userId)
-            return Response.Failure<Profile>(Error.TEntityNotFound);
+        if (profile is null)
+            _errors.ThrowNotFoundException();
 
-        return resp;
+        if (profile!.Id != userId)
+            _errors.ThrowProfileNotBelongsToUserException(userId);
+
+        return profile;
     }
-    
-    public async Task<IResponse> UpdateAsync(IDtoRequest<Profile> dtoRequest, int id, int userId)
+
+    public async Task<bool> UpdateAsync(ProfileDtoUpdate dtoRequest, int id, int userId)
     {
-        var resp = await GetByIdAsync(id, userId);
+        var profile = await GetByIdAsync(id, userId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (profile is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
+        if (profile!.Id != userId)
+            _errors.ThrowProfileNotBelongsToUserException(userId);
 
-        return await UpdateAsync(entity);
+        profile.UpdateEntityByDto(dtoRequest);
+        return await UpdateAsync(profile);
     }
 }

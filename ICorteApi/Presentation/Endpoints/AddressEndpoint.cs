@@ -41,15 +41,12 @@ public static class AddressEndpoint
         IAddressService service,
         IAddressErrors errors)
     {
-        var res = await service.GetByIdAsync(id, barberShopId);
+        var address = await service.GetByIdAsync(id, barberShopId);
 
-        if (!res.IsSuccess)
-            errors.ThrowNotFoundException(res.Error);
-
-        var address = res.Value!;
-
-        var addressDto = address.CreateDto();
-        return Results.Ok(addressDto);
+        if (address is null)
+            errors.ThrowNotFoundException();
+        
+        return Results.Ok(address!.CreateDto());
     }
 
     public static async Task<IResult> CreateAddress(
@@ -60,13 +57,12 @@ public static class AddressEndpoint
         IAddressErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var address = await service.CreateAsync(dto, barberShopId);
 
-        var response = await service.CreateAsync(dto, barberShopId);
-
-        if (!response.IsSuccess)
+        if (address is null)
             errors.ThrowCreateException();
 
-        return GetCreatedResult(response.Value!.Id, barberShopId);
+        return GetCreatedResult(address!.Id, address.BarberShopId);
     }
 
     public static async Task<IResult> UpdateAddress(
@@ -78,11 +74,10 @@ public static class AddressEndpoint
         IAddressErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdateAsync(dto, id, barberShopId);
 
-        var response = await service.UpdateAsync(dto, id, barberShopId);
-
-        if (!response.IsSuccess)
-            errors.ThrowUpdateException(response.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -93,9 +88,9 @@ public static class AddressEndpoint
         IAddressService service,
         IAddressErrors errors)
     {
-        var response = await service.DeleteAsync(id, barberShopId);
+        var result = await service.DeleteAsync(id, barberShopId);
 
-        if (!response.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

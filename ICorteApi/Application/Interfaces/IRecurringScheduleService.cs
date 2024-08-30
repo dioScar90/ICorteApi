@@ -1,3 +1,4 @@
+using ICorteApi.Application.Dtos;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 
@@ -5,9 +6,9 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IRecurringScheduleService : IService<RecurringSchedule>
 {
-    Task<ISingleResponse<RecurringSchedule>> CreateAsync(IDtoRequest<RecurringSchedule> dtoRequest, int barberShopId);
-    Task<ISingleResponse<RecurringSchedule>> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
-    Task<ICollectionResponse<RecurringSchedule>> GetAllAsync(int? page, int? pageSize, int barberShopId);
-    Task<IResponse> UpdateAsync(IDtoRequest<RecurringSchedule> dtoRequest, DayOfWeek dayOfWeek, int barberShopId);
-    Task<IResponse> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId);
+    Task<RecurringSchedule?> CreateAsync(RecurringScheduleDtoRequest dto, int barberShopId);
+    Task<RecurringSchedule?> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId);
+    Task<RecurringSchedule[]> GetAllAsync(int? page, int? pageSize, int barberShopId);
+    Task<bool> UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId);
+    Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId);
 }

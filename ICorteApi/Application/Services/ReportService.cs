@@ -1,64 +1,74 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ReportService(IReportRepository repository)
+public sealed class ReportService(IReportRepository repository, IReportErrors errors)
     : BaseService<Report>(repository), IReportService
 {
-    public async Task<ISingleResponse<Report>> CreateAsync(IDtoRequest<Report> dtoRequest, int clientId, int barberShopId)
-    {
-        if (dtoRequest is not ReportDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
+    new private readonly IReportRepository _repository = repository;
+    private readonly IReportErrors _errors = errors;
 
-        var entity = new Report(dto, clientId, barberShopId);
-        return await CreateAsync(entity);
+    public async Task<Report?> CreateAsync(ReportDtoRequest dto, int clientId, int barberShopId)
+    {
+        var report = new Report(dto, clientId, barberShopId);
+        return await CreateAsync(report);
     }
 
-    public async Task<ISingleResponse<Report>> GetByIdAsync(int id, int clientId, int barberShopId)
+    public async Task<Report?> GetByIdAsync(int id, int clientId, int barberShopId)
     {
-        var resp = await GetByIdAsync(id);
+        var report = await GetByIdAsync(id);
         
-        if (!resp.IsSuccess)
-            return resp;
-            
-        if (resp.Value!.ClientId != clientId || resp.Value!.BarberShopId != barberShopId)
-            return Response.Failure<Report>(Error.TEntityNotFound);
+        if (report is null)
+            _errors.ThrowNotFoundException();
 
-        return resp;
+        if (report!.ClientId != clientId)
+            _errors.ThrowReportNotBelongsToClientException(clientId);
+
+        if (report.BarberShopId != barberShopId)
+            _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
+
+        return report;
     }
     
-    public async Task<ICollectionResponse<Report>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<Report[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
         return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
     }
     
-    public async Task<IResponse> UpdateAsync(IDtoRequest<Report> dtoRequest, int id, int clientId, int barberShopId)
+    public async Task<bool> UpdateAsync(ReportDtoRequest dtoRequest, int id, int clientId, int barberShopId)
     {
-        var resp = await GetByIdAsync(id, clientId, barberShopId);
+        var report = await _repository.GetReportWithBarberShopByIdAsync(id);
+        
+        if (report is null)
+            _errors.ThrowNotFoundException();
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (report!.ClientId != clientId)
+            _errors.ThrowReportNotBelongsToClientException(clientId);
 
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
+        if (report.BarberShopId != barberShopId)
+            _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
 
-        return await UpdateAsync(entity);
+        report.UpdateEntityByDto(dtoRequest);
+        return await UpdateAsync(report);
     }
 
-    public async Task<IResponse> DeleteAsync(int id, int clientId, int barberShopId)
+    public async Task<bool> DeleteAsync(int id, int clientId, int barberShopId)
     {
-        var resp = await GetByIdAsync(id, clientId, barberShopId);
+        var report = await _repository.GetReportWithBarberShopByIdAsync(id);
+        
+        if (report is null)
+            _errors.ThrowNotFoundException();
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (report!.ClientId != clientId)
+            _errors.ThrowReportNotBelongsToClientException(clientId);
 
-        var entity = resp.Value!;
-        return await DeleteAsync(entity);
+        if (report.BarberShopId != barberShopId)
+            _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
+        
+        return await DeleteAsync(report);
     }
 }

@@ -12,8 +12,8 @@ public static class ConfigureValidators
         builder.Services.AddValidatorsFromAssemblyContaining<AppointmentDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<BarberShopDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<MessageDtoRequestValidator>();
-        builder.Services.AddValidatorsFromAssemblyContaining<ProfileDtoRequestValidator>();
-        builder.Services.AddValidatorsFromAssemblyContaining<ProfileDtoRegisterRequestValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<ProfileDtoUpdateValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<ProfileDtoCreateValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<ReportDtoRequestValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<ServiceDtoRequestValidator>();

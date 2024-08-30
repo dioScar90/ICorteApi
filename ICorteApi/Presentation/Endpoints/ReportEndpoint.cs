@@ -56,12 +56,12 @@ public static class ReportEndpoint
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         int userId = userService.GetMyUserId();
-        var res = await service.CreateAsync(dto, userId, barberShopId);
+        var report = await service.CreateAsync(dto, userId, barberShopId);
 
-        if (!res.IsSuccess)
+        if (report is null)
             errors.ThrowCreateException();
 
-        return GetCreatedResult(res.Value!.Id, barberShopId);
+        return GetCreatedResult(report!.Id, report.BarberShopId);
     }
 
     public static async Task<IResult> GetReport(
@@ -72,12 +72,12 @@ public static class ReportEndpoint
         IReportErrors errors)
     {
         int clientId = userService.GetMyUserId();
-        var res = await service.GetByIdAsync(id, clientId, barberShopId);
+        var report = await service.GetByIdAsync(id, clientId, barberShopId);
 
-        if (!res.IsSuccess)
+        if (report is null)
             errors.ThrowNotFoundException();
 
-        return Results.Ok(res.Value!.CreateDto());
+        return Results.Ok(report!.CreateDto());
     }
 
     public static async Task<IResult> GetAllReports(
@@ -87,15 +87,9 @@ public static class ReportEndpoint
         IReportService service,
         IReportErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize, barberShopId);
-
-        if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error);
-
-        var dtos = res.Values!
-            .Select(c => c.CreateDto())
-            .ToList();
-
+        var reports = await service.GetAllAsync(page, pageSize, barberShopId);
+        
+        var dtos = reports?.Select(r => r.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
     }
 
@@ -108,12 +102,12 @@ public static class ReportEndpoint
         IUserService userService,
         IReportErrors errors)
     {
-        int clientId = userService.GetMyUserId();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var res = await service.UpdateAsync(dto, id, clientId, barberShopId);
+        int clientId = userService.GetMyUserId();
+        var result = await service.UpdateAsync(dto, id, clientId, barberShopId);
 
-        if (!res.IsSuccess)
+        if (!result)
             errors.ThrowUpdateException();
 
         return Results.NoContent();
@@ -127,9 +121,9 @@ public static class ReportEndpoint
         IReportErrors errors)
     {
         int clientId = userService.GetMyUserId();
-        var res = await service.DeleteAsync(id, clientId, barberShopId);
+        var result = await service.DeleteAsync(id, clientId, barberShopId);
 
-        if (!res.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

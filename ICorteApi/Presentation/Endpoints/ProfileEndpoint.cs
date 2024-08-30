@@ -19,7 +19,7 @@ public static class ProfileEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
-            
+
         group.MapPost(INDEX, CreateProfile)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
@@ -28,7 +28,7 @@ public static class ProfileEndpoint
 
         group.MapPut("{id}", UpdateProfile)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-            
+
         return app;
     }
 
@@ -46,17 +46,17 @@ public static class ProfileEndpoint
         IProfileErrors errors)
     {
         int userId = userService.GetMyUserId();
-        var resp = await service.GetByIdAsync(id, userId);
+        var profile = await service.GetByIdAsync(id, userId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowNotFoundException(resp.Error);
+        if (profile is null)
+            errors.ThrowNotFoundException();
 
-        return Results.Ok(resp.Value!.CreateDto());
+        return Results.Ok(profile!.CreateDto());
     }
 
     public static async Task<IResult> CreateProfile(
-        [FromBody] ProfileDtoRegisterRequest dto,
-        IValidator<ProfileDtoRegisterRequest> validator,
+        [FromBody] ProfileDtoCreate dto,
+        IValidator<ProfileDtoCreate> validator,
         IProfileService service,
         IUserService userService,
         IProfileErrors errors)
@@ -64,34 +64,30 @@ public static class ProfileEndpoint
         int userId = userService.GetMyUserId();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var resp = await service.CreateAsync(dto, userId);
+        var profile = await service.CreateAsync(dto, userId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowCreateException(resp.Error);
+        if (profile is null)
+            errors.ThrowCreateException();
 
         return GetCreatedResult();
     }
 
     public static async Task<IResult> UpdateProfile(
         int id,
-        [FromBody] ProfileDtoRequest dto,
-        IValidator<ProfileDtoRequest> validator,
+        [FromBody] ProfileDtoUpdate dto,
+        IValidator<ProfileDtoUpdate> validator,
         IProfileService service,
         IUserService userService,
         IProfileErrors errors,
         IUserErrors userErrors)
     {
-        int userId = userService.GetMyUserId();
-
-        if (userId != id)
-            userErrors.ThrowWrongUserIdException(id);
-        
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        var resp = await service.UpdateAsync(dto, id, userId);
+        int userId = userService.GetMyUserId();
+        var result = await service.UpdateAsync(dto, id, userId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowUpdateException(resp.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }

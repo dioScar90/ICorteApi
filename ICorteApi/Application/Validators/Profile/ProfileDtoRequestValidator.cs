@@ -4,9 +4,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class ProfileDtoRequestValidator : AbstractValidator<ProfileDtoRequest>
+public class ProfileDtoUpdateValidator : AbstractValidator<ProfileDtoUpdate>
 {
-    public ProfileDtoRequestValidator()
+    public ProfileDtoUpdateValidator()
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("Primeiro nome é obrigatório")

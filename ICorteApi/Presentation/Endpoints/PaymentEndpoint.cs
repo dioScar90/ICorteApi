@@ -42,12 +42,12 @@ public static class PaymentEndpoint
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.GetByIdAsync(id, appointmentId);
+        var payment = await service.GetByIdAsync(id, appointmentId);
 
-        if (!res.IsSuccess)
+        if (payment is null)
             errors.ThrowNotFoundException();
 
-        return Results.Ok(res.Value!.CreateDto());
+        return Results.Ok(payment!.CreateDto());
     }
 
     public static async Task<IResult> GetAllPayments(
@@ -57,15 +57,9 @@ public static class PaymentEndpoint
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.GetAllAsync(page, pageSize, appointmentId);
-
-        if (!res.IsSuccess)
-            errors.ThrowBadRequestException(res.Error);
-            
-        var dtos = res.Values!
-            .Select(c => c.CreateDto())
-            .ToList();
-
+        var payments = await service.GetAllAsync(page, pageSize, appointmentId);
+        
+        var dtos = payments?.Select(p => p.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
     }
 
@@ -77,13 +71,12 @@ public static class PaymentEndpoint
         IPaymentErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var payment = await service.CreateAsync(dto, appointmentId);
 
-        var res = await service.CreateAsync(dto, appointmentId);
-
-        if (!res.IsSuccess)
+        if (payment is null)
             errors.ThrowCreateException();
 
-        return GetCreatedResult(res.Value!.Id, appointmentId);
+        return GetCreatedResult(payment!.Id, payment.AppointmentId);
     }
     
     public static async Task<IResult> DeletePayment(
@@ -92,9 +85,9 @@ public static class PaymentEndpoint
         IPaymentService service,
         IPaymentErrors errors)
     {
-        var res = await service.DeleteAsync(id, appointmentId);
+        var result = await service.DeleteAsync(id, appointmentId);
 
-        if (!res.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

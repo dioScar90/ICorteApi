@@ -1,6 +1,4 @@
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
@@ -8,141 +6,91 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
-public sealed class ReportRepository(AppDbContext context, IBarberShopRepository barberShopRepository)
+public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
     : BaseRepository<Report>(context), IReportRepository
 {
-    private readonly IBarberShopRepository _barberShopRepository = barberShopRepository;
+    private readonly IReportErrors _errors = errors;
 
-    public override async Task<ISingleResponse<Report>> CreateAsync(Report report)
+    public override async Task<Report?> CreateAsync(Report report)
     {
         var transaction = await BeginTransactionAsync();
-        List<Error> errors = [];
 
         try
         {
-            var reportResult = await CreateAsync(report);
+            var newReport = await CreateAsync(report);
 
-            if (!reportResult.IsSuccess)
-            {
-                errors.AddRange(reportResult.Error!);
-                throw new Exception();
-            }
-
-            var ratingResult = await UpdateBarberShopRatingAsync(report.BarberShopId);
-
-            if (!ratingResult.IsSuccess)
-            {
-                errors.AddRange(ratingResult.Error!);
-                throw new Exception();
-            }
+            if (newReport is null)
+                _errors.ThrowCreateException();
+            
+            await UpdateBarberShopRatingAsync(newReport!.BarberShop);
             
             await CommitAsync(transaction);
-            return Response.Success(reportResult.Value!);
+            return newReport;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await RollbackAsync(transaction);
-
-            if (errors.Count == 0)
-                errors.Add(Error.TransactionError(ex.Message));
+            throw;
         }
-
-        return Response.Failure<Report>([..errors]);
     }
 
-    public override async Task<IResponse> UpdateAsync(Report report)
+    public async Task<Report?> GetReportWithBarberShopByIdAsync(int id)
+    {
+        return await GetByIdAsync(x => x.Id == id, x => x.BarberShop);
+    }
+
+    public override async Task<bool> UpdateAsync(Report report)
     {
         var transaction = await BeginTransactionAsync();
-        List<Error> errors = [];
 
         try
         {
-            var reportResult = await base.UpdateAsync(report);
+            var result = await base.UpdateAsync(report);
 
-            if (!reportResult.IsSuccess)
-            {
-                errors.AddRange(reportResult.Error!);
-                throw new Exception();
-            }
+            if (!result)
+                _errors.ThrowUpdateException();
 
-            var ratingResult = await UpdateBarberShopRatingAsync(report.BarberShopId);
-
-            if (!ratingResult.IsSuccess)
-            {
-                errors.AddRange(ratingResult.Error!);
-                throw new Exception();
-            }
-
+            await UpdateBarberShopRatingAsync(report.BarberShop);
+            
             await CommitAsync(transaction);
-            return Response.Success();
+            return result;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await RollbackAsync(transaction);
-
-            if (errors.Count == 0)
-                errors.Add(Error.TransactionError(ex.Message));
+            throw;
         }
-
-        return Response.Failure<Report>([..errors]);
     }
 
-    public override async Task<IResponse> DeleteAsync(Report report)
+    public override async Task<bool> DeleteAsync(Report report)
     {
         var transaction = await BeginTransactionAsync();
-        List<Error> errors = [];
 
         try
         {
-            var reportResult = await base.DeleteAsync(report);
+            var result = await base.DeleteAsync(report);
 
-            if (!reportResult.IsSuccess)
-            {
-                errors.AddRange(reportResult.Error!);
-                throw new Exception();
-            }
-
-            var ratingResult = await UpdateBarberShopRatingAsync(report.BarberShopId);
-
-            if (!ratingResult.IsSuccess)
-            {
-                errors.AddRange(ratingResult.Error!);
-                throw new Exception();
-            }
-
+            if (!result)
+                _errors.ThrowDeleteException();
+            
+            await UpdateBarberShopRatingAsync(report.BarberShop);
+            
             await CommitAsync(transaction);
-            return Response.Success();
+            return result;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await RollbackAsync(transaction);
-
-            if (errors.Count == 0)
-                errors.Add(Error.TransactionError(ex.Message));
+            throw;
         }
-
-        return Response.Failure<Report>([..errors]);
     }
 
-    private async Task<IResponse> UpdateBarberShopRatingAsync(int barberShopId)
+    private async Task UpdateBarberShopRatingAsync(BarberShop barberShop)
     {
-        var resp = await _barberShopRepository.GetByIdAsync(barberShopId);
-
-        if (!resp.IsSuccess)
-            return resp;
-        
-        var barberShop = resp.Value!;
-
         var newRating = await _dbSet
-            .Where(r => r.BarberShopId == barberShopId)
+            .Where(r => r.BarberShopId == barberShop.Id)
             .AverageAsync(r => (float)r.Rating);
 
         barberShop.UpdateRating(newRating);
-        var respUpdateRating = await _barberShopRepository.UpdateAsync(barberShop);
-
-        if (!respUpdateRating.IsSuccess)
-            return respUpdateRating;
-
-        return Response.Success();
     }
 }

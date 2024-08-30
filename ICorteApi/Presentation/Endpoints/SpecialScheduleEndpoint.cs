@@ -20,14 +20,14 @@ public static class SpecialScheduleEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
 
+        group.MapPost(INDEX, CreateSpecialSchedule)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
         group.MapGet(INDEX, GetAllSpecialSchedules)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("{date}", GetSpecialSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-
-        group.MapPost(INDEX, CreateSpecialSchedule)
-            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         group.MapPut("{date}", UpdateSpecialSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
@@ -45,19 +45,34 @@ public static class SpecialScheduleEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateSpecialSchedule(
+        int barberShopId,
+        SpecialScheduleDtoRequest dto,
+        IValidator<SpecialScheduleDtoRequest> validator,
+        ISpecialScheduleService service,
+        ISpecialScheduleErrors errors)
+    {
+        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var schedule = await service.CreateAsync(dto, barberShopId);
+
+        if (schedule is null)
+            errors.ThrowCreateException();
+
+        return GetCreatedResult(schedule!.Date, schedule.BarberShopId);
+    }
+
     public static async Task<IResult> GetSpecialSchedule(
         int barberShopId,
         DateOnly date,
         ISpecialScheduleService service,
         ISpecialScheduleErrors errors)
     {
-        var res = await service.GetByIdAsync(date, barberShopId);
+        var schedule = await service.GetByIdAsync(date, barberShopId);
 
-        if (!res.IsSuccess)
-            errors.ThrowNotFoundException(res.Error);
+        if (schedule is null)
+            errors.ThrowNotFoundException();
             
-        var scheduleDto = res.Value!.CreateDto();
-        return Results.Ok(scheduleDto);
+        return Results.Ok(schedule!.CreateDto());
     }
 
     public static async Task<IResult> GetAllSpecialSchedules(
@@ -67,33 +82,10 @@ public static class SpecialScheduleEndpoint
         ISpecialScheduleService service,
         ISpecialScheduleErrors errors)
     {
-        var response = await service.GetAllAsync(page, pageSize, barberShopId);
-
-        if (!response.IsSuccess)
-            errors.ThrowNotFoundException();
-
-        var dtos = response.Values!
-            .Select(b => b.CreateDto())
-            .ToArray();
-
+        var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
+        
+        var dtos = schedules?.Select(b => b.CreateDto()).ToArray() ?? [];
         return Results.Ok(dtos);
-    }
-
-    public static async Task<IResult> CreateSpecialSchedule(
-        int barberShopId,
-        SpecialScheduleDtoRequest dto,
-        IValidator<SpecialScheduleDtoRequest> validator,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
-        var response = await service.CreateAsync(dto, barberShopId);
-
-        if (!response.IsSuccess)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(response.Value!.Date, barberShopId);
     }
 
     public static async Task<IResult> UpdateSpecialSchedule(
@@ -105,10 +97,9 @@ public static class SpecialScheduleEndpoint
         ISpecialScheduleErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdateAsync(dto, date, barberShopId);
 
-        var response = await service.UpdateAsync(dto, date, barberShopId);
-
-        if (!response.IsSuccess)
+        if (!result)
             errors.ThrowUpdateException();
 
         return Results.NoContent();
@@ -120,9 +111,9 @@ public static class SpecialScheduleEndpoint
         ISpecialScheduleService service,
         ISpecialScheduleErrors errors)
     {
-        var response = await service.DeleteAsync(date, barberShopId);
+        var result = await service.DeleteAsync(date, barberShopId);
 
-        if (!response.IsSuccess)
+        if (!result)
             errors.ThrowDeleteException();
 
         return Results.NoContent();

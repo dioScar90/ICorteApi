@@ -1,67 +1,68 @@
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ServiceService(IServiceRepository repository)
+public sealed class ServiceService(IServiceRepository repository, IServiceErrors errors)
     : BaseService<Service>(repository), IServiceService
 {
+    private readonly IServiceErrors _errors = errors;
+
     new private readonly IServiceRepository _repository = repository;
     
-    public async Task<ISingleResponse<Service>> CreateAsync(IDtoRequest<Service> dtoRequest, int barberShopId)
+    public async Task<Service?> CreateAsync(ServiceDtoRequest dto, int barberShopId)
     {
-        if (dtoRequest is not ServiceDtoRequest dto)
-            throw new ArgumentException("Tipo de DTO inválido", nameof(dtoRequest));
-
-        var entity = new Service(dto, barberShopId);
-        return await CreateAsync(entity);
+        var service = new Service(dto, barberShopId);
+        return await CreateAsync(service);
     }
     
-    public async Task<ISingleResponse<Service>> GetByIdAsync(int id, int barberShopId)
+    public async Task<Service?> GetByIdAsync(int id, int barberShopId)
     {
         return await GetByIdAsync(x => x.Id == id && x.BarberShopId == barberShopId);
     }
     
-    public async Task<ICollectionResponse<Service>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<Service[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
         return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
     }
     
-    public async Task<IResponse> UpdateAsync(IDtoRequest<Service> dtoRequest, int id, int barberShopId)
+    public async Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId)
     {
-        var resp = await GetByIdAsync(id, barberShopId);
+        var service = await GetByIdAsync(id, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (service is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-        entity.UpdateEntityByDto(dtoRequest);
-
-        return await UpdateAsync(entity);
+        if (service!.BarberShopId != barberShopId)
+            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+        
+        service.UpdateEntityByDto(dto);
+        return await UpdateAsync(service);
     }
     
-    public async Task<IResponse> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
+    public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
-        var resp = await GetByIdAsync(id, barberShopId);
+        var service = await GetByIdAsync(id, barberShopId);
 
-        if (!resp.IsSuccess)
-            return resp;
+        if (service is null)
+            _errors.ThrowNotFoundException();
 
-        var entity = resp.Value!;
-
-        var thereAreAppointments = !forceDelete && await _repository.CheckCorrelatedAppointmentsAsync(entity.Id);
-
-        if (!thereAreAppointments)
-            return await DeleteAsync(entity);
+        if (service!.BarberShopId != barberShopId)
+            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
             
-        var appointments = await _repository.GetCorrelatedAppointmentsAsync(entity.Id);
-        var errorApointments = appointments.Select(a => new Error("Datas", a.Date.ToString())).ToArray();
+        var thereAreAppointments = !forceDelete && await _repository.CheckCorrelatedAppointmentsAsync(service.Id);
 
-        return Response.Failure([Error.RemoveError, ..errorApointments]);
+        if (thereAreAppointments)
+        {
+            var appointments = await _repository.GetCorrelatedAppointmentsAsync(service.Id);
+            var dates = appointments.Select(a => a.Date);
+
+            _errors.ThrowThereAreStillAppointmentsException([..dates]);
+        }
+        
+        return await DeleteAsync(service);
     }
 }

@@ -2,10 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Presentation.Enums;
-using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Interfaces;
-using FluentValidation;
-using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -29,18 +25,10 @@ public static class AuthEndpoint
 
     public static async Task<IResult> LogoutUser(SignInManager<User> signInManager, [FromBody] object? empty)
     {
-        try
-        {
-            if (empty is null)
-                return Results.Unauthorized();
+        if (empty is null)
+            return Results.Unauthorized();
 
-            await signInManager.SignOutAsync();
-            return Results.StatusCode(StatusCodes.Status205ResetContent);
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(new { ex.Message });
-        }
+        await signInManager.SignOutAsync();
+        return Results.StatusCode(StatusCodes.Status205ResetContent);
     }
-
 }

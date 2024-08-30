@@ -3,7 +3,7 @@ using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
-public record ProfileDtoRegisterRequest(
+public record ProfileDtoCreate(
     string FirstName,
     string LastName,
     Gender Gender,
@@ -11,7 +11,7 @@ public record ProfileDtoRegisterRequest(
     string? ImageUrl = null
 ) : IDtoRequest<Profile>;
 
-public record ProfileDtoRequest(
+public record ProfileDtoUpdate(
     string FirstName,
     string LastName,
     Gender Gender,

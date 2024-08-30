@@ -59,26 +59,22 @@ public static class UserEndpoint
         IUserErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var user = await service.CreateAsync(dto);
 
-        var result = await service.CreateAsync(dto);
-
-        if (!result.IsSuccess)
-            errors.ThrowCreateException(result.Error);
+        if (user is null)
+            errors.ThrowCreateException();
 
         return GetCreatedResult();
     }
 
-    public static async Task<IResult> GetMe(
-        IUserService service,
-        IUserErrors errors)
+    public static async Task<IResult> GetMe(IUserService service, IUserErrors errors)
     {
-        var resp = await service.GetMeAsync();
+        var user = await service.GetMeAsync();
 
-        if (!resp.IsSuccess)
-            errors.ThrowNotFoundException(resp.Error);
+        if (user is null)
+            errors.ThrowNotFoundException();
 
-        var dto = resp.Value!.CreateDto();
-        return Results.Ok(dto);
+        return Results.Ok(user!.CreateDto());
     }
 
     public static async Task<IResult> UpdateUserEmail(
@@ -88,11 +84,10 @@ public static class UserEndpoint
         IUserErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdateEmailAsync(dto);
 
-        var resp = await service.UpdateEmailAsync(dto);
-
-        if (!resp.IsSuccess)
-            errors.ThrowUpdateException(resp.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -104,11 +99,10 @@ public static class UserEndpoint
         IUserErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdatePasswordAsync(dto);
 
-        var resp = await service.UpdatePasswordAsync(dto);
-
-        if (!resp.IsSuccess)
-            errors.ThrowUpdateException(resp.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -120,11 +114,10 @@ public static class UserEndpoint
         IUserErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        var result = await service.UpdatePhoneNumberAsync(dto);
 
-        var resp = await service.UpdatePhoneNumberAsync(dto);
-
-        if (!resp.IsSuccess)
-            errors.ThrowUpdateException(resp.Error);
+        if (!result)
+            errors.ThrowUpdateException();
 
         return Results.NoContent();
     }
@@ -132,10 +125,10 @@ public static class UserEndpoint
     public static async Task<IResult> DeleteUser(IUserService service, IUserErrors errors)
     {
         int userId = service.GetMyUserId();
-        var resp = await service.DeleteAsync(userId);
+        var result = await service.DeleteAsync(userId);
 
-        if (!resp.IsSuccess)
-            errors.ThrowDeleteException(resp.Error);
+        if (!result)
+            errors.ThrowDeleteException();
 
         return Results.NoContent();
     }
