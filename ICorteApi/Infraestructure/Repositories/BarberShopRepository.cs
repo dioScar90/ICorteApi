@@ -1,9 +1,6 @@
-using System.Globalization;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +12,7 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
 {
     private readonly IUserRepository _userRepository = userRepository;
     
-    public override async Task<ISingleResponse<BarberShop>> CreateAsync(BarberShop barberShop)
+    public override async Task<BarberShop?> CreateAsync(BarberShop barberShop)
     {
         var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
@@ -24,22 +21,22 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
         {
             var barberShopResult = await base.CreateAsync(barberShop);
             
-            if (!barberShopResult.IsSuccess)
+            if (barberShopResult is null)
             {
-                errors.AddRange(barberShopResult.Error!);
+                // errors.AddRange(barberShopResult);
                 throw new Exception();
             }
-                
+            
             var roleResult = await _userRepository.AddUserRoleAsync(UserRole.BarberShop);
             
-            if (!roleResult.IsSuccess)
+            if (!roleResult)
             {
-                errors.AddRange(roleResult.Error!);
+                // errors.AddRange(roleResult.Error!);
                 throw new Exception();
             }
             
             await CommitAsync(transaction);
-            return Response.Success(barberShopResult.Value!);
+            return barberShopResult;
         }
         catch (Exception ex)
         {
@@ -49,10 +46,11 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
                 errors.Add(Error.TransactionError(ex.Message));
         }
 
-        return Response.Failure<BarberShop>([..errors]);
+        return null;
+        // return Response.Failure<BarberShop>([..errors]);
     }
 
-    public override async Task<IResponse> DeleteAsync(BarberShop barberShop)
+    public override async Task<bool> DeleteAsync(BarberShop barberShop)
     {
         var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
@@ -61,22 +59,22 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
         {
             var barberShopResult = await base.DeleteAsync(barberShop);
             
-            if (!barberShopResult.IsSuccess)
+            if (!barberShopResult)
             {
-                errors.AddRange(barberShopResult.Error!);
+                // errors.AddRange(barberShopResult.Error!);
                 throw new Exception();
             }
 
             var roleResult = await _userRepository.RemoveFromRoleAsync(UserRole.BarberShop);
             
-            if (!roleResult.IsSuccess)
+            if (!roleResult)
             {
-                errors.AddRange(roleResult.Error!);
+                // errors.AddRange(roleResult.Error!);
                 throw new Exception();
             }
                 
             await CommitAsync(transaction);
-            return Response.Success();
+            return true;
         }
         catch (Exception ex)
         {
@@ -86,23 +84,24 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
                 errors.Add(Error.TransactionError(ex.Message));
         }
 
-        return Response.Failure<BarberShop>([..errors]);
+        return false;
+        // return Response.Failure<BarberShop>([..errors]);
     }
 
     public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(DayOfWeek startDayOfWeek, DayOfWeek endDayOfWeek, int take = 10)
     {
         return await _dbSet
-            .Where(b => b.Reports.Any(r => r.Rating > 0)) // Verifica se há ratings
-            .OrderByDescending(b => b.Reports.Average(r => (decimal)r.Rating)) // Ordena pela média dos ratings
+            .Where(b => b.Reports.Any(r => r.Rating > 0))
+            .OrderByDescending(b => b.Reports.Average(r => (decimal)r.Rating))
             .Select(b => new 
             {
                 BarberShop = b,
                 Availability = b.RecurringSchedules
                     .Where(s => s.DayOfWeek >= startDayOfWeek && s.DayOfWeek <= endDayOfWeek)
             })
-            .Where(b => b.Availability.Any()) // Filtra barbearias com disponibilidade
-            .Take(take) // Limita o número de resultados
-            .Select(b => b.BarberShop) // Seleciona as barbearias
+            .Where(b => b.Availability.Any())
+            .Take(take)
+            .Select(b => b.BarberShop)
             .ToArrayAsync();
     }
 }

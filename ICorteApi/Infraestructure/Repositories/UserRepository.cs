@@ -1,13 +1,12 @@
 using System.Security.Claims;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
@@ -37,10 +36,13 @@ public sealed class UserRepository : IUserRepository
     }
 
     private async Task RegenerateUserCookieAsync(User user) => await _signInManager.RefreshSignInAsync(user);
+    private async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
+    private static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
+    private static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
 
-    public async Task<ISingleResponse<User>> CreateUserAsync(User newUser, string password)
+    public async Task<User?> CreateUserAsync(User newUser, string password)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -67,18 +69,19 @@ public sealed class UserRepository : IUserRepository
 
             await RegenerateUserCookieAsync(newUser);
         
-            await transaction.CommitAsync();
-            return Response.Success(newUser);
+            await CommitAsync(transaction);
+            return newUser;
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
         }
 
-        return Response.Failure<User>([..errors]);
+        return null;
+        // return Response.Failure<User>([..errors]);
     }
     
     public int? GetMyUserId() => _userId;
@@ -93,19 +96,21 @@ public sealed class UserRepository : IUserRepository
         if (roles is null)
             return [];
 
-        return roles
+        var userRoles = roles
             .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
             .Where(role => role.HasValue)
             .Select(role => role!.Value)
             .ToArray();
+
+        return userRoles ?? [];
     }
 
-    public async Task<ISingleResponse<User>> GetMeAsync()
+    public async Task<User?> GetMeAsync()
     {
         var userId = GetMyUserId();
 
         if (userId is not int id)
-            return Response.Failure<User>(Error.UserNotFound);
+            return null;
 
         var userEntity = await _dbSet
             .Include(u => u.Profile)
@@ -113,12 +118,10 @@ public sealed class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == id);
 
         if (userEntity is not User user)
-            return Response.Failure<User>(Error.UserNotFound);
+            return null;
 
-        var roles = await GetUserRolesAsync() ?? [];
-        user.SetRoles(roles);
-
-        return Response.Success(user);
+        user.SetRoles(await GetUserRolesAsync());
+        return user;
     }
 
     private async void UpdatedUserEntityNow(User user)
@@ -127,78 +130,78 @@ public sealed class UserRepository : IUserRepository
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<IResponse> AddUserRoleAsync(UserRole role)
+    public async Task<bool> AddUserRoleAsync(UserRole role)
     {
         var res = await _userManager.AddToRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
         {
             var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return Response.Failure(errors);
+            return false;
         }
         
         UpdatedUserEntityNow(_user!);
         
         await RegenerateUserCookieAsync(_user!);
-        return Response.Success();
+        return true;
     }
 
-    public async Task<IResponse> RemoveFromRoleAsync(UserRole role)
+    public async Task<bool> RemoveFromRoleAsync(UserRole role)
     {
         var res = await _userManager.RemoveFromRoleAsync(_user!, Enum.GetName(role)!);
 
         if (!res.Succeeded)
         {
             var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return Response.Failure(errors);
+            return false;
         }
 
         UpdatedUserEntityNow(_user!);
         
         await RegenerateUserCookieAsync(_user!);
-        return Response.Success();
+        return true;
     }
 
-    public async Task<IResponse> UpdateEmailAsync(string newEmail)
+    public async Task<bool> UpdateEmailAsync(string newEmail)
     {
         var res = await _userManager.SetEmailAsync(_user!, newEmail);
 
         if (!res.Succeeded)
         {
             var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return Response.Failure(errors);
+            return false;
         }
 
         UpdatedUserEntityNow(_user!);
-        return Response.Success();
+        return true;
     }
 
-    public async Task<IResponse> UpdatePasswordAsync(string currentPassword, string newPassword)
+    public async Task<bool> UpdatePasswordAsync(string currentPassword, string newPassword)
     {
         var res = await _userManager.ChangePasswordAsync(_user!, currentPassword, newPassword);
 
         if (!res.Succeeded)
         {
             var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return Response.Failure(errors);
+            return false;
         }
 
         UpdatedUserEntityNow(_user!);
-        return Response.Success();
+        return true;
     }
 
-    public async Task<IResponse> UpdatePhoneNumberAsync(string newPhoneNumber)
+    public async Task<bool> UpdatePhoneNumberAsync(string newPhoneNumber)
     {
         var res = await _userManager.SetPhoneNumberAsync(_user!, newPhoneNumber);
 
         if (!res.Succeeded)
         {
             var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return Response.Failure(errors);
+            return false;
         }
 
         UpdatedUserEntityNow(_user!);
-        return Response.Success();
+        return true;
     }
 
     private async void DeleteUserEntity(User user)
@@ -207,9 +210,9 @@ public sealed class UserRepository : IUserRepository
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<IResponse> DeleteAsync(User user)
+    public async Task<bool> DeleteAsync(User user)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
         List<Error> errors = [];
 
         try
@@ -232,17 +235,18 @@ public sealed class UserRepository : IUserRepository
                 throw new Exception();
             }
             
-            await transaction.CommitAsync();
-            return Response.Success();
+            await CommitAsync(transaction);
+            return true;
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackAsync(transaction);
 
             if (errors.Count == 0)
                 errors.Add(Error.TransactionError(ex.Message));
         }
 
-        return Response.Failure<User>([..errors]);
+        return false;
+        // return Response.Failure<User>([..errors]);
     }
 }

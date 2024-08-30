@@ -1,7 +1,4 @@
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +8,10 @@ namespace ICorteApi.Infraestructure.Repositories;
 public sealed class AppointmentRepository(AppDbContext context)
     : BaseRepository<Appointment>(context), IAppointmentRepository
 {
-    public async Task<ISingleResponse<Appointment>> GetByIdWithServicesAsync(int id)
+    public async Task<Appointment?> GetByIdWithServicesAsync(int id)
     {
-        var appointment = await _dbSet.Include(x => x.Services)
+        return await _dbSet
+            .Include(x => x.Services)
             .SingleOrDefaultAsync(x => x.Id == id);
-        
-        if (appointment is null)
-            return Response.Failure<Appointment>(Error.TEntityNotFound);
-
-        return Response.Success(appointment);
     }
 }

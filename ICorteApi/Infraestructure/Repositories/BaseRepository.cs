@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
@@ -17,45 +16,35 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 
     protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     protected async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
-    protected async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
-    protected async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
-    
-    public virtual async Task<ISingleResponse<TEntity>> CreateAsync(TEntity entity)
+    protected static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
+    protected static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
+
+    public virtual async Task<TEntity?> CreateAsync(TEntity entity)
     {
         _dbSet.Add(entity);
-        return await SaveChangesAsync() ? Response.Success(entity) : Response.Failure<TEntity>(Error.CreateError);
+        return await SaveChangesAsync() ? entity : null;
     }
 
-    public virtual async Task<ISingleResponse<TEntity>> GetByIdAsync(
-        params object[] primaryKeys)
+    public virtual async Task<TEntity?> GetByIdAsync(params object[] primaryKeys)
     {
-        var entity = await _dbSet.FindAsync(primaryKeys);
-        
-        if (entity is null)
-            return Response.Failure<TEntity>(Error.TEntityNotFound);
-
-        return Response.Success(entity);
+        return await _dbSet.FindAsync(primaryKeys);
     }
 
-    public virtual async Task<ISingleResponse<TEntity>> GetByIdAsync(
+    public virtual async Task<TEntity?> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes)
     {
-        IQueryable<TEntity> query = _dbSet;
-        
-        query = includes.Aggregate(query, (current, include) => current.Include(include));
-        var entity = await query.SingleOrDefaultAsync(filterId);
-
-        if (entity is null)
-            return Response.Failure<TEntity>(Error.TEntityNotFound);
-
-        return Response.Success(entity);
+        return await includes
+            .Aggregate(
+                (IQueryable<TEntity>)_dbSet,
+                (current, include) => current.Include(include))
+            .SingleOrDefaultAsync(filterId);
     }
-    
-    public virtual async Task<ICollectionResponse<TEntity>> GetAllAsync(IGetAllProperties<TEntity> props)
+
+    public virtual async Task<TEntity[]> GetAllAsync(IPaginationProperties<TEntity> props)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTrackingWithIdentityResolution();
-        
+
         query = props.Includes.Aggregate(query, (current, include) => current.Include(include));
         query = query.Where(props.Filter);
 
@@ -63,30 +52,27 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         {
             query = (bool)props.IsDescending! ? query.OrderByDescending(props.OrderBy) : query.OrderBy(props.OrderBy);
         }
-        
+
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
 
         var entities = await query
             .Skip((props.Page - 1) * props.PageSize)
             .Take(props.PageSize)
-            .ToListAsync();
+            .ToArrayAsync();
 
-        if (entities is not { Count: > 0 })
-            return Response.FailureCollection<TEntity>(Error.TEntityNotFound);
-
-        return Response.Success(entities, new(totalItems, totalPages, props.Page, props.PageSize));
+        return entities ?? [];
     }
-    
-    public virtual async Task<IResponse> UpdateAsync(TEntity entity)
+
+    public virtual async Task<bool> UpdateAsync(TEntity entity)
     {
         _dbSet.Update(entity);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.UpdateError);
+        return await SaveChangesAsync();
     }
 
-    public virtual async Task<IResponse> DeleteAsync(TEntity entity)
+    public virtual async Task<bool> DeleteAsync(TEntity entity)
     {
         _dbSet.Remove(entity);
-        return await SaveChangesAsync() ? Response.Success() : Response.Failure(Error.RemoveError);
+        return await SaveChangesAsync();
     }
 }

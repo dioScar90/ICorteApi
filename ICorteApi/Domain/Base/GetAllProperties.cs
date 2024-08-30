@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace ICorteApi.Domain.Base;
 
-public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
+public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
 {
     public int Page { get; init; }
     public int PageSize { get; init; }
@@ -11,7 +11,7 @@ public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
     public Expression<Func<TEntity, object>>? OrderBy { get; init; }
     public Expression<Func<TEntity, object>>[] Includes { get; init; }
 
-    public GetAllProperties(
+    public PaginationProperties(
         int? page, int? pageSize,
         Expression<Func<TEntity, bool>> filter,
         params Expression<Func<TEntity, object>>[] includes)
@@ -25,7 +25,7 @@ public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
         Includes = includes;
     }
 
-    public GetAllProperties(
+    public PaginationProperties(
         int? page, int? pageSize,
         Expression<Func<TEntity, bool>> filter,
         bool isDescending,
@@ -33,7 +33,7 @@ public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
         params Expression<Func<TEntity, object>>[] includes)
     {
         var (realPage, realPpageSize) = GetSanitizedPagination(page, pageSize);
-        
+
         Page = realPage;
         PageSize = realPpageSize;
 
@@ -52,7 +52,7 @@ public record GetAllProperties<TEntity> : IGetAllProperties<TEntity>
     }
 }
 
-public interface IGetAllProperties<TEntity>
+public interface IPaginationProperties<TEntity>
 {
     int Page { get; }
     int PageSize { get; }

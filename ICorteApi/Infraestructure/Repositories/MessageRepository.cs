@@ -1,8 +1,5 @@
 using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +9,13 @@ namespace ICorteApi.Infraestructure.Repositories;
 public sealed class MessageRepository(AppDbContext context)
     : BaseRepository<Message>(context), IMessageRepository
 {
-    public async Task<IResponse> MarkMessageAsReadAsync(int[] messageIds, int senderId)
+    public async Task<bool> MarkMessageAsReadAsync(int[] messageIds, int senderId)
     {
         var changesCount = await _dbSet
             .Where(x => !x.IsRead && messageIds.Contains(x.Id) && x.SenderId == senderId)
             .ExecuteUpdateAsync(x => x.SetProperty(p => p.IsRead, true));
 
-        return changesCount > 0 ? Response.Success() : Response.Failure();
+        return changesCount > 0;
     }
     
     public async Task<MessageDtoResponse[]> GetLastMessagesAsync(int appointmentId, int senderId, int? lastMessageId)
