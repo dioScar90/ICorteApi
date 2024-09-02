@@ -15,9 +15,9 @@ public sealed class Profile : BaseEntity<Profile>
 
     private Profile() { }
 
-    public Profile(ProfileDtoCreate dto, int userId)
+    public Profile(ProfileDtoCreate dto, int? userId = null)
     {
-        Id = userId;
+        Id = userId ?? default;
         FirstName = dto.FirstName;
         LastName = dto.LastName;
         Gender = dto.Gender;

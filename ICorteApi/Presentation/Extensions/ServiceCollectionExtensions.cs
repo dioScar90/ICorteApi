@@ -76,7 +76,8 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<AppointmentDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<AppointmentDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<PaymentDtoRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<BarberShopDtoRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<BarberShopDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<BarberShopDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<MessageDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<ReportDtoRequestValidator>();

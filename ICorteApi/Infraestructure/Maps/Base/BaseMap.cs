@@ -32,6 +32,9 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
             string column_name = CamelCaseToSnakeCase(prop.Name);
             builder.Property(prop.Name).HasColumnName(column_name);
 
+            if (prop.PropertyType == typeof(decimal))
+                builder.Property(prop.Name).HasPrecision(18, 4);
+
             if (prop.PropertyType.IsEnum && !IsUnableToBecomeString(prop.PropertyType))
                 builder.Property(prop.Name).HasConversion<string>();
         }

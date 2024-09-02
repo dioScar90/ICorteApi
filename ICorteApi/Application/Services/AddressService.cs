@@ -23,17 +23,17 @@ public sealed class AddressService(IAddressRepository repository, IAddressErrors
 
         if (address is null)
             _errors.ThrowNotFoundException();
-            
+
         if (address!.BarberShopId != barberShopId)
             _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
 
         return address;
     }
-    
+
     public async Task<bool> UpdateAsync(AddressDtoUpdate dto, int id, int barberShopId)
     {
         var address = await GetByIdAsync(id, barberShopId);
-        
+
         address!.UpdateEntityByDto(dto);
         return await UpdateAsync(address);
     }

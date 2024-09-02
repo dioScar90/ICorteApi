@@ -7,6 +7,7 @@ using ICorteApi.Domain.Interfaces;
 using ICorteApi.Presentation.Enums;
 using ICorteApi.Presentation.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -20,6 +21,9 @@ public static class UserEndpoint
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
+
+        group.MapPost("register", RegisterUser)
+            .AllowAnonymous();
 
         group.MapGet("me", GetMe)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
@@ -36,9 +40,6 @@ public static class UserEndpoint
         group.MapDelete(INDEX, DeleteUser)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost("register", RegisterUser)
-            .AllowAnonymous();
-
         return app;
     }
 
@@ -49,13 +50,55 @@ public static class UserEndpoint
         return Results.Created(uri, value);
     }
 
+    private static async Task<IResult> LoginAfterCreated(string userName, string password, bool useCookies, SignInManager<User> signInManager)
+    {
+        var result = await signInManager.PasswordSignInAsync(userName, password, useCookies, lockoutOnFailure: true);
+        
+        if (!result.Succeeded)
+            return Results.Unauthorized();
+        
+        return GetCreatedResult();
+
+
+
+
+        // var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+
+        // var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
+        // var isPersistent = (useCookies == true) && (useSessionCookies != true);
+        // signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
+
+        // var result = await signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent, lockoutOnFailure: true);
+
+        // if (result.RequiresTwoFactor)
+        // {
+        //     if (!string.IsNullOrEmpty(login.TwoFactorCode))
+        //     {
+        //         result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
+        //     }
+        //     else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
+        //     {
+        //         result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
+        //     }
+        // }
+
+        // if (!result.Succeeded)
+        // {
+        //     return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
+        // }
+
+        // // The signInManager already produced the needed response in the form of a cookie or bearer token.
+        // return TypedResults.Empty;
+    }
+
     // This method was written using both inspiration of Chat GPT and real Microsoft ASP.NET Core documentation,
     // that you can find in: https://github.com/dotnet/aspnetcore/blob/main/src/Identity/Core/src/IdentityApiEndpointRouteBuilderExtensions.cs
     public static async Task<IResult> RegisterUser(
+        [FromQuery] bool useCookies,
         UserDtoRegisterRequest dto,
         IValidator<UserDtoRegisterRequest> validator,
         IUserService service,
-        UserManager<User> userManager,
+        SignInManager<User> signInManager,
         IUserErrors errors)
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
@@ -64,7 +107,12 @@ public static class UserEndpoint
         if (user is null)
             errors.ThrowCreateException();
 
-        return GetCreatedResult();
+        return await LoginAfterCreated(dto.Email, dto.Password, useCookies, signInManager);
+
+        // if (useCookies)
+        //     Login(dto.Email, dto.Password, userCookies);
+
+        // return GetCreatedResult();
     }
 
     public static async Task<IResult> GetMe(IUserService service, IUserErrors errors)
@@ -73,7 +121,7 @@ public static class UserEndpoint
 
         if (user is null)
             errors.ThrowNotFoundException();
-
+        
         return Results.Ok(user!.CreateDto());
     }
 

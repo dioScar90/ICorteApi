@@ -1,4 +1,5 @@
 using ICorteApi.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
@@ -11,10 +12,12 @@ public class MessageMap : BaseMap<Message>
 
         builder.HasOne(m => m.Appointment)
             .WithMany(c => c.Messages)
-            .HasForeignKey(m => m.AppointmentId);
+            .HasForeignKey(m => m.AppointmentId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(m => m.Sender)
-            .WithMany()
-            .HasForeignKey(m => m.SenderId);
+            .WithMany(s => s.Messages)
+            .HasForeignKey(m => m.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

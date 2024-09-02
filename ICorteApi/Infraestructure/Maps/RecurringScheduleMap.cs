@@ -13,6 +13,7 @@ public class RecurringScheduleMap : BaseMap<RecurringSchedule>
 
         builder.HasOne(rs => rs.BarberShop)
             .WithMany(b => b.RecurringSchedules)
-            .HasForeignKey(rs => rs.BarberShopId);
+            .HasForeignKey(rs => rs.BarberShopId)
+            .IsRequired(false);
     }
 }

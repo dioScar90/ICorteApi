@@ -13,14 +13,15 @@ namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class UserRepository : IUserRepository
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly AppDbContext _context;
     private readonly DbSet<User> _dbSet;
     private readonly IUserErrors _errors;
 
-    private readonly int? _userId;
-    private readonly User? _user;
+    private int? UserId;
+    private User? User;
 
     public UserRepository(
         IHttpContextAccessor httpContextAccessor,
@@ -29,21 +30,36 @@ public sealed class UserRepository : IUserRepository
         AppDbContext context,
         IUserErrors errors)
     {
+        _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
         _dbSet = _context.Set<User>();
 
-        if (httpContextAccessor.HttpContext?.User is ClaimsPrincipal user)
-        {
-            _userId = int.TryParse(_userManager.GetUserId(user), out int userId) ? userId : default;
-            _user = userManager.GetUserAsync(user).GetAwaiter().GetResult();
-        }
-
         _errors = errors;
+
+        _ = SetInitUser();
+
+        // if (_httpContextAccessor.HttpContext?.User is ClaimsPrincipal user)
+        // {
+        //     UserId = int.TryParse(_userManager.GetUserId(user), out int userId) ? userId : default;
+        //     User = userManager.GetUserAsync(user).GetAwaiter().GetResult();
+        // }
     }
 
-    private async Task RegenerateUserCookieAsync(User user) => await _signInManager.RefreshSignInAsync(user);
+    private async Task SetInitUser()
+    {
+        if (_httpContextAccessor.HttpContext?.User is not ClaimsPrincipal user)
+            return;
+
+        if (int.TryParse(_userManager.GetUserId(user), out int userId))
+            return;
+
+        UserId ??= userId;
+        User ??= await _userManager.GetUserAsync(user);
+    }
+
+    private async Task RegenerateUserCookieAsync(User? user = null) => await _signInManager.RefreshSignInAsync(user ?? User!);
     private async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
     private static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
     private static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
@@ -54,20 +70,21 @@ public sealed class UserRepository : IUserRepository
 
         try
         {
-            var userResult = await _userManager.CreateAsync(newUser, password);
+            var userIdentityResult = await _userManager.CreateAsync(newUser, password);
 
-            if (!userResult.Succeeded)
-                _errors.ThrowCreateException([..userResult.Errors]);
+            if (!userIdentityResult.Succeeded)
+                _errors.ThrowCreateException([..userIdentityResult.Errors]);
 
-            var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
+            // User = await userManager.GetUserAsync(user);
+            // await SetInitUser();
+            var roleIdentityResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
 
-            if (!roleResult.Succeeded)
-                _errors.ThrowBasicUserException([..userResult.Errors]);
+            if (!roleIdentityResult.Succeeded)
+                _errors.ThrowBasicUserException([..roleIdentityResult.Errors]);
 
-            await RegenerateUserCookieAsync(newUser);
-
+            // await RegenerateUserCookieAsync(newUser);
             await CommitAsync(transaction);
-            return await GetMeAsync(true);
+            return newUser;
         }
         catch (Exception)
         {
@@ -76,14 +93,14 @@ public sealed class UserRepository : IUserRepository
         }
     }
 
-    public int? GetMyUserId() => _userId;
+    public int? GetMyUserId() => UserId;
 
     public async Task<UserRole[]> GetUserRolesAsync()
     {
-        if (_user is null)
+        if (User is null)
             return [];
 
-        var roles = await _userManager.GetRolesAsync(_user);
+        var roles = await _userManager.GetRolesAsync(User);
 
         if (roles is null)
             return [];
@@ -104,6 +121,8 @@ public sealed class UserRepository : IUserRepository
         if (userId is not int id)
             return null;
 
+        await RegenerateUserCookieAsync();
+
         if (dispatchIncludes == true)
             return await _dbSet.FirstOrDefaultAsync(u => u.Id == id);
 
@@ -119,74 +138,68 @@ public sealed class UserRepository : IUserRepository
         return user;
     }
 
-    private async void UpdatedUserEntityNow(User user)
+    private async Task UpdatedUserEntityNow()
     {
-        user.UpdatedUserNow();
-        await _userManager.UpdateAsync(user);
+        User!.UpdatedUserNow();
+        await _userManager.UpdateAsync(User);
     }
 
     public async Task<bool> AddUserRoleAsync(UserRole role)
     {
-        var res = await _userManager.AddToRoleAsync(_user!, Enum.GetName(role)!);
+        var identityResult = await _userManager.AddToRoleAsync(User!, Enum.GetName(role)!);
 
-        if (!res.Succeeded)
-        {
-            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return false;
-        }
+        if (!identityResult.Succeeded)
+            _errors.ThrowAddUserRoleException([.. identityResult.Errors]);
+            
+        await UpdatedUserEntityNow();
+        // await RegenerateUserCookieAsync();
 
-        UpdatedUserEntityNow(_user!);
-
-        await RegenerateUserCookieAsync(_user!);
         return true;
     }
 
     public async Task<bool> RemoveFromRoleAsync(UserRole role)
     {
-        var res = await _userManager.RemoveFromRoleAsync(_user!, Enum.GetName(role)!);
+        var identityResult = await _userManager.RemoveFromRoleAsync(User!, Enum.GetName(role)!);
 
-        if (!res.Succeeded)
-        {
-            var errors = res.Errors.Select(err => new Error(err.Code, err.Description)).ToArray();
-            return false;
-        }
+        if (!identityResult.Succeeded)
+            _errors.ThrowRemoveUserRoleException([.. identityResult.Errors]);
+            
+        await UpdatedUserEntityNow();
+        // await RegenerateUserCookieAsync();
 
-        UpdatedUserEntityNow(_user!);
-
-        await RegenerateUserCookieAsync(_user!);
         return true;
     }
 
     public async Task<bool> UpdateEmailAsync(string newEmail)
     {
-        var identityResult = await _userManager.SetEmailAsync(_user!, newEmail);
+        var identityResult = await _userManager.SetEmailAsync(User!, newEmail);
 
         if (!identityResult.Succeeded)
             _errors.ThrowUpdateEmailException([.. identityResult.Errors]);
 
-        UpdatedUserEntityNow(_user!);
+        await UpdatedUserEntityNow();
         return true;
     }
 
     public async Task<bool> UpdatePasswordAsync(string currentPassword, string newPassword)
     {
-        var identityResult = await _userManager.ChangePasswordAsync(_user!, currentPassword, newPassword);
+        var identityResult = await _userManager.ChangePasswordAsync(User!, currentPassword, newPassword);
 
         if (!identityResult.Succeeded)
             _errors.ThrowUpdatePasswordException([.. identityResult.Errors]);
 
-        UpdatedUserEntityNow(_user!);
+        await UpdatedUserEntityNow();
         return true;
     }
 
     public async Task<bool> UpdatePhoneNumberAsync(string newPhoneNumber)
     {
-        var identityResult = await _userManager.SetPhoneNumberAsync(_user!, newPhoneNumber);
+        var identityResult = await _userManager.SetPhoneNumberAsync(User!, newPhoneNumber);
 
         if (!identityResult.Succeeded)
             _errors.ThrowUpdatePhoneNumberException([.. identityResult.Errors]);
 
-        UpdatedUserEntityNow(_user!);
+        await UpdatedUserEntityNow();
         return true;
     }
 
@@ -209,10 +222,10 @@ public sealed class UserRepository : IUserRepository
                 _errors.ThrowBasicUserException([..roleResult.Errors]);
 
             DeleteUserEntity(user);
-            var res = await _userManager.DeleteAsync(user);
+            var identityResult = await _userManager.DeleteAsync(user);
 
-            if (!res.Succeeded)
-                _errors.ThrowBasicUserException([..res.Errors]);
+            if (!identityResult.Succeeded)
+                _errors.ThrowBasicUserException([..identityResult.Errors]);
 
             await CommitAsync(transaction);
             return true;

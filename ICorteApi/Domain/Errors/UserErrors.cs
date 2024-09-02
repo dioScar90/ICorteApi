@@ -27,6 +27,18 @@ public sealed class UserErrors : BaseErrors<User>, IUserErrors
         var errors = GetIdentityErrorIntoBasicError(identityErrors);
         ThrowDeleteException([..errors]);
     }
+    
+    public void ThrowAddUserRoleException(params IdentityError[] identityErrors)
+    {
+        var errors = GetIdentityErrorIntoBasicError(identityErrors);
+        ThrowBadRequestException([..errors]);
+    }
+    
+    public void ThrowRemoveUserRoleException(params IdentityError[] identityErrors)
+    {
+        var errors = GetIdentityErrorIntoBasicError(identityErrors);
+        ThrowBadRequestException([..errors]);
+    }
 
     public void ThrowRegisterNotCompletedException()
     {

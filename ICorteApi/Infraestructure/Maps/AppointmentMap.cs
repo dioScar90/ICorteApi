@@ -16,7 +16,8 @@ public class AppointmentMap : BaseMap<Appointment>
         
         builder.HasOne(a => a.BarberShop)
             .WithMany(b => b.Appointments)
-            .HasForeignKey(a => a.BarberShopId);
+            .HasForeignKey(a => a.BarberShopId)
+            .OnDelete(DeleteBehavior.Restrict);
             
         builder.HasMany(a => a.Services)
             .WithMany(s => s.Appointments)
@@ -27,7 +28,7 @@ public class AppointmentMap : BaseMap<Appointment>
                     .WithMany()
                     .HasForeignKey("service_id")
                     .HasPrincipalKey(nameof(Service.Id))
-                    .OnDelete(DeleteBehavior.Cascade),
+                    .OnDelete(DeleteBehavior.Restrict),
 
                 r => r.HasOne(typeof(Appointment))
                     .WithMany()

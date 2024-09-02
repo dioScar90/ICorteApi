@@ -5,10 +5,8 @@ namespace ICorteApi.Application.Dtos;
 
 public record RecurringScheduleDtoRequest(
     DayOfWeek DayOfWeek,
-    int? BarberShopId,
     TimeOnly OpenTime,
-    TimeOnly CloseTime,
-    bool IsActive
+    TimeOnly CloseTime
 ) : IDtoRequest<RecurringSchedule>;
 
 public record RecurringScheduleDtoResponse(

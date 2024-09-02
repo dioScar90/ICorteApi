@@ -8,6 +8,8 @@ public interface IUserErrors : IBaseErrors<User>
     void ThrowCreateException(params IdentityError[] identityErrors);
     void ThrowUpdateException(params IdentityError[] identityErrors);
     void ThrowDeleteException(params IdentityError[] identityErrors);
+    void ThrowAddUserRoleException(params IdentityError[] identityErrors);
+    void ThrowRemoveUserRoleException(params IdentityError[] identityErrors);
     
     void ThrowRegisterNotCompletedException();
     void ThrowUserAlreadyCreatedException();

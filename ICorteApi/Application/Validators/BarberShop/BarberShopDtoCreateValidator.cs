@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class BarberShopDtoRequestValidator : AbstractValidator<BarberShopDtoRequest>
+public class BarberShopDtoCreateValidator : AbstractValidator<BarberShopDtoCreate>
 {
-    public BarberShopDtoRequestValidator()
+    public BarberShopDtoCreateValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome é obrigatório")
