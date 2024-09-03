@@ -33,7 +33,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
             builder.Property(prop.Name).HasColumnName(column_name);
 
             if (prop.PropertyType == typeof(decimal))
-                builder.Property(prop.Name).HasPrecision(18, 4);
+                builder.Property(prop.Name).HasPrecision(9, 4);
 
             if (prop.PropertyType.IsEnum && !IsUnableToBecomeString(prop.PropertyType))
                 builder.Property(prop.Name).HasConversion<string>();

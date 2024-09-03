@@ -5,21 +5,13 @@ namespace ICorteApi.Application.Dtos;
 
 public record SpecialScheduleDtoRequest : IDtoRequest<SpecialSchedule>
 {
-    public SpecialScheduleDtoRequest(DateOnly date, TimeOnly? openTime = null, TimeOnly? closeTime = null)
-    {
-        Date = date;
-        OpenTime = openTime;
-        CloseTime = closeTime;
-        IsClosed = openTime is null && closeTime is null;
-    }
-
-    public SpecialScheduleDtoRequest(DateOnly date, string? notes, TimeOnly? openTime = null, TimeOnly? closeTime = null)
+    public SpecialScheduleDtoRequest(DateOnly date, string? notes, TimeOnly? openTime, TimeOnly? closeTime, bool isClosed)
     {
         Date = date;
         Notes = notes;
-        OpenTime = openTime;
-        CloseTime = closeTime;
-        IsClosed = openTime is null && closeTime is null;
+        OpenTime = isClosed ? null : openTime;
+        CloseTime = isClosed ? null : closeTime;
+        IsClosed = isClosed || (openTime is null && closeTime is null);
     }
     
     public DateOnly Date { get; init; }

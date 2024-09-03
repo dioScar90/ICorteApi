@@ -14,7 +14,7 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
 
     public async Task<Profile?> CreateAsync(Profile profile, string phoneNumber)
     {
-        var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
 
         try
         {
@@ -38,7 +38,7 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
 
     public override async Task<bool> DeleteAsync(Profile profile)
     {
-        var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
 
         try
         {
@@ -48,7 +48,7 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
                 _errors.ThrowDeleteException();
 
             await _userRepository.RemoveFromRoleAsync(UserRole.Client);
-            
+
             await CommitAsync(transaction);
             return result;
         }

@@ -13,6 +13,7 @@ public class SpecialScheduleMap : BaseMap<SpecialSchedule>
 
         builder.HasOne(ss => ss.BarberShop)
             .WithMany(b => b.SpecialSchedules)
-            .HasForeignKey(ss => ss.BarberShopId);
+            .HasForeignKey(ss => ss.BarberShopId)
+            .IsRequired(false);
     }
 }

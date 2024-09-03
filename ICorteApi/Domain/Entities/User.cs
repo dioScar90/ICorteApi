@@ -7,7 +7,7 @@ namespace ICorteApi.Domain.Entities;
 public sealed class User : BaseUserEntity
 {
     public Profile Profile { get; set; }
-    public BarberShop OwnedBarberShop { get; set; }
+    public BarberShop BarberShop { get; set; }
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
@@ -32,7 +32,7 @@ public sealed class User : BaseUserEntity
 
         if (dto.BarberShop is not null)
         {
-            OwnedBarberShop = new(dto.BarberShop);
+            BarberShop = new(dto.BarberShop);
         }
     }
 
@@ -53,6 +53,6 @@ public sealed class User : BaseUserEntity
             PhoneNumber,
             GetRolesAsStringArray(),
             Profile?.CreateDto(),
-            OwnedBarberShop?.CreateDto()
+            BarberShop?.CreateDto()
         );
 }

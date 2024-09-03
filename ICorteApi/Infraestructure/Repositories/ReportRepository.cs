@@ -13,7 +13,7 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
 
     public override async Task<Report?> CreateAsync(Report report)
     {
-        var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
 
         try
         {
@@ -21,9 +21,9 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
 
             if (newReport is null)
                 _errors.ThrowCreateException();
-            
+
             await UpdateBarberShopRatingAsync(newReport!.BarberShop);
-            
+
             await CommitAsync(transaction);
             return newReport;
         }
@@ -41,7 +41,7 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
 
     public override async Task<bool> UpdateAsync(Report report)
     {
-        var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
 
         try
         {
@@ -51,7 +51,7 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
                 _errors.ThrowUpdateException();
 
             await UpdateBarberShopRatingAsync(report.BarberShop);
-            
+
             await CommitAsync(transaction);
             return result;
         }
@@ -64,7 +64,7 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
 
     public override async Task<bool> DeleteAsync(Report report)
     {
-        var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync();
 
         try
         {
@@ -72,9 +72,9 @@ public sealed class ReportRepository(AppDbContext context, IReportErrors errors)
 
             if (!result)
                 _errors.ThrowDeleteException();
-            
+
             await UpdateBarberShopRatingAsync(report.BarberShop);
-            
+
             await CommitAsync(transaction);
             return result;
         }

@@ -10,7 +10,7 @@ public class BarberShopMap : BaseMap<BarberShop>
         base.Configure(builder);
 
         builder.HasOne(b => b.Owner)
-            .WithOne(p => p.OwnedBarberShop)
+            .WithOne(p => p.BarberShop)
             .HasForeignKey<BarberShop>(b => b.OwnerId);
     }
 }

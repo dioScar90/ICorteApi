@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -15,12 +16,7 @@ public static class DataSeeder
 
         // Check is there is already some valid user inserted.
         if (await userManager.Users.AnyAsync(u => !u.IsDeleted))
-        {
-            Console.WriteLine("\n\n\n\n");
-            Console.WriteLine("Caiu aqui e definitivamente não semeou nada");
-            Console.WriteLine("\n\n\n\n");
             return;
-        }
         
         var usersWithRoles = GetAllUsersToMock();
 
@@ -147,12 +143,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 12, 24),
+                                null,
                                 new(08, 00, 00),
-                                new(12, 00, 00)
+                                new(12, 00, 00),
+                                false
                             ),
                             new(
                                 new(2024, 12, 25),
-                                "Natal"
+                                "Natal",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
@@ -223,12 +224,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 12, 31),
+                                null,
                                 new(09, 00, 00),
-                                new(14, 00, 00)
+                                new(14, 00, 00),
+                                false
                             ),
                             new(
                                 new(2024, 01, 01),
-                                "Ano Novo"
+                                "Ano Novo",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
@@ -299,12 +305,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 03, 10),
+                                null,
                                 new(09, 00, 00),
-                                new(13, 00, 00)
+                                new(13, 00, 00),
+                                false
                             ),
                             new(
                                 new(2024, 11, 02),
-                                "Finados"
+                                "Finados",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
@@ -375,12 +386,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 07, 09),
+                                null,
                                 new(08, 00, 00),
-                                new(12, 00, 00)
+                                new(12, 00, 00),
+                                false
                             ),
                             new(
                                 new(2024, 11, 15),
-                                "Proclamação da República"
+                                "Proclamação da República",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
@@ -451,11 +467,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 05, 12),
-                                "Dia das Mães"
+                                "Dia das Mães",
+                                null,
+                                null,
+                                true
                             ),
                             new(
                                 new(2024, 12, 25),
-                                "Natal"
+                                "Natal",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
@@ -527,12 +549,17 @@ public static class DataSeeder
                         [
                             new(
                                 new(2024, 08, 22),
+                                null,
                                 new(08, 00, 00),
-                                new(13, 00, 00)
+                                null,
+                                false
                             ),
                             new(
                                 new(2024, 12, 31),
-                                "Ano Novo"
+                                "Ano Novo",
+                                null,
+                                null,
+                                true
                             ),
                         ],
                         [
