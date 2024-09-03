@@ -38,7 +38,9 @@ public record UserDtoChangePhoneNumberRequest(
 
 public record UserDtoRegisterRequest(
     string Email,
-    string Password
+    string Password,
+    ProfileDtoCreate? Profile = null,
+    BarberShopDtoCreate? BarberShop = null
 ) : IDtoRequest<User>;
 
 public record UserDtoLoginRequest(

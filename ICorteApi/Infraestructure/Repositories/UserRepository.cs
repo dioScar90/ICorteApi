@@ -120,9 +120,7 @@ public sealed class UserRepository : IUserRepository
 
         if (userId is not int id)
             return null;
-
-        await RegenerateUserCookieAsync();
-
+        
         if (dispatchIncludes == true)
             return await _dbSet.FirstOrDefaultAsync(u => u.Id == id);
 
@@ -152,7 +150,7 @@ public sealed class UserRepository : IUserRepository
             _errors.ThrowAddUserRoleException([.. identityResult.Errors]);
             
         await UpdatedUserEntityNow();
-        // await RegenerateUserCookieAsync();
+        await RegenerateUserCookieAsync();
 
         return true;
     }
@@ -165,7 +163,7 @@ public sealed class UserRepository : IUserRepository
             _errors.ThrowRemoveUserRoleException([.. identityResult.Errors]);
             
         await UpdatedUserEntityNow();
-        // await RegenerateUserCookieAsync();
+        await RegenerateUserCookieAsync();
 
         return true;
     }

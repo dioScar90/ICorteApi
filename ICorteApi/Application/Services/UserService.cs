@@ -15,7 +15,7 @@ public sealed class UserService(IUserRepository repository, IUserErrors errors) 
     public async Task<User?> CreateAsync(UserDtoRegisterRequest dto)
     {
         var user = new User(dto);
-        return await _repository.CreateUserAsync(user, dto.Password);
+        return await _repository.CreateUserAsync(user, user.GetPasswordToBeHashed());
     }
 
     public async Task<User?> GetMeAsync()

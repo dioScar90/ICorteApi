@@ -12,15 +12,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     // Alternativas de banco de dados descomentadas conforme necessidade
     options
         //.UseInMemoryDatabase("AppDb")
-        // .UseSqlite(
-        //     builder.Configuration.GetConnectionString("SqliteConnection"),
-        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+        .UseSqlite(
+            builder.Configuration.GetConnectionString("SqliteConnection"),
+            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         // .UseNpgsql(
         //     builder.Configuration.GetConnectionString("PostgreSqlConnection"),
         //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        .UseSqlServer(
-            builder.Configuration.GetConnectionString("SqlServerConnection"),
-            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+        // .UseSqlServer(
+        //     builder.Configuration.GetConnectionString("SqlServerConnection"),
+        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
 );
 
 builder.Services.AddHttpContextAccessor();
@@ -60,9 +60,10 @@ app.DefineCultureLocalization("pt-BR");
 
 using (var scope = app.Services.CreateScope())
 {
-    // var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
     var roleManager = scope.ServiceProvider;
+
     await RoleSeeder.SeedRoles(roleManager);
+    await DataSeeder.SeedData(roleManager);
 }
 
 app.UseRouting();
@@ -78,20 +79,5 @@ app.UseExceptionHandler("/error");
 
 // Regenera o token de sessão na inicialização
 SessionTokenManager.RegenerateToken();
-
-// using (var scope = app.Services.CreateScope())
-// {
-//     var services = scope.ServiceProvider;
-//     try
-//     {
-//         var context = services.GetRequiredService<AppDbContext>();
-//         DbInitializer.Initialize(context);
-//     }
-//     catch (Exception ex)
-//     {
-//         var logger = services.GetRequiredService<ILogger<Program>>();
-//         logger.LogError(ex, "An error occurred while seeding the database.");
-//     }
-// }
 
 app.Run();

@@ -11,7 +11,8 @@ public sealed class User : BaseUserEntity
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
-
+    
+    private readonly string _password;
     private readonly HashSet<UserRole> _roles = [];
 
     public User() { }
@@ -20,7 +21,22 @@ public sealed class User : BaseUserEntity
     {
         UserName = dto.Email;
         Email = dto.Email;
+
+        _password = dto.Password;
+
+        if (dto.Profile is not null)
+        {
+            PhoneNumber = dto.Profile.PhoneNumber;
+            Profile = new(dto.Profile);
+        }
+
+        if (dto.BarberShop is not null)
+        {
+            OwnedBarberShop = new(dto.BarberShop);
+        }
     }
+
+    public string GetPasswordToBeHashed() => _password;
 
     public void SetRoles(UserRole[] roles)
     {
