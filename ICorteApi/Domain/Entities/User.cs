@@ -28,11 +28,9 @@ public sealed class User : BaseUserEntity
         {
             PhoneNumber = dto.Profile.PhoneNumber;
             Profile = new(dto.Profile);
-        }
 
-        if (dto.BarberShop is not null)
-        {
-            BarberShop = new(dto.BarberShop);
+            if (dto.BarberShop is not null)
+                BarberShop = new(dto.BarberShop);
         }
     }
 

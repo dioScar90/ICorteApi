@@ -1,17 +1,7 @@
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
-
-public record UserDtoRequest(
-    string Email,
-    string FirstName,
-    string LastName,
-    string PhoneNumber,
-    string? ImageUrl,
-    string[] Roles
-) : IDtoRequest<User>;
 
 public record UserDtoResponse(
     int Id,
@@ -21,12 +11,6 @@ public record UserDtoResponse(
     ProfileDtoResponse? Profile,
     BarberShopDtoResponse? BarberShop
 ) : IDtoResponse<User>;
-
-// public record UserDtoResponse(
-//     int Id,
-//     string Email,
-//     string PhoneNumber
-// ) : IDtoResponse<User>;
 
 public record UserDtoChangeEmailRequest(
     string Email

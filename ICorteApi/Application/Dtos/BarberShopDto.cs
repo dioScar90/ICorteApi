@@ -11,8 +11,7 @@ public record BarberShopDtoCreate(
     AddressDtoCreate? Address = null,
     RecurringScheduleDtoRequest[]? RecurringSchedules = null,
     SpecialScheduleDtoRequest[]? SpecialSchedules = null,
-    ServiceDtoRequest[]? Services = null,
-    ReportDtoRequest[]? Reports = null
+    ServiceDtoRequest[]? Services = null
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoUpdate(

@@ -29,7 +29,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
     {
         return await _dbSet.FindAsync(primaryKeys);
     }
-
+    
     public virtual async Task<TEntity?> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
         params Expression<Func<TEntity, object>>[] includes)

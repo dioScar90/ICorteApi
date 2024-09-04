@@ -36,16 +36,13 @@ public sealed class BarberShop : BaseEntity<BarberShop>
             Address = new(dto.Address);
 
         if (dto.RecurringSchedules is not null)
-            RecurringSchedules = dto.RecurringSchedules.Select(rs => new RecurringSchedule(rs)).ToList();
+            RecurringSchedules = dto.RecurringSchedules.Select(rs => new RecurringSchedule(rs)).ToArray();
 
         if (dto.SpecialSchedules is not null)
-            SpecialSchedules = dto.SpecialSchedules.Select(ss => new SpecialSchedule(ss)).ToList();
+            SpecialSchedules = dto.SpecialSchedules.Select(ss => new SpecialSchedule(ss)).ToArray();
 
         if (dto.Services is not null)
-            Services = dto.Services.Select(s => new Service(s)).ToList();
-
-        if (dto.Reports is not null)
-            Reports = dto.Reports.Select(r => new Report(r)).ToList();
+            Services = dto.Services.Select(s => new Service(s)).ToArray();
 
         OwnerId = ownerId ?? default;
     }

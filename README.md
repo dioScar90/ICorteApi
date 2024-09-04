@@ -3,7 +3,7 @@
 This is my personal repository about my TCC (Final Paper) project. It is a barbershop scheduling web app.
 - Backend: **ASP.NET Core**, with Minimal API.
 - Frontend: **React**, with React Router or Remix (I don't know...).
-- Database: **PostgreSQL**, with Entity Framework ORM.
+- Database: **SQL Server**, with Entity Framework ORM.
 
 ## Some .NET common steps:
 
@@ -13,7 +13,7 @@ This is my personal repository about my TCC (Final Paper) project. It is a barbe
 
 ### Some packages to be installed:
 - `dotnet tool install --global dotnet-ef` or `dotnet tool update --global dotnet-ef`
-- `dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL` or
+- `dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL` or `dotnet add package Microsoft.EntityFrameworkCore.SqlServer`
 - `dotnet add package Microsoft.EntityFrameworkCore.Design`
 - `dotnet add package Microsoft.EntityFrameworkCore.Tools`
 - `dotnet add package Microsoft.AspNetCore.Authentication`
