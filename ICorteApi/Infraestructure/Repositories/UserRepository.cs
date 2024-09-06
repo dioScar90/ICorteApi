@@ -1,8 +1,5 @@
-using System.Collections.ObjectModel;
-using System.Security.Claims;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Infraestructure.Interfaces;
@@ -20,10 +17,7 @@ public sealed class UserRepository : IUserRepository
     private readonly AppDbContext _context;
     private readonly DbSet<User> _dbSet;
     private readonly IUserErrors _errors;
-
-    private int? UserId;
-    private User? User;
-
+    
     public UserRepository(
         IHttpContextAccessor httpContextAccessor,
         UserManager<User> userManager,
@@ -38,32 +32,29 @@ public sealed class UserRepository : IUserRepository
         _dbSet = _context.Set<User>();
 
         _errors = errors;
-
-        _ = SetInitUser();
-
-        // if (_httpCtx.HttpContext?.User is ClaimsPrincipal user)
-        // {
-        //     UserId = int.TryParse(_userManager.GetUserId(user), out int userId) ? userId : default;
-        //     User = userManager.GetUserAsync(user).GetAwaiter().GetResult();
-        // }
     }
-
-    private async Task SetInitUser()
-    {
-        if (_httpCtx.HttpContext?.User is not ClaimsPrincipal user)
-            return;
-
-        if (int.TryParse(_userManager.GetUserId(user), out int userId))
-            return;
-
-        UserId ??= userId;
-        User ??= await _userManager.GetUserAsync(user);
-    }
-
-    private async Task RegenerateUserCookieAsync(User? user = null) => await _signInManager.RefreshSignInAsync(user ?? User!);
+    
     private async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
     private static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
     private static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
+    
+    private async Task RegenerateUserCookieAsync(User? user = null) =>
+        await _signInManager.RefreshSignInAsync(user ?? await GetMyUserEntityAsync());
+
+    private static HashSet<string> GetUserRolesToBeSetted(User user)
+    {
+        HashSet<string> roles = [nameof(UserRole.Guest)];
+
+        if (user.Profile is not null)
+        {
+            roles.Add(nameof(UserRole.Client));
+            
+            if (user.BarberShop is not null)
+                roles.Add(nameof(UserRole.BarberShop));
+        }
+        
+        return roles;
+    }
 
     public async Task<User?> CreateUserAsync(User newUser, string password)
     {
@@ -74,16 +65,13 @@ public sealed class UserRepository : IUserRepository
             var userIdentityResult = await _userManager.CreateAsync(newUser, password);
 
             if (!userIdentityResult.Succeeded)
-                _errors.ThrowCreateException([.. userIdentityResult.Errors]);
-
-            // User = await userManager.GetUserAsync(user);
-            // await SetInitUser();
-            var roleIdentityResult = await _userManager.AddToRoleAsync(newUser, nameof(UserRole.Guest));
+                _errors.ThrowCreateException([..userIdentityResult.Errors]);
+                
+            var roleIdentityResult = await _userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
 
             if (!roleIdentityResult.Succeeded)
-                _errors.ThrowBasicUserException([.. roleIdentityResult.Errors]);
-
-            // await RegenerateUserCookieAsync(newUser);
+                _errors.ThrowBasicUserException([..roleIdentityResult.Errors]);
+            
             await CommitAsync(transaction);
             return newUser;
         }
@@ -134,20 +122,21 @@ public sealed class UserRepository : IUserRepository
         return user;
     }
 
-    private async Task UpdatedUserEntityNow()
+    private async Task UpdatedUserEntityNow(User user)
     {
-        User!.UpdatedUserNow();
-        await _userManager.UpdateAsync(User);
+        user.UpdatedUserNow();
+        await _userManager.UpdateAsync(user);
     }
 
     public async Task<bool> AddUserRoleAsync(UserRole role)
     {
-        var identityResult = await _userManager.AddToRoleAsync(User!, Enum.GetName(role)!);
+        var user = await GetMyUserEntityAsync();
+        var identityResult = await _userManager.AddToRoleAsync(user, role.ToString());
 
         if (!identityResult.Succeeded)
-            _errors.ThrowAddUserRoleException([.. identityResult.Errors]);
+            _errors.ThrowAddUserRoleException([..identityResult.Errors]);
 
-        await UpdatedUserEntityNow();
+        await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
 
         return true;
@@ -155,12 +144,13 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<bool> RemoveFromRoleAsync(UserRole role)
     {
-        var identityResult = await _userManager.RemoveFromRoleAsync(User!, Enum.GetName(role)!);
+        var user = await GetMyUserEntityAsync();
+        var identityResult = await _userManager.RemoveFromRoleAsync(user, role.ToString());
 
         if (!identityResult.Succeeded)
-            _errors.ThrowRemoveUserRoleException([.. identityResult.Errors]);
+            _errors.ThrowRemoveUserRoleException([..identityResult.Errors]);
 
-        await UpdatedUserEntityNow();
+        await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
 
         return true;
@@ -168,34 +158,37 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<bool> UpdateEmailAsync(string newEmail)
     {
-        var identityResult = await _userManager.SetEmailAsync(User!, newEmail);
+        var user = await GetMyUserEntityAsync();
+        var identityResult = await _userManager.SetEmailAsync(user, newEmail);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdateEmailException([.. identityResult.Errors]);
+            _errors.ThrowUpdateEmailException([..identityResult.Errors]);
 
-        await UpdatedUserEntityNow();
+        await UpdatedUserEntityNow(user);
         return true;
     }
 
     public async Task<bool> UpdatePasswordAsync(string currentPassword, string newPassword)
     {
-        var identityResult = await _userManager.ChangePasswordAsync(User!, currentPassword, newPassword);
+        var user = await GetMyUserEntityAsync();
+        var identityResult = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdatePasswordException([.. identityResult.Errors]);
+            _errors.ThrowUpdatePasswordException([..identityResult.Errors]);
 
-        await UpdatedUserEntityNow();
+        await UpdatedUserEntityNow(user);
         return true;
     }
 
     public async Task<bool> UpdatePhoneNumberAsync(string newPhoneNumber)
     {
-        var identityResult = await _userManager.SetPhoneNumberAsync(User!, newPhoneNumber);
+        var user = await GetMyUserEntityAsync();
+        var identityResult = await _userManager.SetPhoneNumberAsync(user, newPhoneNumber);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdatePhoneNumberException([.. identityResult.Errors]);
+            _errors.ThrowUpdatePhoneNumberException([..identityResult.Errors]);
 
-        await UpdatedUserEntityNow();
+        await UpdatedUserEntityNow(user);
         return true;
     }
 
@@ -215,13 +208,13 @@ public sealed class UserRepository : IUserRepository
             var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
 
             if (!roleResult.Succeeded)
-                _errors.ThrowBasicUserException([.. roleResult.Errors]);
+                _errors.ThrowBasicUserException([..roleResult.Errors]);
 
             DeleteUserEntity(user);
             var identityResult = await _userManager.DeleteAsync(user);
 
             if (!identityResult.Succeeded)
-                _errors.ThrowBasicUserException([.. identityResult.Errors]);
+                _errors.ThrowBasicUserException([..identityResult.Errors]);
 
             await CommitAsync(transaction);
             return true;
