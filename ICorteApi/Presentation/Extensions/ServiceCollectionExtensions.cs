@@ -40,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IBarberShopService, BarberShopService>();
+        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IProfileService, ProfileService>();
@@ -59,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaymentErrors, PaymentErrors>();
         services.AddScoped<IProfileErrors, ProfileErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
+        services.AddScoped<IImageErrors, ImageErrors>();
         services.AddScoped<IMessageErrors, MessageErrors>();
         services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
         services.AddScoped<IReportErrors, ReportErrors>();

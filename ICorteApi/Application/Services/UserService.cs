@@ -25,9 +25,9 @@ public sealed class UserService(IUserRepository repository, IUserErrors errors) 
 
     public async Task<User> GetMyUserAsync() => (await GetMeAsync())!;
 
-    public int GetMyUserId()
+    public async Task<int> GetMyUserIdAsync()
     {
-        return (int)_repository.GetMyUserId()!;
+        return (int)(await _repository.GetMyUserIdAsync())!;
     }
 
     public async Task<UserRole[]> GetUserRolesAsync()

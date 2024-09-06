@@ -9,7 +9,7 @@ public interface IUserService : IService<User>
     Task<User?> CreateAsync(UserDtoRegisterRequest dtoRequest);
     Task<User?> GetMeAsync();
     Task<User> GetMyUserAsync();
-    int GetMyUserId();
+    Task<int> GetMyUserIdAsync();
     Task<UserRole[]> GetUserRolesAsync();
     Task<bool> AddUserRoleAsync(UserRole role);
     Task<bool> RemoveFromRoleAsync(UserRole role);

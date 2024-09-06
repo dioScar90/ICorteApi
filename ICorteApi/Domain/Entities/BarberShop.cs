@@ -75,7 +75,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
                 throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
         }
     }
-
+    
     public override BarberShopDtoResponse CreateDto() =>
         new(
             Id,
@@ -84,9 +84,9 @@ public sealed class BarberShop : BaseEntity<BarberShop>
             ComercialNumber,
             ComercialEmail,
             Address?.CreateDto(),
-            RecurringSchedules?.Select(b => b.CreateDto()).ToArray(),
-            SpecialSchedules?.Select(b => b.CreateDto()).ToArray(),
-            Services?.Select(b => b.CreateDto()).ToArray(),
-            Reports?.Select(b => b.CreateDto()).ToArray()
+            RecurringSchedules  is null ? [] : [..RecurringSchedules.Select(b => b.CreateDto())],
+            SpecialSchedules    is null ? [] : [..SpecialSchedules.Select(b => b.CreateDto())],
+            Services            is null ? [] : [..Services.Select(b => b.CreateDto())],
+            Reports             is null ? [] : [..Reports.Select(b => b.CreateDto())]
         );
 }

@@ -29,6 +29,10 @@ public static class ProfileEndpoint
         group.MapPut("{id}", UpdateProfile)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
+        group.MapPatch("{id}/image", UpdateProfileImage) // Endpoint para troca de imagem
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh))
+            .DisableAntiforgery();;
+
         return app;
     }
 
@@ -45,7 +49,7 @@ public static class ProfileEndpoint
         IUserService userService,
         IProfileErrors errors)
     {
-        int userId = userService.GetMyUserId();
+        int userId = await userService.GetMyUserIdAsync();
         var profile = await service.GetByIdAsync(id, userId);
 
         if (profile is null)
@@ -61,7 +65,7 @@ public static class ProfileEndpoint
         IUserService userService,
         IProfileErrors errors)
     {
-        int userId = userService.GetMyUserId();
+        int userId = await userService.GetMyUserIdAsync();
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
         var profile = await service.CreateAsync(dto, userId);
@@ -83,8 +87,29 @@ public static class ProfileEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int userId = userService.GetMyUserId();
+        int userId = await userService.GetMyUserIdAsync();
         var result = await service.UpdateAsync(dto, id, userId);
+
+        if (!result)
+            errors.ThrowUpdateException();
+
+        return Results.NoContent();
+    }
+
+    public static async Task<IResult> UpdateProfileImage(
+        int id,
+        IFormFile image,
+        IProfileService service,
+        IUserService userService,
+        IProfileErrors errors)
+    {
+        int userId = await userService.GetMyUserIdAsync();
+
+        if (image == null || image.Length == 0)
+            // errors.ThrowUpdateException("A imagem fornecida é inválida.");
+            errors.ThrowUpdateException();
+
+        var result = await service.UpdateProfileImageAsync(id, userId, image);
 
         if (!result)
             errors.ThrowUpdateException();

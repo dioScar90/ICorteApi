@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Security.Claims;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Enums;
@@ -13,7 +14,7 @@ namespace ICorteApi.Infraestructure.Repositories;
 
 public sealed class UserRepository : IUserRepository
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHttpContextAccessor _httpCtx;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly AppDbContext _context;
@@ -30,7 +31,7 @@ public sealed class UserRepository : IUserRepository
         AppDbContext context,
         IUserErrors errors)
     {
-        _httpContextAccessor = httpContextAccessor;
+        _httpCtx = httpContextAccessor;
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
@@ -40,7 +41,7 @@ public sealed class UserRepository : IUserRepository
 
         _ = SetInitUser();
 
-        // if (_httpContextAccessor.HttpContext?.User is ClaimsPrincipal user)
+        // if (_httpCtx.HttpContext?.User is ClaimsPrincipal user)
         // {
         //     UserId = int.TryParse(_userManager.GetUserId(user), out int userId) ? userId : default;
         //     User = userManager.GetUserAsync(user).GetAwaiter().GetResult();
@@ -49,7 +50,7 @@ public sealed class UserRepository : IUserRepository
 
     private async Task SetInitUser()
     {
-        if (_httpContextAccessor.HttpContext?.User is not ClaimsPrincipal user)
+        if (_httpCtx.HttpContext?.User is not ClaimsPrincipal user)
             return;
 
         if (int.TryParse(_userManager.GetUserId(user), out int userId))
@@ -92,44 +93,41 @@ public sealed class UserRepository : IUserRepository
             throw;
         }
     }
-
-    public int? GetMyUserId() => UserId;
+    
+    private async Task<User?> GetMyUserEntityAsync() =>
+        _httpCtx.HttpContext?.User is null ? null : await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
+    
+    public async Task<int?> GetMyUserIdAsync() => (await GetMyUserEntityAsync())?.Id;
 
     public async Task<UserRole[]> GetUserRolesAsync()
     {
-        if (User is null)
+        if (await GetMyUserEntityAsync() is not User user)
             return [];
-
-        var roles = await _userManager.GetRolesAsync(User);
-
-        if (roles is null)
-            return [];
-
-        var userRoles = roles
-            .Select(role => Enum.TryParse<UserRole>(role, out var userRole) ? userRole : (UserRole?)null)
-            .Where(role => role.HasValue)
-            .Select(role => role!.Value)
-            .ToArray();
+            
+        var userRoles = (await _userManager.GetRolesAsync(user))
+            .Aggregate(
+                new HashSet<UserRole>(),
+                (roles, role) => !Enum.TryParse<UserRole>(role, out var userRole) ? [..roles] : [..roles, userRole],
+                item => item.ToArray()
+            );
 
         return userRoles ?? [];
     }
 
     public async Task<User?> GetMeAsync(bool? dispatchIncludes = false)
     {
-        var userId = GetMyUserId();
+        if (dispatchIncludes == true)
+            return await GetMyUserEntityAsync();
 
-        if (userId is not int id)
+        if (await GetMyUserIdAsync() is not int userId)
             return null;
 
-        if (dispatchIncludes == true)
-            return await _dbSet.FirstOrDefaultAsync(u => u.Id == id);
-
-        var userEntity = await _dbSet
+        var user = await _dbSet
             .Include(u => u.Profile)
             .Include(u => u.BarberShop)
-            .FirstOrDefaultAsync(u => u.Id == id);
+            .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (userEntity is not User user)
+        if (user is null)
             return null;
 
         user.SetRoles(await GetUserRolesAsync());

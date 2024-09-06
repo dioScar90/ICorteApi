@@ -107,12 +107,6 @@ public static class DataSeeder
             GetClientRenata(),
             GetClientMarcelo(),
         ];
-
-
-
-
-
-
         
     private static User GetBarberShopLionelMessi() =>
         new(
@@ -581,12 +575,6 @@ public static class DataSeeder
                 )
             )
         );
-
-
-
-
-
-    
         
     private static User GetClientJoao() =>
         new(
@@ -716,4 +704,3 @@ public static class DataSeeder
             )
         );
 }
-

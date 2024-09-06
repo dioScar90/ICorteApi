@@ -13,6 +13,9 @@ ICorteApi/*.db
 .env
 .env*
 
+# files directory
+images
+
 # VITE_GITIGNORE
     # Logs
     logs

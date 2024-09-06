@@ -34,6 +34,12 @@ public sealed class Profile : BaseEntity<Profile>
         UpdatedAt = utcNow;
     }
 
+    public void UpdateImageUrl(string imageUrl)
+    {
+        ImageUrl = imageUrl;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public override void UpdateEntityByDto(IDtoRequest<Profile> requestDto, DateTime? utcNow = null)
     {
         switch (requestDto)

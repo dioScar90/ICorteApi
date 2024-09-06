@@ -63,7 +63,7 @@ public static class BarberShopEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int ownerId = userService.GetMyUserId();
+        int ownerId = await userService.GetMyUserIdAsync();
         var barberShop = await service.CreateAsync(dto, ownerId);
 
         if (barberShop is null)
@@ -82,7 +82,7 @@ public static class BarberShopEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         
-        int ownerId = userService.GetMyUserId();
+        int ownerId = await userService.GetMyUserIdAsync();
         var result = await service.UpdateAsync(dto, id, ownerId);
 
         if (!result)
@@ -97,7 +97,7 @@ public static class BarberShopEndpoint
         IUserService userService,
         IBarberShopErrors errors)
     {
-        int ownerId = userService.GetMyUserId();
+        int ownerId = await userService.GetMyUserIdAsync();
         var result = await service.DeleteAsync(id, ownerId);
 
         if (!result)

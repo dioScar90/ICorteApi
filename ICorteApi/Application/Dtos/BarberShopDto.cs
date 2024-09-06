@@ -29,8 +29,8 @@ public record BarberShopDtoResponse(
     string ComercialNumber,
     string ComercialEmail,
     AddressDtoResponse? Address,
-    RecurringScheduleDtoResponse[]? RecurringSchedules,
-    SpecialScheduleDtoResponse[]? SpecialSchedules,
-    ServiceDtoResponse[]? Services,
-    ReportDtoResponse[]? Reports
+    RecurringScheduleDtoResponse[] RecurringSchedules,
+    SpecialScheduleDtoResponse[] SpecialSchedules,
+    ServiceDtoResponse[] Services,
+    ReportDtoResponse[] Reports
 ) : IDtoResponse<BarberShop>;

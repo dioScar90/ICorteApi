@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using ICorteApi.Infraestructure.Context;
 using ICorteApi.Presentation.Extensions;
-using ICorteApi.Presentation.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +14,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         .UseSqlite(
             builder.Configuration.GetConnectionString("SqliteConnection"),
             assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // .UseNpgsql(
-        //     builder.Configuration.GetConnectionString("PostgreSqlConnection"),
-        //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         // .UseSqlServer(
         //     builder.Configuration.GetConnectionString("SqlServerConnection"),
         //     assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
@@ -35,7 +31,7 @@ builder.Services
     .AddValidators()
     .AddAuthorizationRules()
     .AddCookieConfiguration()
-    .AddAntiCsrfConfiguration()
+    // .AddAntiCsrfConfiguration()
     .AddExceptionHandlers()
 ;
 
@@ -54,6 +50,8 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
+    
+    app.Environment.WebRootPath = app.Configuration.GetValue<string>("ImagesPath")!;
 }
 
 app.DefineCultureLocalization("pt-BR");
@@ -68,6 +66,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 
+// This call must be between `UseRouting` and `UseEndpoints`.
+// app.UseAntiforgery();
+
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
 app.UseAuthorization();
@@ -76,6 +77,8 @@ app.UseAuthorization();
 app.ConfigureMyEndpoints();
 
 app.UseExceptionHandler("/error");
+
+app.UseStaticFiles();
 
 // Regenera o token de sessão na inicialização
 SessionTokenManager.RegenerateToken();

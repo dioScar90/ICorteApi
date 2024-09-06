@@ -71,7 +71,7 @@ public static class AppointmentEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var appointment = await service.CreateAsync(dto, clientId);
 
         if (appointment is null)
@@ -90,7 +90,7 @@ public static class AppointmentEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var result = await service.UpdateAsync(dto, id, clientId);
 
         if (!result)
@@ -105,7 +105,7 @@ public static class AppointmentEndpoint
         IUserService userService,
         IAppointmentErrors errors)
     {
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var result = await service.DeleteAsync(id, clientId);
 
         if (!result)

@@ -172,7 +172,7 @@ public static class UserEndpoint
 
     public static async Task<IResult> DeleteUser(IUserService service, IUserErrors errors)
     {
-        int userId = service.GetMyUserId();
+        int userId = await service.GetMyUserIdAsync();
         var result = await service.DeleteAsync(userId);
 
         if (!result)

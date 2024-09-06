@@ -55,7 +55,7 @@ public static class ReportEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int userId = userService.GetMyUserId();
+        int userId = await userService.GetMyUserIdAsync();
         var report = await service.CreateAsync(dto, userId, barberShopId);
 
         if (report is null)
@@ -71,7 +71,7 @@ public static class ReportEndpoint
         IUserService userService,
         IReportErrors errors)
     {
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var report = await service.GetByIdAsync(id, clientId, barberShopId);
 
         if (report is null)
@@ -104,7 +104,7 @@ public static class ReportEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var result = await service.UpdateAsync(dto, id, clientId, barberShopId);
 
         if (!result)
@@ -120,7 +120,7 @@ public static class ReportEndpoint
         IUserService userService,
         IReportErrors errors)
     {
-        int clientId = userService.GetMyUserId();
+        int clientId = await userService.GetMyUserIdAsync();
         var result = await service.DeleteAsync(id, clientId, barberShopId);
 
         if (!result)

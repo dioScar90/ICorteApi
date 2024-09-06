@@ -73,7 +73,7 @@ public static class ChatEndpoint
     {
         dto.CheckAndThrowExceptionIfInvalid(validator, errors);
 
-        int senderId = userService.GetMyUserId();
+        int senderId = await userService.GetMyUserIdAsync();
         var message = await service.CreateAsync(dto, appointmentId, senderId);
 
         if (message is null)

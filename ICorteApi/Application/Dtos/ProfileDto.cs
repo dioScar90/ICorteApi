@@ -7,16 +7,13 @@ public record ProfileDtoCreate(
     string FirstName,
     string LastName,
     Gender Gender,
-    string PhoneNumber,
-    string? ImageUrl = null
+    string PhoneNumber
 ) : IDtoRequest<Profile>;
 
 public record ProfileDtoUpdate(
     string FirstName,
     string LastName,
-    Gender Gender,
-    // string PhoneNumber,
-    string? ImageUrl = null
+    Gender Gender
 ) : IDtoRequest<Profile>;
 
 public record ProfileDtoResponse(
