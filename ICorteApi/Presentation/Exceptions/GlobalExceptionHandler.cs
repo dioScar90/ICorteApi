@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,16 +26,27 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             Detail = GetErrorMessageForProblemDetails(exception),
         };
 
-        if (IsAnExceptionForProblemDetails(exception))
-        {
-            problemDetails.Extensions ??= new Dictionary<string, object?>();
+        SetSpecificProblemDetailsIfItMust(exception, problemDetails);
 
-            if (exception is BaseException bEx)
-                problemDetails.Extensions["errors"] = bEx.Errors;
+        // if (IsAnExceptionForProblemDetails(exception))
+        // {
+        //     problemDetails.Extensions ??= new Dictionary<string, object?>();
 
-            if (exception is DbUpdateException dbEx)
-                problemDetails.Extensions["realProblem"] = dbEx.InnerException?.Message ?? "Unknown problem";
-        }
+        //     if (exception is BaseException bEx)
+        //         problemDetails.Extensions["errors"] = bEx.Errors;
+
+        //     if (exception is DbUpdateException dbEx)
+        //     {
+        //         problemDetails.Extensions["dbProblem"] = dbEx.InnerException?.Message ?? "Unknown problem";
+        //         problemDetails.Extensions["dbErrors"] = dbEx.Entries;
+        //     }
+
+        //     if (exception is ValidationException vEx)
+        //     {
+        //         problemDetails.Extensions["validationProblem"] = vEx.InnerException?.Message ?? "Unknown problem";
+        //         problemDetails.Extensions["validationErrors"] = vEx.Errors;
+        //     }
+        // }
         
         httpContext.Response.StatusCode = problemDetails.Status.Value;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
@@ -42,11 +54,37 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         return true;
     }
 
-    private static bool IsAnExceptionForProblemDetails(Exception exception) =>
-        exception
-            is BaseException
-            or DbUpdateException
-        ;
+    // private static bool IsAnExceptionForProblemDetails(Exception exception) =>
+    //     exception
+    //         is BaseException
+    //         or DbUpdateException
+    //         or ValidationException
+    //     ;
+
+    private static void SetSpecificProblemDetailsIfItMust(Exception exception, ProblemDetails problemDetails) 
+    {
+        static Dictionary<string, object?> StartNewDictionary() => [];
+        
+        if (exception is BaseException bEx)
+        {
+            problemDetails.Extensions ??= StartNewDictionary();
+            problemDetails.Extensions["errors"] = bEx.Errors;
+        }
+
+        if (exception is DbUpdateException dbEx)
+        {
+            problemDetails.Extensions ??= StartNewDictionary();
+            problemDetails.Extensions["dbProblem"] = dbEx.InnerException?.Message ?? "Unknown problem";
+            problemDetails.Extensions["dbErrors"] = dbEx.Entries;
+        }
+
+        if (exception is ValidationException vEx)
+        {
+            problemDetails.Extensions ??= StartNewDictionary();
+            problemDetails.Extensions["validationProblem"] = vEx.InnerException?.Message ?? "Unknown problem";
+            problemDetails.Extensions["validationErrors"] = vEx.Errors;
+        }
+    }
 
     private static bool IsMappedExceptionType(Exception exception) =>
         exception
@@ -66,6 +104,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             or NotSupportedException
             or TimeoutException
             or DbUpdateException
+            or ValidationException
         ;
 
     private static string GetTitleForProblemDetails(Exception exception) => exception switch
@@ -89,8 +128,11 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             NotSupportedException       => "NotSupported",
             TimeoutException            => "Timeout",
 
-            // EF Excceptions
+            // Entity Framework Excceptions
             DbUpdateException           => "DbUpdate",
+
+            // Fluent Validation Excceptions
+            ValidationException         => "ValidationException",
 
             _ => "ServerError"
         };
@@ -116,8 +158,11 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         NotSupportedException => StatusCodes.Status405MethodNotAllowed,
         TimeoutException => StatusCodes.Status504GatewayTimeout,
 
-        // EF Excceptions
+        // Entity Framework Excceptions
         DbUpdateException => StatusCodes.Status500InternalServerError,
+
+        // Fluent Validation Excceptions
+        ValidationException => StatusCodes.Status409Conflict,
 
         _ => StatusCodes.Status500InternalServerError
     };

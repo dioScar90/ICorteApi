@@ -28,6 +28,7 @@ public record AddressDtoUpdate(
 
 public record AddressDtoResponse(
     int Id,
+    int BarberShopId,
     string Street,
     string Number,
     string? Complement,

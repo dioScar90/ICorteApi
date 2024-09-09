@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -38,30 +35,18 @@ public static class AddressEndpoint
     public static async Task<IResult> GetAddress(
         int barberShopId,
         int id,
-        IAddressService service,
-        IAddressErrors errors)
+        IAddressService service)
     {
         var address = await service.GetByIdAsync(id, barberShopId);
-
-        if (address is null)
-            errors.ThrowNotFoundException();
-        
-        return Results.Ok(address!.CreateDto());
+        return Results.Ok(address);
     }
 
     public static async Task<IResult> CreateAddress(
         int barberShopId,
         AddressDtoCreate dto,
-        IValidator<AddressDtoCreate> validator,
-        IAddressService service,
-        IAddressErrors errors)
+        IAddressService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         var address = await service.CreateAsync(dto, barberShopId);
-
-        if (address is null)
-            errors.ThrowCreateException();
-
         return GetCreatedResult(address!.Id, address.BarberShopId);
     }
 
@@ -69,30 +54,18 @@ public static class AddressEndpoint
         int barberShopId,
         int id,
         AddressDtoUpdate dto,
-        IValidator<AddressDtoUpdate> validator,
-        IAddressService service,
-        IAddressErrors errors)
+        IAddressService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdateAsync(dto, id, barberShopId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, id, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteAddress(
         int barberShopId,
         int id,
-        IAddressService service,
-        IAddressErrors errors)
+        IAddressService service)
     {
-        var result = await service.DeleteAsync(id, barberShopId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(id, barberShopId);
         return Results.NoContent();
     }
 }

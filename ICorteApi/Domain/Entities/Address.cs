@@ -66,6 +66,7 @@ public sealed class Address : BaseEntity<Address>
     public override AddressDtoResponse CreateDto() =>
         new(
             Id,
+            BarberShopId,
             Street,
             Number,
             Complement,
