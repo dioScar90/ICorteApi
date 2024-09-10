@@ -44,6 +44,12 @@ public abstract class BaseEntity<TEntity> : IBaseEntity<TEntity>
         UpdatedAt = DateTime.UtcNow;
         IsDeleted = true;
     }
+
+    protected static string? GetValidStringOrNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    protected const int MIN_RATING = 1;
+    protected const int MAX_RATING = 5;
+    protected static int GetValidRatingOrNull(int value) => value is >= MIN_RATING and <= MAX_RATING ? value : Math.Clamp(value, MIN_RATING, MAX_RATING);
 }
 
 public abstract class CompositeKeyEntity<TEntity> : ICompositeKeyEntity<TEntity>

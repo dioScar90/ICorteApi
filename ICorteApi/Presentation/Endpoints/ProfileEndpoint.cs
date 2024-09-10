@@ -1,10 +1,7 @@
-﻿using FluentValidation;
-using ICorteApi.Application.Dtos;
+﻿using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Enums;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Presentation.Enums;
-using ICorteApi.Presentation.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -43,56 +40,34 @@ public static class ProfileEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateProfile(
+        [FromBody] ProfileDtoCreate dto,
+        IProfileService service,
+        IUserService userService)
+    {
+        int userId = await userService.GetMyUserIdAsync();
+        await service.CreateAsync(dto, userId);
+        return GetCreatedResult();
+    }
+
     public static async Task<IResult> GetProfileById(
         int id,
         IProfileService service,
-        IUserService userService,
-        IProfileErrors errors)
+        IUserService userService)
     {
         int userId = await userService.GetMyUserIdAsync();
         var profile = await service.GetByIdAsync(id, userId);
-
-        if (profile is null)
-            errors.ThrowNotFoundException();
-
-        return Results.Ok(profile!.CreateDto());
-    }
-
-    public static async Task<IResult> CreateProfile(
-        [FromBody] ProfileDtoCreate dto,
-        IValidator<ProfileDtoCreate> validator,
-        IProfileService service,
-        IUserService userService,
-        IProfileErrors errors)
-    {
-        int userId = await userService.GetMyUserIdAsync();
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
-        var profile = await service.CreateAsync(dto, userId);
-
-        if (profile is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult();
+        return Results.Ok(profile);
     }
 
     public static async Task<IResult> UpdateProfile(
         int id,
         [FromBody] ProfileDtoUpdate dto,
-        IValidator<ProfileDtoUpdate> validator,
         IProfileService service,
-        IUserService userService,
-        IProfileErrors errors,
-        IUserErrors userErrors)
+        IUserService userService)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
         int userId = await userService.GetMyUserIdAsync();
-        var result = await service.UpdateAsync(dto, id, userId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, id, userId);
         return Results.NoContent();
     }
 
@@ -100,20 +75,10 @@ public static class ProfileEndpoint
         int id,
         IFormFile image,
         IProfileService service,
-        IUserService userService,
-        IProfileErrors errors)
+        IUserService userService)
     {
         int userId = await userService.GetMyUserIdAsync();
-
-        if (image == null || image.Length == 0)
-            // errors.ThrowUpdateException("A imagem fornecida é inválida.");
-            errors.ThrowUpdateException();
-
-        var result = await service.UpdateProfileImageAsync(id, userId, image);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateProfileImageAsync(id, userId, image);
         return Results.NoContent();
     }
 }

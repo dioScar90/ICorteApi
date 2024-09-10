@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,10 +20,10 @@ public static class SpecialScheduleEndpoint
         group.MapPost(INDEX, CreateSpecialSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet(INDEX, GetAllSpecialSchedules)
+        group.MapGet("{date}", GetSpecialSchedule)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{date}", GetSpecialSchedule)
+        group.MapGet(INDEX, GetAllSpecialSchedules)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapPut("{date}", UpdateSpecialSchedule)
@@ -47,75 +44,48 @@ public static class SpecialScheduleEndpoint
 
     public static async Task<IResult> CreateSpecialSchedule(
         int barberShopId,
-        SpecialScheduleDtoRequest dto,
-        IValidator<SpecialScheduleDtoRequest> validator,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
+        SpecialScheduleDtoCreate dto,
+        ISpecialScheduleService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         var schedule = await service.CreateAsync(dto, barberShopId);
-
-        if (schedule is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(schedule!.Date, schedule.BarberShopId);
+        return GetCreatedResult(schedule.Date, schedule.BarberShopId);
     }
 
     public static async Task<IResult> GetSpecialSchedule(
-        int barberShopId,
         DateOnly date,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
+        int barberShopId,
+        ISpecialScheduleService service)
     {
         var schedule = await service.GetByIdAsync(date, barberShopId);
-
-        if (schedule is null)
-            errors.ThrowNotFoundException();
-            
-        return Results.Ok(schedule!.CreateDto());
+        return Results.Ok(schedule);
     }
 
     public static async Task<IResult> GetAllSpecialSchedules(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
+        ISpecialScheduleService service)
     {
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
-        
-        var dtos = schedules?.Select(b => b.CreateDto()).ToArray() ?? [];
-        return Results.Ok(dtos);
+        return Results.Ok(schedules);
     }
 
     public static async Task<IResult> UpdateSpecialSchedule(
-        int barberShopId,
         DateOnly date,
-        SpecialScheduleDtoRequest dto,
-        IValidator<SpecialScheduleDtoRequest> validator,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
+        int barberShopId,
+        SpecialScheduleDtoUpdate dto,
+        ISpecialScheduleService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdateAsync(dto, date, barberShopId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, date, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteSpecialSchedule(
-        int barberShopId,
         DateOnly date,
-        ISpecialScheduleService service,
-        ISpecialScheduleErrors errors)
+        int barberShopId,
+        ISpecialScheduleService service)
     {
-        var result = await service.DeleteAsync(date, barberShopId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(date, barberShopId);
         return Results.NoContent();
     }
 }

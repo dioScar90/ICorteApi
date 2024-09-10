@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,75 +44,48 @@ public static class RecurringScheduleEndpoint
 
     public static async Task<IResult> CreateRecurringSchedule(
         int barberShopId,
-        RecurringScheduleDtoRequest dto,
-        IValidator<RecurringScheduleDtoRequest> validator,
-        IRecurringScheduleService service,
-        IRecurringScheduleErrors errors)
+        RecurringScheduleDtoCreate dto,
+        IRecurringScheduleService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         var schedule = await service.CreateAsync(dto, barberShopId);
-
-        if (schedule is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(schedule!.DayOfWeek, schedule.BarberShopId);
+        return GetCreatedResult(schedule.DayOfWeek, schedule.BarberShopId);
     }
 
     public static async Task<IResult> GetRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService service,
-        IRecurringScheduleErrors errors)
+        IRecurringScheduleService service)
     {
         var schedule = await service.GetByIdAsync(dayOfWeek, barberShopId);
-
-        if (schedule is null)
-            errors.ThrowNotFoundException();
-            
-        return Results.Ok(schedule!.CreateDto());
+        return Results.Ok(schedule);
     }
 
     public static async Task<IResult> GetAllRecurringSchedules(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        IRecurringScheduleService service,
-        IRecurringScheduleErrors errors)
+        IRecurringScheduleService service)
     {
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
-        
-        var dtos = schedules?.Select(s => s.CreateDto()).ToArray() ?? [];
-        return Results.Ok(dtos);
+        return Results.Ok(schedules);
     }
 
     public static async Task<IResult> UpdateRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        RecurringScheduleDtoRequest dto,
-        IValidator<RecurringScheduleDtoRequest> validator,
-        IRecurringScheduleService service,
-        IRecurringScheduleErrors errors)
+        RecurringScheduleDtoUpdate dto,
+        IRecurringScheduleService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdateAsync(dto, dayOfWeek, barberShopId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, dayOfWeek, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteRecurringSchedule(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService service,
-        IRecurringScheduleErrors errors)
+        IRecurringScheduleService service)
     {
-        var result = await service.DeleteAsync(dayOfWeek, barberShopId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(dayOfWeek, barberShopId);
         return Results.NoContent();
     }
 }

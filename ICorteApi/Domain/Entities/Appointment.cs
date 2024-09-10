@@ -84,6 +84,8 @@ public sealed class Appointment : BaseEntity<Appointment>
     public override AppointmentDtoResponse CreateDto() =>
         new(
             Id,
+            ClientId,
+            BarberShopId,
             Date,
             StartTime,
             GetTotalDuration(),

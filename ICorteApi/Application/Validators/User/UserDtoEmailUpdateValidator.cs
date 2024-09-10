@@ -3,13 +3,14 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class UserDtoChangeEmailRequestValidator : AbstractValidator<UserDtoChangeEmailRequest>
+public class UserDtoEmailUpdateValidator : AbstractValidator<UserDtoEmailUpdate>
 {
-    public UserDtoChangeEmailRequestValidator()
+    public UserDtoEmailUpdateValidator()
     {
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("O email é obrigatório")
-            .DependentRules(() => {
+            .DependentRules(() =>
+            {
                 RuleFor(dx => dx.Email)
                     .EmailAddress().WithMessage("O email não é válido");
             });

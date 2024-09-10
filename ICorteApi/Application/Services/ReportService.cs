@@ -1,24 +1,33 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ReportService(IReportRepository repository, IReportErrors errors)
+public sealed class ReportService(
+    IReportRepository repository,
+    IValidator<ReportDtoCreate> createValidator,
+    IValidator<ReportDtoUpdate> updateValidator,
+    IReportErrors errors)
     : BaseService<Report>(repository), IReportService
 {
     new private readonly IReportRepository _repository = repository;
+    private readonly IValidator<ReportDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<ReportDtoUpdate> _updateValidator = updateValidator;
     private readonly IReportErrors _errors = errors;
 
-    public async Task<Report?> CreateAsync(ReportDtoRequest dto, int clientId, int barberShopId)
+    public async Task<ReportDtoResponse> CreateAsync(ReportDtoCreate dto, int clientId, int barberShopId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var report = new Report(dto, clientId, barberShopId);
-        return await CreateAsync(report);
+        return (await CreateAsync(report))!.CreateDto();
     }
 
-    public async Task<Report?> GetByIdAsync(int id, int clientId, int barberShopId)
+    public async Task<ReportDtoResponse> GetByIdAsync(int id, int clientId, int barberShopId)
     {
         var report = await GetByIdAsync(id);
         
@@ -31,16 +40,19 @@ public sealed class ReportService(IReportRepository repository, IReportErrors er
         if (report.BarberShopId != barberShopId)
             _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
 
-        return report;
+        return report.CreateDto();
     }
     
-    public async Task<Report[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<ReportDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        var reports = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        return [..reports.Select(report => report.CreateDto())];
     }
     
-    public async Task<bool> UpdateAsync(ReportDtoRequest dtoRequest, int id, int clientId, int barberShopId)
+    public async Task<bool> UpdateAsync(ReportDtoUpdate dto, int id, int clientId, int barberShopId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
         var report = await _repository.GetReportWithBarberShopByIdAsync(id);
         
         if (report is null)
@@ -52,7 +64,7 @@ public sealed class ReportService(IReportRepository repository, IReportErrors er
         if (report.BarberShopId != barberShopId)
             _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
 
-        report.UpdateEntityByDto(dtoRequest);
+        report.UpdateEntityByDto(dto);
         return await UpdateAsync(report);
     }
 

@@ -1,37 +1,57 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ServiceService(IServiceRepository repository, IServiceErrors errors)
+public sealed class ServiceService(
+    IServiceRepository repository,
+    IValidator<ServiceDtoCreate> createValidator,
+    IValidator<ServiceDtoUpdate> updateValidator,
+    IServiceErrors errors)
     : BaseService<Service>(repository), IServiceService
 {
+    private readonly IValidator<ServiceDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<ServiceDtoUpdate> _updateValidator = updateValidator;
     private readonly IServiceErrors _errors = errors;
 
     new private readonly IServiceRepository _repository = repository;
     
-    public async Task<Service?> CreateAsync(ServiceDtoRequest dto, int barberShopId)
+    public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoCreate dto, int barberShopId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var service = new Service(dto, barberShopId);
-        return await CreateAsync(service);
+        return (await CreateAsync(service))!.CreateDto();
     }
     
-    public async Task<Service?> GetByIdAsync(int id, int barberShopId)
+    public async Task<ServiceDtoResponse> GetByIdAsync(int id, int barberShopId)
     {
-        return await GetByIdAsync(x => x.Id == id && x.BarberShopId == barberShopId);
+        var service = await GetByIdAsync(id);
+
+        if (service is null)
+            _errors.ThrowNotFoundException();
+
+        if (service!.BarberShopId != barberShopId)
+            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+
+        return service.CreateDto();
     }
     
-    public async Task<Service[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<ServiceDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        var services = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        return [..services.Select(service => service.CreateDto())];
     }
     
-    public async Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId)
+    public async Task<bool> UpdateAsync(ServiceDtoUpdate dto, int id, int barberShopId)
     {
-        var service = await GetByIdAsync(id, barberShopId);
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
+        var service = await GetByIdAsync(id);
 
         if (service is null)
             _errors.ThrowNotFoundException();
@@ -45,7 +65,7 @@ public sealed class ServiceService(IServiceRepository repository, IServiceErrors
     
     public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
-        var service = await GetByIdAsync(id, barberShopId);
+        var service = await GetByIdAsync(id);
 
         if (service is null)
             _errors.ThrowNotFoundException();

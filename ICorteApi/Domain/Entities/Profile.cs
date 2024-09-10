@@ -11,6 +11,8 @@ public sealed class Profile : BaseEntity<Profile>
     public Gender Gender { get; private set; }
     public string? ImageUrl { get; private set; }
 
+    private readonly string _phoneNumber;
+
     public User User { get; init; }
 
     private Profile() { }
@@ -21,7 +23,11 @@ public sealed class Profile : BaseEntity<Profile>
         FirstName = dto.FirstName;
         LastName = dto.LastName;
         Gender = dto.Gender;
+
+        _phoneNumber = dto.PhoneNumber;
     }
+
+    public string GetPhoneNumberToUserEntity() => _phoneNumber;
 
     private void UpdateByUserDto(ProfileDtoUpdate dto, DateTime? utcNow)
     {
@@ -57,6 +63,7 @@ public sealed class Profile : BaseEntity<Profile>
             Id,
             FirstName,
             LastName,
+            FirstName + ' ' + LastName,
             Gender,
             ImageUrl
         );

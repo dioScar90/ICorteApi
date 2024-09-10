@@ -18,7 +18,7 @@ public sealed class Message : BaseEntity<Message>
 
     private Message() { }
 
-    public Message(MessageDtoRequest dto, int? appointmentId = null, int? senderId = null)
+    public Message(MessageDtoCreate dto, int? appointmentId = null, int? senderId = null)
     {
         Content = dto.Content;
         SentAt = dto.SentAt;
@@ -27,7 +27,7 @@ public sealed class Message : BaseEntity<Message>
         SenderId = senderId ?? default;
     }
 
-    private void UpdateByMessageDto(MessageDtoRequest dto, DateTime? utcNow)
+    private void UpdateByMessageDto(MessageDtoCreate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -36,7 +36,7 @@ public sealed class Message : BaseEntity<Message>
         UpdatedAt = utcNow;
     }
 
-    private void UpdateIsReadProp(MessageIsReadDtoRequest dto, DateTime? utcNow)
+    private void UpdateIsReadProp(MessageDtoIsReadUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -49,10 +49,10 @@ public sealed class Message : BaseEntity<Message>
     {
         switch (requestDto)
         {
-            case MessageDtoRequest dto:
+            case MessageDtoCreate dto:
                 UpdateByMessageDto(dto, utcNow);
                 break;
-            case MessageIsReadDtoRequest isReadDto:
+            case MessageDtoIsReadUpdate isReadDto:
                 UpdateIsReadProp(isReadDto, utcNow);
                 break;
             default:
@@ -63,10 +63,11 @@ public sealed class Message : BaseEntity<Message>
     public override MessageDtoResponse CreateDto() =>
         new(
             Id,
+            AppointmentId,
+            SenderId,
             Content,
             SentAt,
             IsRead,
-            SenderId,
             Sender.Profile.FirstName,
             Sender.Profile.LastName
         );

@@ -17,22 +17,22 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 
     private SpecialSchedule() {}
 
-    public SpecialSchedule(SpecialScheduleDtoRequest dto, int? barberShopId = null)
+    public SpecialSchedule(SpecialScheduleDtoCreate dto, int? barberShopId = null)
     {
         Date = dto.Date;
         BarberShopId = barberShopId ?? default;
         
-        Notes = dto.Notes;
+        Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
         IsClosed = dto is { OpenTime: null, CloseTime: null };
     }
     
-    private void UpdateBySpecialScheduleDto(SpecialScheduleDtoRequest dto, DateTime? utcNow)
+    private void UpdateBySpecialScheduleDto(SpecialScheduleDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
         
-        Notes = dto.Notes;
+        Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
         IsClosed = dto is { OpenTime: null, CloseTime: null };
@@ -44,7 +44,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
     {
         switch (requestDto)
         {
-            case SpecialScheduleDtoRequest dto:
+            case SpecialScheduleDtoUpdate dto:
                 UpdateBySpecialScheduleDto(dto, utcNow);
                 break;
             default:

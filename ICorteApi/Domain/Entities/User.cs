@@ -11,13 +11,13 @@ public sealed class User : BaseUserEntity
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];
-    
+
     private readonly string _password;
     private readonly HashSet<UserRole> _roles = [];
 
     public User() { }
 
-    public User(UserDtoRegisterRequest dto)
+    public User(UserDtoRegisterCreate dto)
     {
         UserName = dto.Email;
         Email = dto.Email;

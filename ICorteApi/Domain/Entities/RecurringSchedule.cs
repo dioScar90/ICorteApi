@@ -16,7 +16,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 
     private RecurringSchedule() {}
 
-    public RecurringSchedule(RecurringScheduleDtoRequest dto, int? barberShopId = null)
+    public RecurringSchedule(RecurringScheduleDtoCreate dto, int? barberShopId = null)
     {
         DayOfWeek = dto.DayOfWeek;
         BarberShopId = barberShopId ?? default;
@@ -25,12 +25,13 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
         CloseTime = dto.CloseTime;
     }
     
-    private void UpdateByRecurringScheduleDto(RecurringScheduleDtoRequest dto, DateTime? utcNow)
+    private void UpdateByRecurringScheduleDto(RecurringScheduleDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
+        IsActive = dto.IsActive;
 
         UpdatedAt = utcNow;
     }
@@ -39,7 +40,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
     {
         switch (requestDto)
         {
-            case RecurringScheduleDtoRequest dto:
+            case RecurringScheduleDtoUpdate dto:
                 UpdateByRecurringScheduleDto(dto, utcNow);
                 break;
             default:

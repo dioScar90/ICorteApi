@@ -23,22 +23,22 @@ public sealed class Service : BaseEntity<Service>
 
     private Service() { }
     
-    public Service(ServiceDtoRequest dto, int? barberShopId = null)
+    public Service(ServiceDtoCreate dto, int? barberShopId = null)
     {
         Name = dto.Name;
-        Description = dto.Description;
+        Description = GetValidStringOrNull(dto.Description);
         Price = dto.Price;
         Duration = dto.Duration;
 
         BarberShopId = barberShopId ?? default;
     }
-
-    private void UpdateByServiceDto(ServiceDtoRequest dto, DateTime? utcNow)
+    
+    private void UpdateByServiceDto(ServiceDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
         Name = dto.Name;
-        Description = dto.Description;
+        Description = GetValidStringOrNull(dto.Description);
         Price = dto.Price;
         Duration = dto.Duration;
 
@@ -49,7 +49,7 @@ public sealed class Service : BaseEntity<Service>
     {
         switch (requestDto)
         {
-            case ServiceDtoRequest dto:
+            case ServiceDtoUpdate dto:
                 UpdateByServiceDto(dto, utcNow);
                 break;
             default:
@@ -60,8 +60,9 @@ public sealed class Service : BaseEntity<Service>
     public override ServiceDtoResponse CreateDto() =>
         new(
             Id,
+            BarberShopId,
             Name,
-            Description ?? default,
+            Description,
             Price,
             Duration
         );

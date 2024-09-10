@@ -5,8 +5,8 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IBarberShopService : IService<BarberShop>
 {
-    Task<BarberShop?> CreateAsync(BarberShopDtoCreate dto, int ownerId);
-    Task<BarberShop?> GetByIdAsync(int id);
+    Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoCreate dto, int ownerId);
+    Task<BarberShopDtoResponse> GetByIdAsync(int id);
     Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId);
     Task<bool> DeleteAsync(int id, int ownerId);
 }

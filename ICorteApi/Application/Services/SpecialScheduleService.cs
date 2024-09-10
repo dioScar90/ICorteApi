@@ -1,35 +1,47 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class SpecialScheduleService(ISpecialScheduleRepository repository, ISpecialScheduleErrors errors)
+public sealed class SpecialScheduleService(
+    ISpecialScheduleRepository repository,
+    IValidator<SpecialScheduleDtoCreate> createValidator,
+    IValidator<SpecialScheduleDtoUpdate> updateValidator,
+    ISpecialScheduleErrors errors)
     : BaseService<SpecialSchedule>(repository), ISpecialScheduleService
 {
+    private readonly IValidator<SpecialScheduleDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<SpecialScheduleDtoUpdate> _updateValidator = updateValidator;
     private readonly ISpecialScheduleErrors _errors = errors;
 
-    public async Task<SpecialSchedule?> CreateAsync(SpecialScheduleDtoRequest dto, int barberShopId)
+    public async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoCreate dto, int barberShopId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var schedule = new SpecialSchedule(dto, barberShopId);
-        return await CreateAsync(schedule);
+        return (await CreateAsync(schedule))!.CreateDto();
     }
 
-    public async Task<SpecialSchedule?> GetByIdAsync(DateOnly date, int barberShopId)
+    public async Task<SpecialScheduleDtoResponse> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return await base.GetByIdAsync(date, barberShopId);
+        return (await base.GetByIdAsync(date, barberShopId))!.CreateDto();
     }
     
-    public async Task<SpecialSchedule[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<SpecialScheduleDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        var schedules = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        return [..schedules.Select(schedule => schedule.CreateDto())];
     }
 
-    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
+    public async Task<bool> UpdateAsync(SpecialScheduleDtoUpdate dto, DateOnly date, int barberShopId)
     {
-        var schedule = await GetByIdAsync(date, barberShopId);
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
+        var schedule = await base.GetByIdAsync(date, barberShopId);
 
         if (schedule is null)
             _errors.ThrowNotFoundException();
@@ -43,7 +55,7 @@ public sealed class SpecialScheduleService(ISpecialScheduleRepository repository
 
     public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
     {
-        var schedule = await GetByIdAsync(date, barberShopId);
+        var schedule = await base.GetByIdAsync(date, barberShopId);
 
         if (schedule is null)
             _errors.ThrowNotFoundException();

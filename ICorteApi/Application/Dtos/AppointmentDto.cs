@@ -20,6 +20,8 @@ public record AppointmentDtoUpdate(
 
 public record AppointmentDtoResponse(
     int Id,
+    int ClientId,
+    int BarberShopId,
     DateOnly Date,
     TimeOnly StartTime,
     TimeOnly EndTime,

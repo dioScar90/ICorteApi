@@ -1,18 +1,24 @@
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Application.Dtos;
 
-public record ReportDtoRequest(
+public record ReportDtoCreate(
     string? Title,
     string? Content,
-    Rating Rating
+    int Rating
+) : IDtoRequest<Report>;
+
+public record ReportDtoUpdate(
+    string? Title,
+    string? Content,
+    int Rating
 ) : IDtoRequest<Report>;
 
 public record ReportDtoResponse(
     int Id,
+    int BarberShopId,
     string? Title,
     string? Content,
-    Rating Rating
+    int Rating
 ) : IDtoResponse<Report>;

@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class ReportDtoUpdateValidator : AbstractValidator<ReportDtoUpdate>
+public class ReportDtoCreateValidator : AbstractValidator<ReportDtoCreate>
 {
-    public ReportDtoUpdateValidator()
+    public ReportDtoCreateValidator()
     {
         RuleFor(x => x.Title)
             .MinimumLength(3).WithMessage("Título precisa ter pelo menos 3 caracteres");

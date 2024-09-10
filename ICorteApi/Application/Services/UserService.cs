@@ -12,7 +12,7 @@ public sealed class UserService(IUserRepository repository, IUserErrors errors) 
     private readonly IUserRepository _repository = repository;
     private readonly IUserErrors _errors = errors;
 
-    public async Task<User?> CreateAsync(UserDtoRegisterRequest dto)
+    public async Task<User?> CreateAsync(UserDtoRegisterCreate dto)
     {
         var user = new User(dto);
         return await _repository.CreateUserAsync(user, user.GetPasswordToBeHashed());
@@ -44,18 +44,18 @@ public sealed class UserService(IUserRepository repository, IUserErrors errors) 
     {
         return await _repository.RemoveFromRoleAsync(role);
     }
-    
-    public async Task<bool> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest)
+
+    public async Task<bool> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest)
     {
         return await _repository.UpdateEmailAsync(dtoRequest.Email);
     }
-    
-    public async Task<bool> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest)
+
+    public async Task<bool> UpdatePasswordAsync(UserDtoPasswordUpdate dtoRequest)
     {
         return await _repository.UpdatePasswordAsync(dtoRequest.CurrentPassword, dtoRequest.NewPassword);
     }
 
-    public async Task<bool> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest)
+    public async Task<bool> UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
     {
         return await _repository.UpdatePhoneNumberAsync(dtoRequest.PhoneNumber);
     }
@@ -69,7 +69,7 @@ public sealed class UserService(IUserRepository repository, IUserErrors errors) 
 
         if (user!.Id != id)
             _errors.ThrowWrongUserIdException(id);
-        
+
         return await _repository.DeleteAsync(user);
     }
 }

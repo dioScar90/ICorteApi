@@ -9,7 +9,7 @@ public sealed class Report : BaseEntity<Report>
 {
     public string? Title { get; private set; }
     public string? Content { get; private set; }
-    public Rating Rating { get; private set; }
+    public int Rating { get; private set; }
 
     public int ClientId { get; init; }
     public User Client { get; init; }
@@ -19,23 +19,23 @@ public sealed class Report : BaseEntity<Report>
 
     private Report() { }
 
-    public Report(ReportDtoRequest dto, int? clientId = null, int? barberShopId = null)
+    public Report(ReportDtoCreate dto, int? clientId = null, int? barberShopId = null)
     {
-        Title = dto.Title;
-        Content = dto.Content;
-        Rating = dto.Rating;
+        Title = GetValidStringOrNull(dto.Title);
+        Content = GetValidStringOrNull(dto.Content);
+        Rating = GetValidRatingOrNull(dto.Rating);
 
         ClientId = clientId ?? default;
         BarberShopId = barberShopId ?? default;
     }
-
-    private void UpdateByReportDto(ReportDtoRequest dto, DateTime? utcNow)
+    
+    private void UpdateByReportDto(ReportDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
-        Title = dto.Title;
-        Content = dto.Content;
-        Rating = dto.Rating;
+        Title = GetValidStringOrNull(dto.Title);
+        Content = GetValidStringOrNull(dto.Content);
+        Rating = GetValidRatingOrNull(dto.Rating);
 
         UpdatedAt = utcNow;
     }
@@ -44,7 +44,7 @@ public sealed class Report : BaseEntity<Report>
     {
         switch (requestDto)
         {
-            case ReportDtoRequest dto:
+            case ReportDtoUpdate dto:
                 UpdateByReportDto(dto, utcNow);
                 break;
             default:
@@ -55,6 +55,7 @@ public sealed class Report : BaseEntity<Report>
     public override ReportDtoResponse CreateDto() =>
         new(
             Id,
+            BarberShopId,
             Title,
             Content,
             Rating

@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using ICorteApi.Domain.Interfaces;
-using FluentValidation;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +18,9 @@ public static class ChatEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet(INDEX, GetAllMessages);
-        group.MapGet("{id}", GetMessage);
         group.MapPost(INDEX, CreateMessage);
+        group.MapGet("{id}", GetMessage);
+        group.MapGet(INDEX, GetAllMessages);
         group.MapDelete("{id}", DeleteMessage);
 
         return app;
@@ -36,63 +33,42 @@ public static class ChatEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateMessage(
+        int appointmentId,
+        MessageDtoCreate dto,
+        IMessageService service,
+        IUserService userService)
+    {
+        int senderId = await userService.GetMyUserIdAsync();
+        var message = await service.CreateAsync(dto, appointmentId, senderId);
+        return GetCreatedResult(message.Id, message.AppointmentId);
+    }
+
     public static async Task<IResult> GetMessage(
         int id,
         int appointmentId,
-        IMessageService service,
-        IMessageErrors errors)
+        IMessageService service)
     {
         var message = await service.GetByIdAsync(id, appointmentId);
-
-        if (message is null)
-            errors.ThrowNotFoundException();
-
-        return Results.Ok(message!.CreateDto());
+        return Results.Ok(message);
     }
 
     public static async Task<IResult> GetAllMessages(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
-        IMessageService service,
-        IMessageErrors errors)
+        IMessageService service)
     {
         var messages = await service.GetAllAsync(page, pageSize, appointmentId);
-
-        var dtos = messages?.Select(m => m.CreateDto()).ToArray() ?? [];
-        return Results.Ok(dtos);
-    }
-
-    public static async Task<IResult> CreateMessage(
-        int appointmentId,
-        MessageDtoRequest dto,
-        IValidator<MessageDtoRequest> validator,
-        IMessageService service,
-        IUserService userService,
-        IMessageErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
-        int senderId = await userService.GetMyUserIdAsync();
-        var message = await service.CreateAsync(dto, appointmentId, senderId);
-
-        if (message is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(message!.Id, appointmentId);
+        return Results.Ok(messages);
     }
 
     public static async Task<IResult> DeleteMessage(
         int appointmentId,
         int id,
-        IMessageService service,
-        IMessageErrors errors)
+        IMessageService service)
     {
-        var result = await service.DeleteAsync(id, appointmentId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(id, appointmentId);
         return Results.NoContent();
     }
 }

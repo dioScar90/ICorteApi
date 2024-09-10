@@ -5,8 +5,8 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IPaymentService : IService<Payment>
 {
-    Task<Payment?> CreateAsync(PaymentDtoRequest dto, int appointmentId);
-    Task<Payment?> GetByIdAsync(int id, int appointmentId);
-    Task<Payment[]> GetAllAsync(int? page, int? pageSize, int appointmentId);
+    Task<PaymentDtoResponse> CreateAsync(PaymentDtoCreate dto, int appointmentId);
+    Task<PaymentDtoResponse> GetByIdAsync(int id, int appointmentId);
+    Task<PaymentDtoResponse[]> GetAllAsync(int? page, int? pageSize, int appointmentId);
     Task<bool> DeleteAsync(int id, int appointmentId);
 }

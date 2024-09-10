@@ -6,15 +6,15 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IUserService : IService<User>
 {
-    Task<User?> CreateAsync(UserDtoRegisterRequest dtoRequest);
+    Task<User?> CreateAsync(UserDtoRegisterCreate dtoRequest);
     Task<User?> GetMeAsync();
     Task<User> GetMyUserAsync();
     Task<int> GetMyUserIdAsync();
     Task<UserRole[]> GetUserRolesAsync();
     Task<bool> AddUserRoleAsync(UserRole role);
     Task<bool> RemoveFromRoleAsync(UserRole role);
-    Task<bool> UpdateEmailAsync(UserDtoChangeEmailRequest dtoRequest);
-    Task<bool> UpdatePasswordAsync(UserDtoChangePasswordRequest dtoRequest);
-    Task<bool> UpdatePhoneNumberAsync(UserDtoChangePhoneNumberRequest dtoRequest);
+    Task<bool> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest);
+    Task<bool> UpdatePasswordAsync(UserDtoPasswordUpdate dtoRequest);
+    Task<bool> UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest);
     Task<bool> DeleteAsync(int id);
 }

@@ -3,20 +3,22 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class UserDtoRegisterRequestValidator : AbstractValidator<UserDtoRegisterRequest>
+public class UserDtoRegisterCreateValidator : AbstractValidator<UserDtoRegisterCreate>
 {
-    public UserDtoRegisterRequestValidator()
+    public UserDtoRegisterCreateValidator()
     {
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("O email é obrigatório")
-            .DependentRules(() => {
+            .DependentRules(() =>
+            {
                 RuleFor(dx => dx.Email)
                     .EmailAddress().WithMessage("O email não é válido");
             });
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("A senha é obrigatória")
-            .DependentRules(() => {
+            .DependentRules(() =>
+            {
                 RuleFor(dx => dx.Password)
                     .MinimumLength(8).WithMessage("A senha deve conter pelo menos 8 caracteres")
                     .Must(ContainUppercase).WithMessage("A senha deve conter pelo menos uma letra maiúscula")

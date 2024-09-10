@@ -3,10 +3,17 @@ using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
-public record RecurringScheduleDtoRequest(
+public record RecurringScheduleDtoCreate(
     DayOfWeek DayOfWeek,
     TimeOnly OpenTime,
     TimeOnly CloseTime
+) : IDtoRequest<RecurringSchedule>;
+
+public record RecurringScheduleDtoUpdate(
+    DayOfWeek DayOfWeek,
+    TimeOnly OpenTime,
+    TimeOnly CloseTime,
+    bool IsActive
 ) : IDtoRequest<RecurringSchedule>;
 
 public record RecurringScheduleDtoResponse(

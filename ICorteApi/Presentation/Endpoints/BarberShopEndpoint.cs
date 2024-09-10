@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -40,69 +37,43 @@ public static class BarberShopEndpoint
         object value = new { Message = "Barbearia criada com sucesso" };
         return Results.Created(uri, value);
     }
-
-    public static async Task<IResult> GetBarberShop(
-        int id,
-        IBarberShopService service,
-        IBarberShopErrors errors)
-    {
-        var barberShop = await service.GetByIdAsync(id);
-
-        if (barberShop is null)
-            errors.ThrowNotFoundException();
-
-        return Results.Ok(barberShop!.CreateDto());
-    }
     
     public static async Task<IResult> CreateBarberShop(
         BarberShopDtoCreate dto,
-        IValidator<BarberShopDtoCreate> validator,
         IBarberShopService service,
-        IUserService userService,
-        IBarberShopErrors errors)
+        IUserService userService)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
         int ownerId = await userService.GetMyUserIdAsync();
         var barberShop = await service.CreateAsync(dto, ownerId);
+        return GetCreatedResult(barberShop.Id);
+    }
 
-        if (barberShop is null)
-            errors.ThrowCreateException();
-        
-        return GetCreatedResult(barberShop!.Id);
+    public static async Task<IResult> GetBarberShop(
+        int id,
+        IBarberShopService service)
+    {
+        var barberShop = await service.GetByIdAsync(id);
+        return Results.Ok(barberShop);
     }
 
     public static async Task<IResult> UpdateBarberShop(
         int id,
         BarberShopDtoUpdate dto,
-        IValidator<BarberShopDtoUpdate> validator,
         IBarberShopService service,
-        IUserService userService,
-        IBarberShopErrors errors)
+        IUserService userService)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        
         int ownerId = await userService.GetMyUserIdAsync();
-        var result = await service.UpdateAsync(dto, id, ownerId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, id, ownerId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteBarberShop(
         int id,
         IBarberShopService service,
-        IUserService userService,
-        IBarberShopErrors errors)
+        IUserService userService)
     {
         int ownerId = await userService.GetMyUserIdAsync();
-        var result = await service.DeleteAsync(id, ownerId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-        
+        await service.DeleteAsync(id, ownerId);
         return Results.NoContent();
     }
 }

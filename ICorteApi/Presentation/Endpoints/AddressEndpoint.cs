@@ -17,8 +17,8 @@ public static class AddressEndpoint
             .WithTags(ENDPOINT_NAME)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{id}", GetAddress);
         group.MapPost(INDEX, CreateAddress);
+        group.MapGet("{id}", GetAddress);
         group.MapPut("{id}", UpdateAddress);
         group.MapDelete("{id}", DeleteAddress);
 
@@ -32,6 +32,15 @@ public static class AddressEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateAddress(
+        int barberShopId,
+        AddressDtoCreate dto,
+        IAddressService service)
+    {
+        var address = await service.CreateAsync(dto, barberShopId);
+        return GetCreatedResult(address.Id, address.BarberShopId);
+    }
+
     public static async Task<IResult> GetAddress(
         int barberShopId,
         int id,
@@ -39,15 +48,6 @@ public static class AddressEndpoint
     {
         var address = await service.GetByIdAsync(id, barberShopId);
         return Results.Ok(address);
-    }
-
-    public static async Task<IResult> CreateAddress(
-        int barberShopId,
-        AddressDtoCreate dto,
-        IAddressService service)
-    {
-        var address = await service.CreateAsync(dto, barberShopId);
-        return GetCreatedResult(address!.Id, address.BarberShopId);
     }
 
     public static async Task<IResult> UpdateAddress(

@@ -5,8 +5,8 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IAppointmentService : IService<Appointment>
 {
-    Task<Appointment?> CreateAsync(AppointmentDtoCreate dto, int clientId);
-    Task<Appointment?> GetByIdAsync(int id);
+    Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoCreate dto, int clientId);
+    Task<AppointmentDtoResponse> GetByIdAsync(int id);
     Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId);
     Task<bool> DeleteAsync(int id, int clientId);
 }

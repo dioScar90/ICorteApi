@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class MessageDtoRequestValidator : AbstractValidator<MessageDtoRequest>
+public class MessageDtoCreateValidator : AbstractValidator<MessageDtoCreate>
 {
-    public MessageDtoRequestValidator()
+    public MessageDtoCreateValidator()
     {
         RuleFor(x => x.Content)
             .NotEmpty().WithMessage("Mensagem é não pode estar vazia")

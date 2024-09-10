@@ -1,12 +1,11 @@
-using System.Text.RegularExpressions;
 using FluentValidation;
 using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class ServiceDtoRequestValidator : AbstractValidator<ServiceDtoRequest>
+public class ServiceDtoUpdateValidator : AbstractValidator<ServiceDtoUpdate>
 {
-    public ServiceDtoRequestValidator()
+    public ServiceDtoUpdateValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Título não pode estar vazio")
@@ -30,5 +29,5 @@ public class ServiceDtoRequestValidator : AbstractValidator<ServiceDtoRequest>
     }
     
     // private static bool TimeSpanChecker(string value) => Regex.IsMatch(value, @"^[\d{2}\:]\d{2}\:\d{2}\:\d{2}$");
-    private static bool TimeSpanChecker(string value) => Regex.IsMatch(value, @"^\d{2}:\d{2}(:\d{2})?$");
+    // private static bool TimeSpanChecker(string value) => Regex.IsMatch(value, @"^\d{2}:\d{2}(:\d{2})?$");
 }

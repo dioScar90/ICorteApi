@@ -1,43 +1,41 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class BarberShopService(IBarberShopRepository repository, IBarberShopErrors errors)
+public sealed class BarberShopService(
+    IBarberShopRepository repository,
+    IValidator<BarberShopDtoCreate> createValidator,
+    IValidator<BarberShopDtoUpdate> updateValidator,
+    IBarberShopErrors errors)
     : BaseService<BarberShop>(repository), IBarberShopService
 {
+    private readonly IValidator<BarberShopDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<BarberShopDtoUpdate> _updateValidator = updateValidator;
     private readonly IBarberShopErrors _errors = errors;
 
-    public async Task<BarberShop?> CreateAsync(BarberShopDtoCreate dto, int ownerId)
+    public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoCreate dto, int ownerId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var barberShop = new BarberShop(dto, ownerId);
-        return await CreateAsync(barberShop);
+        return (await CreateAsync(barberShop))!.CreateDto();
     }
-
-    private async Task<BarberShop?> GetByIdAsync(int id, int ownerId, bool includes = false)
+    
+    public async Task<BarberShopDtoResponse> GetByIdAsync(int id)
     {
-        if (!includes)
-            return await GetByIdAsync(id);
-        
-        return await GetByIdAsync(
-            x => x.Id == id && x.OwnerId == ownerId,
-            x => x.Address,
-            x => x.RecurringSchedules,
-            x => x.SpecialSchedules,
-            x => x.Services);
-    }
-
-    public async Task<BarberShop?> GetByIdAsync(int id)
-    {
-        return await base.GetByIdAsync(id);
+        return (await base.GetByIdAsync(id))!.CreateDto();
     }
     
     public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)
     {
-        var barberShop = await GetByIdAsync(id);
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
+        var barberShop = await GetByIdAsync(x => x.Id == id, x => x.Address);
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();
@@ -51,7 +49,7 @@ public sealed class BarberShopService(IBarberShopRepository repository, IBarberS
 
     public async Task<bool> DeleteAsync(int id, int ownerId)
     {
-        var barberShop = await GetByIdAsync(id, ownerId, true);
+        var barberShop = await GetByIdAsync(x => x.Id == id, x => x.Address, x => x.RecurringSchedules, x => x.SpecialSchedules, x => x.Services);
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();

@@ -9,9 +9,9 @@ public record BarberShopDtoCreate(
     string ComercialNumber,
     string ComercialEmail,
     AddressDtoCreate? Address = null,
-    RecurringScheduleDtoRequest[]? RecurringSchedules = null,
-    SpecialScheduleDtoRequest[]? SpecialSchedules = null,
-    ServiceDtoRequest[]? Services = null
+    RecurringScheduleDtoCreate[]? RecurringSchedules = null,
+    SpecialScheduleDtoCreate[]? SpecialSchedules = null,
+    ServiceDtoCreate[]? Services = null
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoUpdate(
@@ -19,11 +19,12 @@ public record BarberShopDtoUpdate(
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    AddressDtoCreate? Address = null
+    AddressDtoUpdate? Address = null
 ) : IDtoRequest<BarberShop>;
 
 public record BarberShopDtoResponse(
     int Id,
+    int OwnerId,
     string Name,
     string? Description,
     string ComercialNumber,

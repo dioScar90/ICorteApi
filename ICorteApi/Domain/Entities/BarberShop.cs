@@ -79,6 +79,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
     public override BarberShopDtoResponse CreateDto() =>
         new(
             Id,
+            OwnerId,
             Name,
             Description,
             ComercialNumber,

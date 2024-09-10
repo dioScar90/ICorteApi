@@ -3,16 +3,17 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class UserDtoChangePasswordRequestValidator : AbstractValidator<UserDtoChangePasswordRequest>
+public class UserDtoPasswordUpdateValidator : AbstractValidator<UserDtoPasswordUpdate>
 {
-    public UserDtoChangePasswordRequestValidator()
+    public UserDtoPasswordUpdateValidator()
     {
         RuleFor(x => x.CurrentPassword)
             .NotEmpty().WithMessage("A senha atual é obrigatória");
-        
+
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("A nova senha é obrigatória")
-            .DependentRules(() => {
+            .DependentRules(() =>
+            {
                 RuleFor(dx => dx.NewPassword)
                     .MinimumLength(8).WithMessage("A nova senha deve conter pelo menos 8 caracteres")
                     .Must(ContainUppercase).WithMessage("A nova senha deve conter pelo menos uma letra maiúscula")

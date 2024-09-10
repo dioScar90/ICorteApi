@@ -1,16 +1,25 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class AppointmentService(IAppointmentRepository repository, IServiceRepository serviceRepository, IAppointmentErrors errors)
+public sealed class AppointmentService(
+    IAppointmentRepository repository,
+    IValidator<AppointmentDtoCreate> createValidator,
+    IValidator<AppointmentDtoUpdate> updateValidator,
+    IServiceRepository serviceRepository,
+    IAppointmentErrors errors)
     : BaseService<Appointment>(repository), IAppointmentService
 {
     private readonly IServiceRepository _serviceRepository = serviceRepository;
     new private readonly IAppointmentRepository _repository = repository;
+    private readonly IValidator<AppointmentDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<AppointmentDtoUpdate> _updateValidator = updateValidator;
     private readonly IAppointmentErrors _errors = errors;
 
     private static bool IsServicesFromUniqueBarberShopId(Service[] services)
@@ -19,8 +28,10 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
         return ids.Count == 1;
     }
 
-    public async Task<Appointment?> CreateAsync(AppointmentDtoCreate dto, int clientId)
+    public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoCreate dto, int clientId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+
         if (dto.ServiceIds.Length == 0)
             _errors.ThrowEmptyServicesException();
 
@@ -30,7 +41,7 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
             _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
 
         var appointment = new Appointment(dto, services, clientId);
-        return await CreateAsync(appointment);
+        return (await CreateAsync(appointment))!.CreateDto();
     }
 
     private async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
@@ -38,13 +49,15 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
         return await _serviceRepository.GetSpecificServicesByIdsAsync(ids);
     }
 
-    public async Task<Appointment?> GetByIdAsync(int id)
+    public async Task<AppointmentDtoResponse> GetByIdAsync(int id)
     {
-        return await _repository.GetByIdWithServicesAsync(id);
+        return (await _repository.GetByIdWithServicesAsync(id))!.CreateDto();
     }
 
     public async Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
         var appointment = await _repository.GetByIdWithServicesAsync(id);
 
         if (appointment is null)
@@ -77,7 +90,7 @@ public sealed class AppointmentService(IAppointmentRepository repository, IServi
 
     public async Task<bool> DeleteAsync(int id, int clientId)
     {
-        var appointment = await GetByIdAsync(id);
+        var appointment = await _repository.GetByIdAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();

@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -36,17 +33,22 @@ public static class AppointmentEndpoint
         return Results.Created(uri, value);
     }
 
+    public static async Task<IResult> CreateAppointment(
+        AppointmentDtoCreate dto,
+        IAppointmentService service,
+        IUserService userService)
+    {
+        int clientId = await userService.GetMyUserIdAsync();
+        var appointment = await service.CreateAsync(dto, clientId);
+        return GetCreatedResult(appointment.Id);
+    }
+
     public static async Task<IResult> GetAppointment(
         int id,
-        IAppointmentService service,
-        IAppointmentErrors errors)
+        IAppointmentService service)
     {
         var appointment = await service.GetByIdAsync(id);
-
-        if (appointment is null)
-            errors.ThrowNotFoundException();
-        
-        return Results.Ok(appointment!.CreateDto());
+        return Results.Ok(appointment);
     }
 
     // public static async Task<IResult> GetAllAppointments(
@@ -62,55 +64,24 @@ public static class AppointmentEndpoint
     //     return Results.Ok(appointment!.CreateDto());
     // }
 
-    public static async Task<IResult> CreateAppointment(
-        AppointmentDtoCreate dto,
-        IValidator<AppointmentDtoCreate> validator,
-        IAppointmentService service,
-        IUserService userService,
-        IAppointmentErrors errors)
-    {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
-        int clientId = await userService.GetMyUserIdAsync();
-        var appointment = await service.CreateAsync(dto, clientId);
-
-        if (appointment is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(appointment!.Id);
-    }
-
     public static async Task<IResult> UpdateAppointment(
         int id,
         AppointmentDtoUpdate dto,
-        IValidator<AppointmentDtoUpdate> validator,
         IAppointmentService service,
-        IUserService userService,
-        IAppointmentErrors errors)
+        IUserService userService)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-
         int clientId = await userService.GetMyUserIdAsync();
-        var result = await service.UpdateAsync(dto, id, clientId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, id, clientId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteAppointment(
         int id,
         IAppointmentService service,
-        IUserService userService,
-        IAppointmentErrors errors)
+        IUserService userService)
     {
         int clientId = await userService.GetMyUserIdAsync();
-        var result = await service.DeleteAsync(id, clientId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(id, clientId);
         return Results.NoContent();
     }
 }

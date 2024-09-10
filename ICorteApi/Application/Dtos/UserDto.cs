@@ -12,15 +12,15 @@ public record UserDtoResponse(
     BarberShopDtoResponse? BarberShop
 ) : IDtoResponse<User>;
 
-public record UserDtoChangeEmailRequest(
+public record UserDtoEmailUpdate(
     string Email
 ) : IDtoRequest<User>;
 
-public record UserDtoChangePhoneNumberRequest(
+public record UserDtoPhoneNumberUpdate(
     string PhoneNumber
 ) : IDtoRequest<User>;
 
-public record UserDtoRegisterRequest(
+public record UserDtoRegisterCreate(
     string Email,
     string Password,
     ProfileDtoCreate? Profile = null,
@@ -36,7 +36,7 @@ public record UserDtoForgotPasswordRequest(
     string Email
 ) : IDtoRequest<User>;
 
-public record UserDtoChangePasswordRequest(
+public record UserDtoPasswordUpdate(
     string CurrentPassword,
     string NewPassword
 ) : IDtoRequest<User>;

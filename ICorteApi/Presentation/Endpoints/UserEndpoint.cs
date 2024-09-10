@@ -27,16 +27,16 @@ public static class UserEndpoint
 
         group.MapGet("me", GetMe)
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
-            
+
         group.MapPatch("changeEmail", UpdateUserEmail)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-            
+
         group.MapPatch("changePassword", UpdateUserPassword)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-            
+
         group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-            
+
         group.MapDelete(INDEX, DeleteUser)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -53,10 +53,10 @@ public static class UserEndpoint
     private static async Task<IResult> LoginAfterCreated(string userName, string password, bool useCookies, SignInManager<User> signInManager)
     {
         var result = await signInManager.PasswordSignInAsync(userName, password, useCookies, lockoutOnFailure: true);
-        
+
         if (!result.Succeeded)
             return Results.Unauthorized();
-        
+
         return GetCreatedResult();
 
 
@@ -95,8 +95,8 @@ public static class UserEndpoint
     // that you can find in: https://github.com/dotnet/aspnetcore/blob/main/src/Identity/Core/src/IdentityApiEndpointRouteBuilderExtensions.cs
     public static async Task<IResult> RegisterUser(
         [FromQuery] bool useCookies,
-        UserDtoRegisterRequest dto,
-        IValidator<UserDtoRegisterRequest> validator,
+        UserDtoRegisterCreate dto,
+        IValidator<UserDtoRegisterCreate> validator,
         IUserService service,
         SignInManager<User> signInManager,
         IUserErrors errors)
@@ -121,13 +121,13 @@ public static class UserEndpoint
 
         if (user is null)
             errors.ThrowNotFoundException();
-        
+
         return Results.Ok(user!.CreateDto());
     }
 
     public static async Task<IResult> UpdateUserEmail(
-        UserDtoChangeEmailRequest dto,
-        IValidator<UserDtoChangeEmailRequest> validator,
+        UserDtoEmailUpdate dto,
+        IValidator<UserDtoEmailUpdate> validator,
         IUserService service,
         IUserErrors errors)
     {
@@ -141,8 +141,8 @@ public static class UserEndpoint
     }
 
     public static async Task<IResult> UpdateUserPassword(
-        UserDtoChangePasswordRequest dto,
-        IValidator<UserDtoChangePasswordRequest> validator,
+        UserDtoPasswordUpdate dto,
+        IValidator<UserDtoPasswordUpdate> validator,
         IUserService service,
         IUserErrors errors)
     {
@@ -156,8 +156,8 @@ public static class UserEndpoint
     }
 
     public static async Task<IResult> UpdateUserPhoneNumber(
-        UserDtoChangePhoneNumberRequest dto,
-        IValidator<UserDtoChangePhoneNumberRequest> validator,
+        UserDtoPhoneNumberUpdate dto,
+        IValidator<UserDtoPhoneNumberUpdate> validator,
         IUserService service,
         IUserErrors errors)
     {

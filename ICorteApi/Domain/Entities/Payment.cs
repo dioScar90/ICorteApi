@@ -15,7 +15,7 @@ public sealed class Payment : BaseEntity<Payment>
 
     private Payment() { }
 
-    public Payment(PaymentDtoRequest dto, int? appointmentId = null)
+    public Payment(PaymentDtoCreate dto, int? appointmentId = null)
     {
         PaymentType = dto.PaymentType;
         Amount = dto.Amount;
@@ -23,7 +23,7 @@ public sealed class Payment : BaseEntity<Payment>
         AppointmentId = appointmentId ?? default;
     }
 
-    private void UpdateByPaymentDto(PaymentDtoRequest dto, DateTime? utcNow)
+    private void UpdateByPaymentDto(PaymentDtoCreate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -37,7 +37,7 @@ public sealed class Payment : BaseEntity<Payment>
     {
         switch (requestDto)
         {
-            case PaymentDtoRequest dto:
+            case PaymentDtoCreate dto:
                 UpdateByPaymentDto(dto, utcNow);
                 break;
             default:
@@ -48,6 +48,7 @@ public sealed class Payment : BaseEntity<Payment>
     public override PaymentDtoResponse CreateDto() =>
         new(
             Id,
+            AppointmentId,
             PaymentType,
             Amount
         );

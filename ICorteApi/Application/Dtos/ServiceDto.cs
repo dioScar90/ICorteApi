@@ -3,7 +3,14 @@ using ICorteApi.Domain.Entities;
 
 namespace ICorteApi.Application.Dtos;
 
-public record ServiceDtoRequest(
+public record ServiceDtoCreate(
+    string Name,
+    string Description,
+    decimal Price,
+    TimeSpan Duration
+) : IDtoRequest<Service>;
+
+public record ServiceDtoUpdate(
     string Name,
     string Description,
     decimal Price,
@@ -12,8 +19,9 @@ public record ServiceDtoRequest(
 
 public record ServiceDtoResponse(
     int Id,
+    int BarberShopId,
     string Name,
-    string Description,
+    string? Description,
     decimal Price,
     TimeSpan Duration
 ) : IDtoResponse<Service>;

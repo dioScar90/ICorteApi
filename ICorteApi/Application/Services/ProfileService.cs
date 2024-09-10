@@ -1,25 +1,35 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class ProfileService(IProfileRepository repository, IImageService imageService, IProfileErrors errors)
+public sealed class ProfileService(
+    IProfileRepository repository,
+    IImageService imageService,
+    IValidator<ProfileDtoCreate> createValidator,
+    IValidator<ProfileDtoUpdate> updateValidator,
+    IProfileErrors errors)
     : BaseService<Profile>(repository), IProfileService
 {
     new private readonly IProfileRepository _repository = repository;
+    private readonly IValidator<ProfileDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<ProfileDtoUpdate> _updateValidator = updateValidator;
     private readonly IImageService _imageService = imageService;
     private readonly IProfileErrors _errors = errors;
 
-    public async Task<Profile?> CreateAsync(ProfileDtoCreate dto, int userId)
+    public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoCreate dto, int userId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var profile = new Profile(dto, userId);
-        return await _repository.CreateAsync(profile, dto.PhoneNumber);
+        return (await _repository.CreateAsync(profile, profile.GetPhoneNumberToUserEntity()))!.CreateDto();
     }
 
-    public async Task<Profile?> GetByIdAsync(int id, int userId)
+    public async Task<ProfileDtoResponse> GetByIdAsync(int id, int userId)
     {
         var profile = await GetByIdAsync(id);
 
@@ -29,12 +39,14 @@ public sealed class ProfileService(IProfileRepository repository, IImageService 
         if (profile!.Id != userId)
             _errors.ThrowProfileNotBelongsToUserException(userId);
 
-        return profile;
+        return profile.CreateDto();
     }
 
-    public async Task<bool> UpdateAsync(ProfileDtoUpdate dtoRequest, int id, int userId)
+    public async Task<bool> UpdateAsync(ProfileDtoUpdate dto, int id, int userId)
     {
-        var profile = await GetByIdAsync(id, userId);
+        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+
+        var profile = await GetByIdAsync(id);
 
         if (profile is null)
             _errors.ThrowNotFoundException();
@@ -42,13 +54,19 @@ public sealed class ProfileService(IProfileRepository repository, IImageService 
         if (profile!.Id != userId)
             _errors.ThrowProfileNotBelongsToUserException(userId);
 
-        profile.UpdateEntityByDto(dtoRequest);
+        profile.UpdateEntityByDto(dto);
         return await UpdateAsync(profile);
     }
 
-    public async Task<bool> UpdateProfileImageAsync(int id, int userId, IFormFile image)
+    private static bool ImageIsNullOrHasNoLength(IFormFile? image) => image is null or { Length: 0 };
+
+    public async Task<bool> UpdateProfileImageAsync(int id, int userId, IFormFile? image)
     {
-        var profile = await GetByIdAsync(id, userId);
+        if (ImageIsNullOrHasNoLength(image))
+            // errors.ThrowUpdateException("A imagem fornecida é inválida.");
+            errors.ThrowUpdateException();
+        
+        var profile = await GetByIdAsync(id);
 
         if (profile is null)
             _errors.ThrowNotFoundException();

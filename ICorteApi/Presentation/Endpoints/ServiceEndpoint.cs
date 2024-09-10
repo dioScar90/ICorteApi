@@ -1,9 +1,6 @@
 ﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Extensions;
 using ICorteApi.Presentation.Enums;
-using FluentValidation;
 using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,76 +44,49 @@ public static class ServiceEndpoint
 
     public static async Task<IResult> CreateService(
         int barberShopId,
-        ServiceDtoRequest dto,
-        IValidator<ServiceDtoRequest> validator,
-        IServiceService service,
-        IServiceErrors errors)
+        ServiceDtoCreate dto,
+        IServiceService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
         var serviceEntity = await service.CreateAsync(dto, barberShopId);
-
-        if (serviceEntity is null)
-            errors.ThrowCreateException();
-
-        return GetCreatedResult(serviceEntity!.Id, serviceEntity.BarberShopId);
+        return GetCreatedResult(serviceEntity.Id, serviceEntity.BarberShopId);
     }
 
     public static async Task<IResult> GetService(
-        int barberShopId,
         int id,
-        IServiceService service,
-        IServiceErrors errors)
+        int barberShopId,
+        IServiceService service)
     {
-        var serviceEntity = await service.GetByIdAsync(id, barberShopId);
-
-        if (serviceEntity is null)
-            errors.ThrowNotFoundException();
-            
-        return Results.Ok(serviceEntity!.CreateDto());
+        var serviceDto = await service.GetByIdAsync(id, barberShopId);
+        return Results.Ok(serviceDto);
     }
 
     public static async Task<IResult> GetAllServices(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        IServiceService service,
-        IServiceErrors errors)
+        IServiceService service)
     {
         var services = await service.GetAllAsync(page, pageSize, barberShopId);
-        
-        var dtos = services?.Select(c => c.CreateDto()).ToArray() ?? [];
-        return Results.Ok(dtos);
+        return Results.Ok(services);
     }
 
     public static async Task<IResult> UpdateService(
-        int barberShopId,
         int id,
-        ServiceDtoRequest dto,
-        IValidator<ServiceDtoRequest> validator,
-        IServiceService service,
-        IServiceErrors errors)
+        int barberShopId,
+        ServiceDtoUpdate dto,
+        IServiceService service)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdateAsync(dto, id, barberShopId);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdateAsync(dto, id, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteService(
-        bool? forceDelete,
-        int barberShopId,
+        [FromQuery] bool? forceDelete,
         int id,
-        IServiceService service,
-        IServiceErrors errors)
+        int barberShopId,
+        IServiceService service)
     {
-        var result = await service.DeleteAsync(id, barberShopId, forceDelete is true);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(id, barberShopId, forceDelete is true);
         return Results.NoContent();
     }
 }

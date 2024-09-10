@@ -1,24 +1,33 @@
+using FluentValidation;
 using ICorteApi.Application.Dtos;
 using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Infraestructure.Interfaces;
+using ICorteApi.Presentation.Extensions;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class MessageService(IMessageRepository repository, IMessageErrors errors)
+public sealed class MessageService(
+    IMessageRepository repository,
+    IValidator<MessageDtoCreate> createValidator,
+    IValidator<MessageDtoIsReadUpdate> updateValidator,
+    IMessageErrors errors)
     : BaseService<Message>(repository), IMessageService
 {
-    private readonly IMessageErrors _errors = errors;
     new private readonly IMessageRepository _repository = repository;
-    
-    public async Task<Message?> CreateAsync(MessageDtoRequest dto, int appointmentId, int senderId)
+    private readonly IValidator<MessageDtoCreate> _createValidator = createValidator;
+    private readonly IValidator<MessageDtoIsReadUpdate> _updateValidator = updateValidator;
+    private readonly IMessageErrors _errors = errors;
+
+    public async Task<MessageDtoResponse> CreateAsync(MessageDtoCreate dto, int appointmentId, int senderId)
     {
+        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var message = new Message(dto, appointmentId, senderId);
-        return await CreateAsync(message);
+        return (await CreateAsync(message))!.CreateDto();
     }
 
-    public async Task<Message?> GetByIdAsync(int id, int appointmentId)
+    public async Task<MessageDtoResponse> GetByIdAsync(int id, int appointmentId)
     {
         var message = await GetByIdAsync(id);
 
@@ -28,30 +37,41 @@ public sealed class MessageService(IMessageRepository repository, IMessageErrors
         if (message!.AppointmentId != appointmentId)
             _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
 
-        return message;
+        return message.CreateDto();
     }
 
-    public async Task<Message[]> GetAllAsync(int? page, int? pageSize, int appointmentId)
+    public async Task<MessageDtoResponse[]> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
-        return await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
+        var messages = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
+        return [..messages.Select(m => m.CreateDto())];
     }
 
-    public async Task<bool> DeleteAsync(int id, int appointmentId)
-    {
-        var message = await GetByIdAsync(id, appointmentId);
-        return await DeleteAsync(message!);
-    }
-
-    public async Task<Message?> SendMessageAsync(MessageDtoRequest dtoRequest, int appointmentId, int senderId)
+    public async Task<Message?> SendMessageAsync(MessageDtoCreate dtoRequest, int appointmentId, int senderId)
     {
         var entity = new Message(dtoRequest, appointmentId, senderId);
         return await CreateAsync(entity);
     }
 
-    public async Task<bool> MarkMessageAsReadAsync(MessageIsReadDtoRequest[] dtoRequest, int senderId)
+    public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdate[] dtos, int senderId)
     {
-        var ids = dtoRequest.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
+        foreach (var dto in dtos)
+            dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        
+        var ids = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
         return await _repository.MarkMessageAsReadAsync(ids, senderId);
+    }
+
+    public async Task<bool> DeleteAsync(int id, int appointmentId)
+    {
+        var message = await GetByIdAsync(id);
+
+        if (message is null)
+            _errors.ThrowNotFoundException();
+
+        if (message!.AppointmentId != appointmentId)
+            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
+
+        return await DeleteAsync(message!);
     }
 
     public async Task<bool> DeleteMessageAsync(int id, int appointmentId, int senderId)

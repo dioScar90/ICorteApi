@@ -77,19 +77,26 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<AddressDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<AppointmentDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<AppointmentDtoUpdateValidator>();
-        services.AddValidatorsFromAssemblyContaining<PaymentDtoRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<BarberShopDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<BarberShopDtoUpdateValidator>();
-        services.AddValidatorsFromAssemblyContaining<MessageDtoRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<ReportDtoRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<ServiceDtoRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<SpecialScheduleDtoRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<MessageDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<MessageDtoIsReadUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<PaymentDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ProfileDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ProfileDtoUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ReportDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ReportDtoUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ServiceDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<ServiceDtoUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<SpecialScheduleDtoCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<SpecialScheduleDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoLoginRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserDtoRegisterRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserDtoChangeEmailRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserDtoChangePasswordRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserDtoChangePhoneNumberRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoRegisterCreateValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoEmailUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoPasswordUpdateValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserDtoPhoneNumberUpdateValidator>();
 
         return services;
     }

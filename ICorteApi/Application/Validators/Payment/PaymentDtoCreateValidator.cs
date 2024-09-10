@@ -3,9 +3,9 @@ using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 
-public class PaymentDtoRequestValidator : AbstractValidator<PaymentDtoRequest>
+public class PaymentDtoCreateValidator : AbstractValidator<PaymentDtoCreate>
 {
-    public PaymentDtoRequestValidator()
+    public PaymentDtoCreateValidator()
     {
         RuleFor(x => x.PaymentType)
             .NotEmpty().WithMessage("Tipo de pagamento é obrigatório")
