@@ -12,6 +12,7 @@ public sealed class Appointment : BaseEntity<Appointment>
     public TimeOnly StartTime { get; private set; }
     public string? Notes { get; private set; }
     public AppointmentStatus? Status { get; private set; }
+    public TimeSpan TotalDuration { get; private set; }
 
     public int ClientId { get; init; }
     public User Client { get; set; }
@@ -32,6 +33,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         Notes = dto.Notes;
         
         Services = services;
+        UpdateTotalDuration();
 
         Status = AppointmentStatus.Pending;
 
@@ -53,6 +55,8 @@ public sealed class Appointment : BaseEntity<Appointment>
         foreach (var toRemove in servicesToRemove)
             Services.Remove(toRemove);
     }
+
+    public void UpdateTotalDuration() => TotalDuration = Services.Aggregate(new TimeSpan(0), (acc, curr) => acc.Add(curr.Duration));
     
     private void UpdateByAppointmentDto(AppointmentDtoUpdate dto, DateTime? utcNow)
     {
@@ -61,6 +65,8 @@ public sealed class Appointment : BaseEntity<Appointment>
         Date = dto.Date;
         StartTime = dto.StartTime;
         Notes = dto.Notes;
+
+        UpdateTotalDuration();
         
         UpdatedAt = utcNow;
     }

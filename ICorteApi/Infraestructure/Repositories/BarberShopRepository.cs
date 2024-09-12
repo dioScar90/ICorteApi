@@ -58,21 +58,4 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
             throw;
         }
     }
-
-    public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(DayOfWeek startDayOfWeek, DayOfWeek endDayOfWeek, int take = 10)
-    {
-        return await _dbSet
-            .Where(b => b.Reports.Any(r => r.Rating > 0))
-            .OrderByDescending(b => b.Reports.Average(r => (decimal)r.Rating))
-            .Select(b => new
-            {
-                BarberShop = b,
-                Availability = b.RecurringSchedules
-                    .Where(s => s.DayOfWeek >= startDayOfWeek && s.DayOfWeek <= endDayOfWeek)
-            })
-            .Where(b => b.Availability.Any())
-            .Take(take)
-            .Select(b => b.BarberShop)
-            .ToArrayAsync();
-    }
 }
