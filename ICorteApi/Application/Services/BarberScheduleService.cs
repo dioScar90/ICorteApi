@@ -1,84 +1,79 @@
-using System.Globalization;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Interfaces;
-using ICorteApi.Infraestructure.Interfaces;
+// using System.Globalization;
+// using ICorteApi.Domain.Entities;
+// using ICorteApi.Domain.Interfaces;
+// using ICorteApi.Infraestructure.Interfaces;
 
-namespace ICorteApi.Application.Services;
+// namespace ICorteApi.Application.Services;
 
-public class BarberScheduleService(
-    IAppointmentRepository appointmentRepository,
-    IBarberShopRepository barberShopRepository,
-    IRecurringScheduleRepository recurringScheduleRepository,
-    ISpecialScheduleRepository specialScheduleRepository)
-{
-    private readonly IAppointmentRepository _appointmentRepository = appointmentRepository;
-    private readonly IBarberShopRepository _barberShopRepository = barberShopRepository;
-    private readonly IRecurringScheduleRepository _recurringScheduleRepository = recurringScheduleRepository;
-    private readonly ISpecialScheduleRepository _specialScheduleRepository = specialScheduleRepository;
+// public class BarberScheduleService(
+//     IBarberShopRepository barberShopRep,
+//     IAppointmentRepository appointmentRep,
+//     IServiceRepository serviceRep,
+//     IRecurringScheduleRepository recurringScheduleRep,
+//     ISpecialScheduleRepository specialScheduleRep)
+// {
+//     private readonly IBarberShopRepository _barberShopRep = barberShopRep;
+//     private readonly IServiceRepository _serviceRep = serviceRep;
+//     private readonly IAppointmentRepository _appointmentRep = appointmentRep;
+//     private readonly IRecurringScheduleRepository _recurringScheduleRep = recurringScheduleRep;
+//     private readonly ISpecialScheduleRepository _specialScheduleRep = specialScheduleRep;
 
-    // public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, List<int> serviceIds)
-    // {
-    //     // Recupera o horário de funcionamento regular e especial
-    //     var recurringScheduleResponse = await _recurringScheduleRepository.GetByIdAsync(x => x.DayOfWeek == date.DayOfWeek && x.BarberShopId == barberShopId);
-    //     var specialScheduleResponse = await _specialScheduleRepository.GetByIdAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+//     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
+//     {
+//         // Recupera o horário de funcionamento regular e especial
+//         var recurringSchedule = await _recurringScheduleRep.GetByIdAsync(date.DayOfWeek, barberShopId);
+//         var specialSchedule = await _specialScheduleRep.GetByIdAsync(date, barberShopId);
 
-    //     if (!recurringScheduleResponse.IsSuccess)
-    //         return [];
+//         if (recurringSchedule is null || specialSchedule is null)
+//             return [];
+            
+//         if (specialSchedule.IsClosed)
+//             return []; // Barbeiro está fechado neste dia
 
-    //     if (!specialScheduleResponse.IsSuccess)
-    //         return [];
+//         var openTime = specialSchedule?.OpenTime ?? recurringSchedule.OpenTime;
+//         var closeTime = specialSchedule?.CloseTime ?? recurringSchedule.CloseTime;
 
-    //     var recurringSchedule = recurringScheduleResponse.Value;
-    //     var specialSchedule = specialScheduleResponse.Value;
+//         // Calcula a duração total dos serviços
+//         var totalDuration = await CalculateTotalServiceDuration(serviceIds);
 
-    //     if (specialSchedule?.IsClosed ?? false)
-    //         return []; // Barbeiro está fechado neste dia
+//         // Recupera todos os agendamentos existentes para o dia especificado
+//         var appointments = await _appointmentRep.GetAppointmentsByDateAsync(barberShopId, date);
 
-    //     var openTime = specialSchedule?.OpenTime ?? recurringSchedule.OpenTime;
-    //     var closeTime = specialSchedule?.CloseTime ?? recurringSchedule.CloseTime;
+//         // Calcula os intervalos disponíveis
+//         return CalculateAvailableSlots(openTime, closeTime, appointments, totalDuration);
+//     }
 
-    //     // Calcula a duração total dos serviços
-    //     var totalDuration = await CalculateTotalServiceDuration(serviceIds);
+//     private async Task<TimeSpan> CalculateTotalServiceDuration(int[] serviceIds)
+//     {
+//         // Implementação para somar a duração dos serviços
+//         // return serviceIds.Sum();
+//         return await _serviceRep.CalculateTotalServiceDuration(serviceIds);
+//     }
 
-    //     // Recupera todos os agendamentos existentes para o dia especificado
-    //     var appointments = await _appointmentRepository.GetAppointmentsByDateAsync(barberShopId, date);
+//     private List<TimeOnly> CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, List<Appointment> appointments, TimeSpan serviceDuration)
+//     {
+//         var availableSlots = new List<TimeOnly>();
 
-    //     // Calcula os intervalos disponíveis
-    //     var availableSlots = CalculateAvailableSlots(openTime, closeTime, appointments, totalDuration);
+//         // Lógica para calcular slots disponíveis entre os agendamentos existentes
 
-    //     return availableSlots;
-    // }
+//         return availableSlots;
+//     }
 
-    // private async Task<TimeSpan> CalculateTotalServiceDuration(int[] serviceIds)
-    // {
-    //     // Implementação para somar a duração dos serviços
-    //     return serviceIds.Sum();
-    // }
+//     public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(int weekNumber, int take = 10)
+//     {
+//         var currentYear = DateTime.UtcNow.Year;
+//         var startOfWeek = ISOWeek.ToDateTime(currentYear, weekNumber, DayOfWeek.Monday);
+//         var endOfWeek = startOfWeek.AddDays(7);
 
-    // private List<TimeOnly> CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, List<Appointment> appointments, TimeSpan serviceDuration)
-    // {
-    //     var availableSlots = new List<TimeOnly>();
+//         return await _barberShopRep.GetTopBarbersWithAvailabilityAsync(startOfWeek.DayOfWeek, endOfWeek.DayOfWeek, take);
+//     }
 
-    //     // Lógica para calcular slots disponíveis entre os agendamentos existentes
+//     public async Task<DayOfWeek[]> GetAvailableDaysForBarberAsync(int barberShopId, int weekNumber)
+//     {
+//         var currentYear = DateTime.UtcNow.Year;
+//         var startOfWeek = ISOWeek.ToDateTime(currentYear, weekNumber, DayOfWeek.Monday);
+//         var endOfWeek = startOfWeek.AddDays(7);
 
-    //     return availableSlots;
-    // }
-
-    public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(int weekNumber, int take = 10)
-    {
-        var currentYear = DateTime.UtcNow.Year;
-        var startOfWeek = ISOWeek.ToDateTime(currentYear, weekNumber, DayOfWeek.Monday);
-        var endOfWeek = startOfWeek.AddDays(7);
-
-        return await _barberShopRepository.GetTopBarbersWithAvailabilityAsync(startOfWeek.DayOfWeek, endOfWeek.DayOfWeek, take);
-    }
-
-    public async Task<DayOfWeek[]> GetAvailableDaysForBarberAsync(int barberShopId, int weekNumber)
-    {
-        var currentYear = DateTime.UtcNow.Year;
-        var startOfWeek = ISOWeek.ToDateTime(currentYear, weekNumber, DayOfWeek.Monday);
-        var endOfWeek = startOfWeek.AddDays(7);
-
-        return await _recurringScheduleRepository.GetAvailableDaysForBarberAsync(barberShopId, startOfWeek.DayOfWeek, endOfWeek.DayOfWeek);
-    }
-}
+//         return await _recurringScheduleRep.GetAvailableDaysForBarberAsync(barberShopId, startOfWeek.DayOfWeek, endOfWeek.DayOfWeek);
+//     }
+// }

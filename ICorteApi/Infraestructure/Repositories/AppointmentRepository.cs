@@ -14,4 +14,12 @@ public sealed class AppointmentRepository(AppDbContext context)
             .Include(x => x.Services)
             .SingleOrDefaultAsync(x => x.Id == id);
     }
+
+    public async Task<Appointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(x => x.BarberShopId == barberShopId && x.Date == date)
+            .OrderBy(x => x.Date)
+            .ToArrayAsync() ?? [];
+    }
 }
