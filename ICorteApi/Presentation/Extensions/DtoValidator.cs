@@ -1,5 +1,4 @@
 using FluentValidation;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 

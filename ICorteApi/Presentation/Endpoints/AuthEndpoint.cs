@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Presentation.Enums;
 
 namespace ICorteApi.Presentation.Endpoints;
 

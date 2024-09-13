@@ -1,8 +1,4 @@
-using System.Security.Policy;
-using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -10,9 +6,11 @@ public sealed class Appointment : BaseEntity<Appointment>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly StartTime { get; private set; }
-    public string? Notes { get; private set; }
-    public AppointmentStatus? Status { get; private set; }
     public TimeSpan TotalDuration { get; private set; }
+    public string? Notes { get; private set; }
+    public PaymentType PaymentType { get; private set; }
+    public decimal TotalPrice { get; private set; }
+    public AppointmentStatus Status { get; private set; }
 
     public int ClientId { get; init; }
     public User Client { get; set; }
@@ -21,7 +19,6 @@ public sealed class Appointment : BaseEntity<Appointment>
     public BarberShop BarberShop { get; set; }
 
     public ICollection<Message> Messages { get; init; } = [];
-    public ICollection<Payment> Payments { get; init; } = [];
     public ICollection<Service> Services { get; init; } = [];
 
     private Appointment() { }
@@ -31,9 +28,10 @@ public sealed class Appointment : BaseEntity<Appointment>
         Date = dto.Date;
         StartTime = dto.StartTime;
         Notes = dto.Notes;
+        PaymentType = dto.PaymentType;
         
         Services = services;
-        UpdateTotalDuration();
+        UpdatePriceAndDuration();
 
         Status = AppointmentStatus.Pending;
 
@@ -56,7 +54,14 @@ public sealed class Appointment : BaseEntity<Appointment>
             Services.Remove(toRemove);
     }
 
-    public void UpdateTotalDuration() => TotalDuration = Services.Aggregate(new TimeSpan(0), (acc, curr) => acc.Add(curr.Duration));
+    private void UpdateTotalDuration() => TotalDuration = Services.Aggregate(TimeSpan.Zero, (acc, curr) => acc.Add(curr.Duration));
+    private void UpdateTotalPrice() => TotalPrice = Services.Aggregate(decimal.Zero, (acc, curr) => acc + curr.Price);
+
+    public void UpdatePriceAndDuration()
+    {
+        UpdateTotalDuration();
+        UpdateTotalPrice();
+    }
     
     private void UpdateByAppointmentDto(AppointmentDtoUpdate dto, DateTime? utcNow)
     {
@@ -65,8 +70,9 @@ public sealed class Appointment : BaseEntity<Appointment>
         Date = dto.Date;
         StartTime = dto.StartTime;
         Notes = dto.Notes;
+        PaymentType = dto.PaymentType;
 
-        UpdateTotalDuration();
+        UpdatePriceAndDuration();
         
         UpdatedAt = utcNow;
     }
@@ -83,9 +89,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         }
     }
 
-    private TimeOnly GetTotalDuration() => Services.Aggregate(StartTime, (acc, curr) => acc.Add(curr.Duration));
-    private decimal GetTotalPrice() => Services.Aggregate(0M, (acc, curr) => acc + curr.Price);
-    private ServiceDtoResponse[] GetAllServices() => [..Services.Select(s => s.CreateDto())];
+    private ServiceDtoResponse[] GetServicesIntoDto() => [..Services.Select(s => s.CreateDto())];
 
     public override AppointmentDtoResponse CreateDto() =>
         new(
@@ -94,10 +98,25 @@ public sealed class Appointment : BaseEntity<Appointment>
             BarberShopId,
             Date,
             StartTime,
-            GetTotalDuration(),
+            TotalDuration,
             Notes,
-            GetTotalPrice(),
-            GetAllServices(),
-            Status ?? AppointmentStatus.Pending
+            PaymentType,
+            TotalPrice,
+            GetServicesIntoDto(),
+            Status
         );
+}
+
+public enum PaymentType
+{
+    Card,
+    Cash,
+    Transfer,
+    Other
+}
+
+public enum AppointmentStatus
+{
+    Pending,
+    Completed
 }

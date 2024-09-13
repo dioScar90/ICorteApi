@@ -1,6 +1,3 @@
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
-
 namespace ICorteApi.Application.Dtos;
 
 public record ReportDtoCreate(

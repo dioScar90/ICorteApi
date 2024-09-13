@@ -1,6 +1,3 @@
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
-
 namespace ICorteApi.Infraestructure.Interfaces;
 
 public interface IUserRepository : IRepository<User>

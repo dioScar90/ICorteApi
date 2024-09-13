@@ -1,15 +1,9 @@
 using FluentValidation;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Application.Services;
 using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Infraestructure.Context;
-using ICorteApi.Infraestructure.Interfaces;
 using ICorteApi.Infraestructure.Repositories;
-using ICorteApi.Presentation.Exceptions;
 using ICorteApi.Settings;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -22,9 +16,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IBarberScheduleRepository, BarberScheduleRepository>();
         services.AddScoped<IBarberShopRepository, BarberShopRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IProfileRepository, ProfileRepository>();
         services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
@@ -39,10 +33,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IBarberScheduleService, BarberScheduleService>();
         services.AddScoped<IBarberShopService, BarberShopService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IMessageService, MessageService>();
-        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
         services.AddScoped<IReportService, ReportService>();
@@ -57,7 +51,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAddressErrors, AddressErrors>();
         services.AddScoped<IAppointmentErrors, AppointmentErrors>();
-        services.AddScoped<IPaymentErrors, PaymentErrors>();
         services.AddScoped<IProfileErrors, ProfileErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
         services.AddScoped<IImageErrors, ImageErrors>();
@@ -81,7 +74,6 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<BarberShopDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<MessageDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<MessageDtoIsReadUpdateValidator>();
-        services.AddValidatorsFromAssemblyContaining<PaymentDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<ProfileDtoCreateValidator>();
         services.AddValidatorsFromAssemblyContaining<ProfileDtoUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoCreateValidator>();

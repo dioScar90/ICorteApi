@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Infraestructure.Interfaces;
 
 namespace ICorteApi.Application.Services;
 

@@ -1,5 +1,3 @@
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 

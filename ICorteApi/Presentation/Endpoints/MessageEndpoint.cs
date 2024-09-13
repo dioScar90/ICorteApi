@@ -1,8 +1,4 @@
-﻿using ICorteApi.Application.Interfaces;
-using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Enums;
-using ICorteApi.Domain.Enums;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 

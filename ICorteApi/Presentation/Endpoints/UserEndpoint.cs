@@ -1,11 +1,5 @@
 ﻿using FluentValidation;
-using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Presentation.Enums;
-using ICorteApi.Presentation.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

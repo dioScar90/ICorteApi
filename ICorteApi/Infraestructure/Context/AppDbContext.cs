@@ -1,4 +1,3 @@
-using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using ICorteApi.Domain.Interfaces;
@@ -12,7 +11,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<BarberShop> BarberShops { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
-    public DbSet<Payment> Payments { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
     public DbSet<SpecialSchedule> SpecialSchedules { get; set; }
@@ -127,8 +125,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .ToArray();
             
         foreach (var service in deletedServices)
-            foreach (var appointment in service.Appointments.ToArray())
-                service.Appointments.Remove(appointment);
+        {
+            foreach (var appointment in service.Appointments)
+            {
+                if (!appointment.IsDeleted)
+                {
+                    service.Appointments.Remove(appointment);
+                }
+            }
+
+            foreach (var appointment in service.Appointments)
+            {
+                if (!appointment.IsDeleted)
+                {
+                    appointment.UpdatePriceAndDuration();
+                }
+            }
+        }
     }
 
     private void CheckForDeletedAppointments()

@@ -1,5 +1,4 @@
 using FluentValidation;
-using ICorteApi.Application.Dtos;
 
 namespace ICorteApi.Application.Validators;
 

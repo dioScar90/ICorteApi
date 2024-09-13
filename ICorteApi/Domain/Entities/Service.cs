@@ -1,7 +1,5 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
-using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;

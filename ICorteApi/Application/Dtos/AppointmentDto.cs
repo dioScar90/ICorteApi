@@ -1,13 +1,10 @@
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
-
 namespace ICorteApi.Application.Dtos;
 
 public record AppointmentDtoCreate(
     DateOnly Date,
     TimeOnly StartTime,
     string? Notes,
+    PaymentType PaymentType,
     int[] ServiceIds
 ) : IDtoRequest<Appointment>;
 
@@ -15,6 +12,7 @@ public record AppointmentDtoUpdate(
     DateOnly Date,
     TimeOnly StartTime,
     string? Notes,
+    PaymentType PaymentType,
     int[] ServiceIds
 ) : IDtoRequest<Appointment>;
 
@@ -24,8 +22,9 @@ public record AppointmentDtoResponse(
     int BarberShopId,
     DateOnly Date,
     TimeOnly StartTime,
-    TimeOnly EndTime,
+    TimeSpan TotalDuration,
     string? Notes,
+    PaymentType PaymentType,
     decimal TotalPrice,
     ServiceDtoResponse[] Services,
     AppointmentStatus Status

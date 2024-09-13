@@ -1,7 +1,4 @@
-using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Enums;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -76,4 +73,9 @@ public sealed class Address : BaseEntity<Address>
             PostalCode,
             Country
         );
+}
+
+public enum State
+{
+    AC, AL, AP, AM, BA, CE, DF, ES, GO, MA, MT, MS, MG, PA, PB, PR, PE, PI, RJ, RN, RS, RO, RR, SC, SP, SE, TO
 }

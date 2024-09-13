@@ -1,4 +1,3 @@
-using ICorteApi.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Interfaces;

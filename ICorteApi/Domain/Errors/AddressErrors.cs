@@ -1,6 +1,4 @@
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Presentation.Exceptions;
 
 namespace ICorteApi.Domain.Errors;
 

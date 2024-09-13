@@ -1,4 +1,3 @@
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Interfaces;
 using System.Drawing;
 using System.Drawing.Imaging;

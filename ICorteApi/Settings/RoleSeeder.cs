@@ -1,5 +1,3 @@
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Settings;

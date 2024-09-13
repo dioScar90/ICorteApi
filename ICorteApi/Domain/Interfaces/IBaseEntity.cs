@@ -1,6 +1,3 @@
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Entities;
-
 namespace ICorteApi.Domain.Interfaces;
 
 public interface IBaseUserEntity : IBaseEntity<User>

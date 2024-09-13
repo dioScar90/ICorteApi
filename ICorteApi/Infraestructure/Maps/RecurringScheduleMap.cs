@@ -1,4 +1,3 @@
-using ICorteApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;

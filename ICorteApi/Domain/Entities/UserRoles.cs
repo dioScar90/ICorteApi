@@ -15,3 +15,20 @@ public static class UserRoles
 public class ApplicationRole : IdentityRole<int>
 {
 }
+
+public enum PolicyUserRole
+{
+    FreeIfAuthenticated,
+    ClientOrHigh,
+    ClientOnly,
+    BarberShopOrHigh,
+    AdminOnly
+}
+
+public enum UserRole
+{
+    Guest,
+    Client,
+    BarberShop,
+    Admin,
+}

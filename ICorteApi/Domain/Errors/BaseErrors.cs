@@ -1,6 +1,4 @@
-using ICorteApi.Domain.Entities;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Presentation.Exceptions;
 
 namespace ICorteApi.Domain.Errors;
 
@@ -25,7 +23,6 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             nameof(Appointment)         => ("agendamento", false),
             nameof(BarberShop)          => ("barbearia", true),
             nameof(Message)             => ("mensagem", true),
-            nameof(Payment)             => ("pagamento", true),
             nameof(Profile)             => ("perfil", true),
             nameof(RecurringSchedule)   => ("horário de funcionamento", false),
             nameof(Report)              => ("avaliação", true),

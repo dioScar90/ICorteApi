@@ -1,9 +1,4 @@
-﻿using ICorteApi.Application.Dtos;
-using ICorteApi.Presentation.Enums;
-using ICorteApi.Application.Interfaces;
-using ICorteApi.Domain.Enums;
-
-namespace ICorteApi.Presentation.Endpoints;
+﻿namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {

@@ -1,7 +1,3 @@
-using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
-
 namespace ICorteApi.Application.Interfaces;
 
 public interface IUserService : IService<User>

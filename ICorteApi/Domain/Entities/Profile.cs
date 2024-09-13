@@ -1,5 +1,3 @@
-using ICorteApi.Application.Dtos;
-using ICorteApi.Application.Interfaces;
 using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Domain.Entities;

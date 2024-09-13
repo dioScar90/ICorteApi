@@ -1,8 +1,4 @@
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Enums;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Infraestructure.Context;
-using ICorteApi.Infraestructure.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;

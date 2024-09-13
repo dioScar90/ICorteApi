@@ -1,7 +1,3 @@
-using ICorteApi.Application.Dtos;
-using ICorteApi.Domain.Entities;
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Application.Interfaces;
 
 public interface IMessageService : IService<Message>
