@@ -38,7 +38,7 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
         PageSize = realPpageSize;
 
         Filter = filter;
-        IsDescending = isDescending;
+        IsDescending = isDescending is true;
         OrderBy = orderBy;
         Includes = includes;
     }

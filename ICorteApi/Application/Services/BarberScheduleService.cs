@@ -19,11 +19,10 @@ public class BarberScheduleService(IBarberScheduleRepository repository) : IBarb
         return await _repository.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
     }
 
-    public async Task<BarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? take)
+    public async Task<TopBarberShop[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? take)
     {
         var (firstDateOfWeek, lastDateOfWeek) = GetFirstAndLastDatesOfWeek(randomDate);
-        var barberShops = await _repository.GetTopBarbersWithAvailabilityAsync(firstDateOfWeek, lastDateOfWeek, GetCorrectTakeNumber(take));
-        return [.. barberShops.Select(b => b.CreateDto())];
+        return await _repository.GetTopBarbersWithAvailabilityAsync(firstDateOfWeek, lastDateOfWeek, GetCorrectTakeNumber(take));
     }
 
     public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly randomDate)

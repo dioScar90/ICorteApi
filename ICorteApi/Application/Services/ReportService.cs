@@ -38,10 +38,17 @@ public sealed class ReportService(
         return report.CreateDto();
     }
     
-    public async Task<ReportDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<PaginationResponse<ReportDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var reports = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
-        return [..reports.Select(report => report.CreateDto())];
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        
+        return new(
+            [..response.Data.Select(service => service.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
     }
     
     public async Task<bool> UpdateAsync(ReportDtoUpdate dto, int id, int clientId, int barberShopId)

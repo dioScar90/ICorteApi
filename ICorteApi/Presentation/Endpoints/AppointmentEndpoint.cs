@@ -1,4 +1,7 @@
-﻿namespace ICorteApi.Presentation.Endpoints;
+﻿using ICorteApi.Domain.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AppointmentEndpoint
 {
@@ -9,14 +12,22 @@ public static class AppointmentEndpoint
     public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME);
+
+        group.MapPost(INDEX, CreateAppointment)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateAppointment);
-        group.MapGet("{id}", GetAppointment);
-        // group.MapGet(INDEX, GetAllAppointments);
-        group.MapPut("{id}", UpdateAppointment);
-        group.MapDelete("{id}", DeleteAppointment);
+        group.MapGet("{id}", GetAppointment)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet(INDEX, GetAllAppointments)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapPut("{id}", UpdateAppointment)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapDelete("{id}", DeleteAppointment)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
     }
@@ -46,18 +57,16 @@ public static class AppointmentEndpoint
         return Results.Ok(appointment);
     }
 
-    // public static async Task<IResult> GetAllAppointments(
-    //     int id,
-    //     IAppointmentService service,
-    //     IAppointmentErrors errors)
-    // {
-    //     var appointment = await service.GetByIdAsync(id);
-
-    //     if (appointment is null)
-    //         errors.ThrowNotFoundException();
-        
-    //     return Results.Ok(appointment!.CreateDto());
-    // }
+    public static async Task<IResult> GetAllAppointments(
+        int clientId,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
+        IAppointmentService service,
+        IAppointmentErrors errors)
+    {
+        var appointments = await service.GetAllAsync(page, pageSize, clientId);
+        return Results.Ok(appointments);
+    }
 
     public static async Task<IResult> UpdateAppointment(
         int id,

@@ -27,7 +27,7 @@ public abstract class BaseService<TEntity>(IBaseRepository<TEntity> repository) 
         return await _repository.GetByIdAsync(filterId, includes);
     }
 
-    protected async Task<TEntity[]> GetAllAsync(PaginationProperties<TEntity> props)
+    protected async Task<PaginationResponse<TEntity>> GetAllAsync(PaginationProperties<TEntity> props)
     {
         return await _repository.GetAllAsync(props);
     }

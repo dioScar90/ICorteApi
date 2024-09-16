@@ -11,14 +11,20 @@ public static class ChatEndpoint
     public static IEndpointRouteBuilder MapMessageEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME);
+
+        group.MapPost(INDEX, CreateMessage)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateMessage);
-        group.MapGet("{id}", GetMessage);
-        group.MapGet(INDEX, GetAllMessages);
-        group.MapDelete("{id}", DeleteMessage);
+        group.MapGet("{id}", GetMessage)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
+        group.MapGet(INDEX, GetAllMessages)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapDelete("{id}", DeleteMessage)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
         return app;
     }
 

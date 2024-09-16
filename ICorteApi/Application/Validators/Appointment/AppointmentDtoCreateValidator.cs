@@ -8,12 +8,10 @@ public class AppointmentDtoCreateValidator : AbstractValidator<AppointmentDtoCre
     {
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Data do agendamento é obrigatória")
-            .GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow))
-                .WithMessage($"Data do agendamento precisa ser maior ou igual a {DateTime.UtcNow.Date}");
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+                .WithMessage($"Data do agendamento precisa ser maior ou igual a {DateOnly.FromDateTime(DateTime.UtcNow)}");
 
         RuleFor(x => x.StartTime)
-            .NotEmpty().WithMessage("Horário de início é obrigatório")
-            .GreaterThan(TimeOnly.FromDateTime(DateTime.UtcNow))
-                .WithMessage($"Horário de início precisa ser maior ou igual a {DateTime.UtcNow.TimeOfDay}");
+            .NotEmpty().WithMessage("Horário de início é obrigatório");
     }
 }

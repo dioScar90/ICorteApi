@@ -1,4 +1,4 @@
-namespace ICorteApi.Presentation.Enums;
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class EndpointNames
 {

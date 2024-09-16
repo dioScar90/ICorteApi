@@ -5,25 +5,25 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuração do banco de dados
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options
-        //.UseInMemoryDatabase("AppDb")
-        .UseSqlite(
-            builder.Configuration.GetConnectionString("SqliteConnection"),
-            assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-);
-
 // builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlServer(
-//         builder.Configuration.GetConnectionString("SqlServerConnection"),
-//         sqlServerOptionsAction: sqlOptions =>
-//         {
-//             sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
-//             sqlOptions.EnableRetryOnFailure(
-//                 maxRetryCount: 5, // Número máximo de tentativas
-//                 maxRetryDelay: TimeSpan.FromSeconds(10), // Tempo máximo entre as tentativas
-//                 errorNumbersToAdd: null); // Tipos de erro adicionais para retentativa (pode ser null)
-//         }));
+//     options
+//         //.UseInMemoryDatabase("AppDb")
+//         .UseSqlite(
+//             builder.Configuration.GetConnectionString("SqliteConnection"),
+//             assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+// );
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("SqlServerConnection"),
+        sqlServerOptionsAction: sqlOptions =>
+        {
+            sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5, // Número máximo de tentativas
+                maxRetryDelay: TimeSpan.FromSeconds(10), // Tempo máximo entre as tentativas
+                errorNumbersToAdd: null); // Tipos de erro adicionais para retentativa (pode ser null)
+        }));
 
 builder.Services.AddHttpContextAccessor();
 

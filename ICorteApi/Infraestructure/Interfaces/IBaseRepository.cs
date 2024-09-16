@@ -13,7 +13,7 @@ public interface IBaseRepository<TEntity> : IRepository<TEntity>
 
     Task<TEntity?> GetByIdAsync(Expression<Func<TEntity, bool>> filterId, params Expression<Func<TEntity, object>>[] includes);
 
-    Task<TEntity[]> GetAllAsync(IPaginationProperties<TEntity> props);
+    Task<PaginationResponse<TEntity>> GetAllAsync(IPaginationProperties<TEntity> props);
 
     Task<bool> UpdateAsync(TEntity entity);
 

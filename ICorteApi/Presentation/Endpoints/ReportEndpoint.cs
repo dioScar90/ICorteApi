@@ -5,7 +5,7 @@ namespace ICorteApi.Presentation.Endpoints;
 public static class ReportEndpoint
 {
     private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "{barberShopId}" + EndpointPrefixes.Report;
+    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Report;
     private static readonly string ENDPOINT_NAME = EndpointNames.Report;
 
     public static IEndpointRouteBuilder MapReportEndpoint(this IEndpointRouteBuilder app)

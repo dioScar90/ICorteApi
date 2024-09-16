@@ -44,7 +44,7 @@ public sealed class MessageRepository(AppDbContext context)
                     AND ({lastMessageId} IS NULL OR m.id > {lastMessageId})
                 ORDER BY m.sent_at DESC
             ")
-            .AsNoTrackingWithIdentityResolution()
+            .AsNoTracking()
             .ToArrayAsync();
 
         /*

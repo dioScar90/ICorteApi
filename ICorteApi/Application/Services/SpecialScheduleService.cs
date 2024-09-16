@@ -26,10 +26,17 @@ public sealed class SpecialScheduleService(
         return (await base.GetByIdAsync(date, barberShopId))!.CreateDto();
     }
     
-    public async Task<SpecialScheduleDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var schedules = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
-        return [..schedules.Select(schedule => schedule.CreateDto())];
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        
+        return new(
+            [..response.Data.Select(schedule => schedule.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
     }
 
     public async Task<bool> UpdateAsync(SpecialScheduleDtoUpdate dto, DateOnly date, int barberShopId)

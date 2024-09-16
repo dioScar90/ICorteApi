@@ -27,40 +27,13 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         };
 
         SetSpecificProblemDetailsIfItMust(exception, problemDetails);
-
-        // if (IsAnExceptionForProblemDetails(exception))
-        // {
-        //     problemDetails.Extensions ??= new Dictionary<string, object?>();
-
-        //     if (exception is BaseException bEx)
-        //         problemDetails.Extensions["errors"] = bEx.Errors;
-
-        //     if (exception is DbUpdateException dbEx)
-        //     {
-        //         problemDetails.Extensions["dbProblem"] = dbEx.InnerException?.Message ?? "Unknown problem";
-        //         problemDetails.Extensions["dbErrors"] = dbEx.Entries;
-        //     }
-
-        //     if (exception is ValidationException vEx)
-        //     {
-        //         problemDetails.Extensions["validationProblem"] = vEx.InnerException?.Message ?? "Unknown problem";
-        //         problemDetails.Extensions["validationErrors"] = vEx.Errors;
-        //     }
-        // }
         
         httpContext.Response.StatusCode = problemDetails.Status.Value;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
         return true;
     }
-
-    // private static bool IsAnExceptionForProblemDetails(Exception exception) =>
-    //     exception
-    //         is BaseException
-    //         or DbUpdateException
-    //         or ValidationException
-    //     ;
-
+    
     private static void SetSpecificProblemDetailsIfItMust(Exception exception, ProblemDetails problemDetails) 
     {
         static Dictionary<string, object?> StartNewDictionary() => [];
@@ -194,66 +167,3 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         _ => exception?.Message ?? "Erro desconhecido"
     };
 }
-
-
-/*
-Aqui está a lista das exceptions mais comuns em ASP.NET com seus respectivos status codes recomendados:
-
-BadHttpRequestException
-Descrição: Disparada quando há um problema com a solicitação HTTP, como falha ao analisar o corpo da solicitação (por exemplo, JSON malformado ou tipo de conteúdo inválido).
-Status Code: 400 Bad Request
-
-ArgumentNullException
-Descrição: Disparada quando um argumento obrigatório de um método é null.
-Status Code: 400 Bad Request
-
-ArgumentException
-Descrição: Disparada quando um argumento inválido é passado para um método (exemplo: string vazia ou valor fora do intervalo esperado).
-Status Code: 400 Bad Request
-
-UnauthorizedAccessException
-Descrição: Disparada quando uma operação tenta acessar um recurso para o qual o usuário não tem permissão.
-Status Code: 401 Unauthorized
-
-InvalidOperationException
-Descrição: Disparada quando uma operação não é válida devido ao estado atual do objeto (exemplo: tentar realizar uma operação em um objeto mal configurado).
-Status Code: 500 Internal Server Error (pode ser 409 Conflict se a operação falhar devido a um estado inconsistente que pode ser resolvido pelo cliente)
-
-KeyNotFoundException
-Descrição: Disparada quando uma chave não é encontrada em um dicionário ou coleção semelhante.
-Status Code: 404 Not Found
-
-NotSupportedException
-Descrição: Disparada quando um método invocado não é suportado (exemplo: uma operação não implementada ou não aplicável).
-Status Code: 405 Method Not Allowed ou 501 Not Implemented
-
-TimeoutException
-Descrição: Disparada quando uma operação assíncrona, como uma chamada de banco de dados ou uma solicitação HTTP, excede o tempo limite especificado.
-Status Code: 504 Gateway Timeout
-
-Esses códigos de status podem ser usados
-*/
-
-
-
-
-
-/*
-No Entity Framework, as exceptions mais comuns que você pode encontrar são:
-
-DbUpdateException: Ocorre quando há um erro ao salvar alterações no banco de dados. Pode envolver problemas de relacionamento, violação de chave estrangeira, ou qualquer falha ao aplicar as mudanças no banco.
-
-DbUpdateConcurrencyException: Lançada quando ocorre um conflito de concorrência durante uma operação de salvamento. Por exemplo, se dois usuários tentarem modificar a mesma entidade ao mesmo tempo.
-
-DbEntityValidationException: Usada no EF6, ocorre quando as validações de dados falham. No EF Core, validações são feitas com ValidationAttribute.
-
-InvalidOperationException: Ocorre em várias situações, como ao tentar acessar uma propriedade de navegação não carregada ou usar o contexto depois que ele foi descartado.
-
-ArgumentNullException: Lançada quando um argumento obrigatório é null, como ao tentar adicionar uma entidade sem chave primária.
-
-NotSupportedException: Ocorre quando uma operação não é suportada, como usar um método não traduzível para SQL em uma consulta LINQ.
-
-SqlException: Derivada de erros específicos do SQL Server, como timeout, deadlock ou problemas de conexão.
-
-Essas exceptions cobrem a maioria dos erros que você pode enfrentar ao usar o Entity Framework.
-*/

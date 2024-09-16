@@ -30,8 +30,8 @@ public static class BarberScheduleEndpoint
         DateOnly dateOfWeek,
         IBarberScheduleService service)
     {
-        var barberShop = await service.GetAvailableDatesForBarberAsync(barberShopId, dateOfWeek);
-        return Results.Ok(barberShop);
+        var dates = await service.GetAvailableDatesForBarberAsync(barberShopId, dateOfWeek);
+        return Results.Ok(dates);
     }
 
     public static async Task<IResult> GetAvailableSlotsAsync(
@@ -40,8 +40,8 @@ public static class BarberScheduleEndpoint
         [FromQuery] int[] serviceIds,
         IBarberScheduleService service)
     {
-        var times = await service.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
-        return Results.Ok(times);
+        var slots = await service.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
+        return Results.Ok(slots);
     }
 
     public static async Task<IResult> GetTopBarbersWithAvailabilityAsync(
@@ -49,7 +49,7 @@ public static class BarberScheduleEndpoint
         [FromQuery] int? take,
         IBarberScheduleService service)
     {
-        var barberShops = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
-        return Results.Ok(barberShops);
+        var topBarberShops = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
+        return Results.Ok(topBarberShops);
     }
 }

@@ -7,7 +7,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     private readonly AppDbContext _context = context;
     private readonly DbSet<Service> _dbSetService = context.Set<Service>();
     private readonly DbSet<Appointment> _dbSetAppointment = context.Set<Appointment>();
-
+    
     private async Task<TimeSpan> CalculateTotalServiceDuration(int barberShopId, int[] serviceIds)
     {
         var timeSpans = await _dbSetService
@@ -30,40 +30,47 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
 
     private static TimeOnly[] CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, Appointment[] appointments, TimeSpan serviceDuration)
     {
-        var availableSlots = new List<TimeOnly>();
+        List<TimeOnly> availableSlots = [];
         var currentTime = openTime;
 
         foreach (var appointment in appointments)
         {
             var nextAppointmentStartTime = appointment.StartTime;
 
+            // Verifica se há tempo disponível antes do próximo appointment
             if (nextAppointmentStartTime > currentTime)
             {
                 var availableDuration = nextAppointmentStartTime - currentTime;
 
                 if (availableDuration >= serviceDuration)
+                {
                     availableSlots.Add(currentTime);
+                }
             }
 
-            currentTime = appointment.StartTime.Add(appointment.Services.Max(s => s.Duration));
+            // Atualiza currentTime para o fim deste appointment (início + duração total do appointment)
+            currentTime = appointment.Services.Aggregate(appointment.StartTime, (acc, curr) => acc.Add(curr.Duration));
         }
 
+        // Verifica se há tempo disponível após o último appointment até o horário de fechamento
         if (closeTime > currentTime)
         {
             var availableDuration = closeTime - currentTime;
 
             if (availableDuration >= serviceDuration)
+            {
                 availableSlots.Add(currentTime);
+            }
         }
 
-        return [.. availableSlots];
+        return [..availableSlots];
     }
 
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
         var schedule = await _context.Database
             .SqlQuery<AvailableSchedule>(@$"
-                SELECT TOP 1 {date} AS Date
+                SELECT TOP (1) {date} AS Date
                     ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
                     ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
                 FROM recurring_schedules AS RS
@@ -88,10 +95,10 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
     }
 
-    public async Task<BarberShop[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
+    public async Task<TopBarberShop[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
     {
         return await _context.Database
-            .SqlQuery<BarberShop>(@$"
+            .SqlQuery<TopBarberShop>(@$"
                 WITH available_days AS (
                     SELECT 
                         RS.barber_shop_id,
@@ -107,7 +114,10 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
                     GROUP BY RS.barber_shop_id, RS.day_of_week, SS.open_time, SS.close_time
                 )
 
-                SELECT TOP {take} BS.*
+                SELECT TOP ({take}) BS.id AS Id
+                    ,BS.name AS Name
+                    ,ISNULL(BS.description, NULL) AS Description
+                    ,BS.rating AS Rating
                 FROM barber_shops AS BS
                 WHERE EXISTS (
                     SELECT 1
@@ -123,8 +133,9 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly firstDateOfWeek)
     {
         return await _context.Database
+            // Using ORDER BY without TOP or OFFSET throws an Exception.
             .SqlQuery<AvailableSchedule>(@$"
-                SELECT DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS Date
+                SELECT TOP (7) DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS Date
                     ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
                     ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
                 FROM recurring_schedules AS RS
@@ -148,3 +159,10 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         TimeOnly CloseTime
     );
 }
+
+public record TopBarberShop(
+    int Id,
+    string Name,
+    string? Description,
+    float Rating
+);

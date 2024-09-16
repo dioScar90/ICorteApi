@@ -48,6 +48,19 @@ public sealed class AppointmentService(
         return (await _repository.GetByIdWithServicesAsync(id))!.CreateDto();
     }
 
+    public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(int? page, int? pageSize, int clientId)
+    {
+        var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId));
+        
+        return new(
+            [..response.Data.Select(service => service.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
+    }
+
     public async Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);

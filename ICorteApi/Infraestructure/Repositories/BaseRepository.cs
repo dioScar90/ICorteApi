@@ -39,9 +39,9 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
             .SingleOrDefaultAsync(filterId);
     }
 
-    public virtual async Task<TEntity[]> GetAllAsync(IPaginationProperties<TEntity> props)
+    public virtual async Task<PaginationResponse<TEntity>> GetAllAsync(IPaginationProperties<TEntity> props)
     {
-        IQueryable<TEntity> query = _dbSet.AsNoTrackingWithIdentityResolution();
+        IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
         query = props.Includes.Aggregate(query, (current, include) => current.Include(include));
         query = query.Where(props.Filter);
@@ -54,12 +54,14 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
 
+        int page = Math.Clamp(props.Page, 1, totalPages);
+
         var entities = await query
-            .Skip((props.Page - 1) * props.PageSize)
+            .Skip((page - 1) * props.PageSize)
             .Take(props.PageSize)
             .ToArrayAsync();
 
-        return entities ?? [];
+        return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }
 
     public virtual async Task<bool> UpdateAsync(TEntity entity)
@@ -74,3 +76,11 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
         return await SaveChangesAsync();
     }
 }
+
+public record PaginationResponse<TEntity>(
+    TEntity[] Data,
+    int TotalItems,
+    int TotalPages,
+    int Page,
+    int PageSize
+);

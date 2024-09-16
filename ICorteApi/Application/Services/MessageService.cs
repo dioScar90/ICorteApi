@@ -35,10 +35,17 @@ public sealed class MessageService(
         return message.CreateDto();
     }
 
-    public async Task<MessageDtoResponse[]> GetAllAsync(int? page, int? pageSize, int appointmentId)
+    public async Task<PaginationResponse<MessageDtoResponse>> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
-        var messages = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
-        return [..messages.Select(m => m.CreateDto())];
+        var response = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
+        
+        return new(
+            [..response.Data.Select(service => service.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
     }
 
     public async Task<Message?> SendMessageAsync(MessageDtoCreate dtoRequest, int appointmentId, int senderId)

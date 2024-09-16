@@ -3,7 +3,6 @@ using ICorteApi.Application.Services;
 using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
-using ICorteApi.Infraestructure.Repositories;
 using ICorteApi.Settings;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;

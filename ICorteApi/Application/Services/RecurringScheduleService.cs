@@ -26,10 +26,17 @@ public sealed class RecurringScheduleService(
         return (await base.GetByIdAsync(dayOfWeek, barberShopId))!.CreateDto();
     }
     
-    public async Task<RecurringScheduleDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<PaginationResponse<RecurringScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var schedules = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, false, x => x.DayOfWeek));
-        return [..schedules.Select(schedule => schedule.CreateDto())];
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, false, x => x.DayOfWeek));
+        
+        return new(
+            [..response.Data.Select(service => service.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
     }
     
     public async Task<bool> UpdateAsync(RecurringScheduleDtoUpdate dto, DayOfWeek dayOfWeek, int barberShopId)

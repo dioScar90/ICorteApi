@@ -6,9 +6,7 @@ public static class ConfigureEndpoints
 {
     public static IEndpointRouteBuilder ConfigureMyEndpoints(this IEndpointRouteBuilder endpointBuilder)
     {
-        endpointBuilder.MapGet("/", () => "Hello World!");
-
-        endpointBuilder
+        return endpointBuilder
             .MapAuthEndpoint()
             .MapAddressEndpoint()
             .MapAppointmentEndpoint()
@@ -21,7 +19,5 @@ public static class ConfigureEndpoints
             .MapServiceEndpoint()
             .MapSpecialScheduleEndpoint()
             .MapUserEndpoint();
-
-        return endpointBuilder;
     }
 }

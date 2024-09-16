@@ -36,10 +36,17 @@ public sealed class ServiceService(
         return service.CreateDto();
     }
     
-    public async Task<ServiceDtoResponse[]> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var services = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
-        return [..services.Select(service => service.CreateDto())];
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        
+        return new(
+            [..response.Data.Select(service => service.CreateDto())],
+            response.TotalItems,
+            response.TotalPages,
+            response.Page,
+            response.PageSize
+        );
     }
     
     public async Task<bool> UpdateAsync(ServiceDtoUpdate dto, int id, int barberShopId)

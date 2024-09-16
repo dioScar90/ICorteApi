@@ -9,13 +9,19 @@ public static class AddressEndpoint
     public static IEndpointRouteBuilder MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME)
+            .WithTags(ENDPOINT_NAME);
+
+        group.MapPost(INDEX, CreateAddress)
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapPost(INDEX, CreateAddress);
-        group.MapGet("{id}", GetAddress);
-        group.MapPut("{id}", UpdateAddress);
-        group.MapDelete("{id}", DeleteAddress);
+        group.MapGet("{id}", GetAddress)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
+        group.MapPut("{id}", UpdateAddress)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
+
+        group.MapDelete("{id}", DeleteAddress)
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         return app;
     }
