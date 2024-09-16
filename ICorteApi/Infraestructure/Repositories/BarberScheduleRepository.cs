@@ -7,7 +7,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     private readonly AppDbContext _context = context;
     private readonly DbSet<Service> _dbSetService = context.Set<Service>();
     private readonly DbSet<Appointment> _dbSetAppointment = context.Set<Appointment>();
-    
+
     private async Task<TimeSpan> CalculateTotalServiceDuration(int barberShopId, int[] serviceIds)
     {
         var timeSpans = await _dbSetService
@@ -63,7 +63,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             }
         }
 
-        return [..availableSlots];
+        return [.. availableSlots];
     }
 
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
@@ -95,10 +95,10 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
     }
 
-    public async Task<TopBarberShop[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
+    public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
     {
         return await _context.Database
-            .SqlQuery<TopBarberShop>(@$"
+            .SqlQuery<TopBarberShopDtoResponse>(@$"
                 WITH available_days AS (
                     SELECT 
                         RS.barber_shop_id,
@@ -116,7 +116,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
 
                 SELECT TOP ({take}) BS.id AS Id
                     ,BS.name AS Name
-                    ,ISNULL(BS.description, NULL) AS Description
+                    ,BS.description AS Description
                     ,BS.rating AS Rating
                 FROM barber_shops AS BS
                 WHERE EXISTS (
@@ -159,10 +159,3 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         TimeOnly CloseTime
     );
 }
-
-public record TopBarberShop(
-    int Id,
-    string Name,
-    string? Description,
-    float Rating
-);

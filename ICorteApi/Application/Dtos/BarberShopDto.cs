@@ -32,3 +32,10 @@ public record BarberShopDtoResponse(
     ServiceDtoResponse[] Services,
     ReportDtoResponse[] Reports
 ) : IDtoResponse<BarberShop>;
+
+public record TopBarberShopDtoResponse(
+    int Id,
+    string Name,
+    string? Description,
+    float Rating
+) : IDtoResponse<BarberShop>;

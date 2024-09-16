@@ -49,7 +49,7 @@ public static class BarberScheduleEndpoint
         [FromQuery] int? take,
         IBarberScheduleService service)
     {
-        var topBarberShops = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
-        return Results.Ok(topBarberShops);
+        var TopBarberShopDtoResponses = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
+        return Results.Ok(TopBarberShopDtoResponses);
     }
 }
