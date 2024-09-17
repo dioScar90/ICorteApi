@@ -16,6 +16,9 @@ public class BarberScheduleService(IBarberScheduleRepository repository) : IBarb
 
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
+        if (serviceIds.Length == 0)
+            return [];
+        
         return await _repository.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
     }
 

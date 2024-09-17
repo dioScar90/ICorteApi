@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Presentation.Exceptions;
@@ -51,6 +52,13 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             problemDetails.Extensions["dbErrors"] = dbEx.Entries;
         }
 
+        if (exception is SqlException sEx)
+        {
+            problemDetails.Extensions ??= StartNewDictionary();
+            problemDetails.Extensions["dbProblem"] = sEx.InnerException?.Message ?? "Unknown problem";
+            problemDetails.Extensions["dbErrors"] = sEx.Errors;
+        }
+
         if (exception is ValidationException vEx)
         {
             problemDetails.Extensions ??= StartNewDictionary();
@@ -77,6 +85,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             or NotSupportedException
             or TimeoutException
             or DbUpdateException
+            or SqlException
             or ValidationException
         ;
 
@@ -103,6 +112,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
 
             // Entity Framework Excceptions
             DbUpdateException           => "DbUpdate",
+            SqlException                => "SqlException",
 
             // Fluent Validation Excceptions
             ValidationException         => "ValidationException",
@@ -163,6 +173,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
 
         // EF Excceptions
         DbUpdateException ex => ex?.Message ?? null,
+        SqlException ex => ex?.Message ?? null,
 
         _ => exception?.Message ?? "Erro desconhecido"
     };

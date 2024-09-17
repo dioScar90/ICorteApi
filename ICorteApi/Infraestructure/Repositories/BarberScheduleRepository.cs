@@ -7,28 +7,53 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     private readonly AppDbContext _context = context;
     private readonly DbSet<Service> _dbSetService = context.Set<Service>();
     private readonly DbSet<Appointment> _dbSetAppointment = context.Set<Appointment>();
-
+    
     private async Task<TimeSpan> CalculateTotalServiceDuration(int barberShopId, int[] serviceIds)
     {
-        var timeSpans = await _dbSetService
+        var services = await _dbSetService
             .AsNoTracking()
             .Where(x => x.BarberShopId == barberShopId && serviceIds.Contains(x.Id))
-            .Select(x => x.Duration)
+            .Select(x => new ServiceDuration(x.Id, x.Duration))
+            .ToArrayAsync();
+            
+        return services.Aggregate(TimeSpan.Zero, (acc, curr) => acc.Add(curr.Duration));
+    }
+    
+    private async Task<BasicAppointment> GetNewAppointmentWithServiceDuration(BasicAppointmentWithoutServices app)
+    {
+        var services = await _context.Database
+            .SqlQuery<ServiceDuration>(@$"
+                SELECT S.id AS Id
+                    ,S.duration AS Duration
+                FROM services S
+                WHERE S.is_deleted = 0
+                    AND EXISTS (
+                        SELECT 1
+                        FROM service_appointment SA
+                        WHERE SA.service_id = S.id AND SA.appointment_id = {app.Id}
+                    )
+            ")
+            .AsNoTracking()
             .ToArrayAsync();
 
-        return timeSpans.Aggregate(TimeSpan.Zero, (acc, curr) => acc.Add(curr));
+        return new(app.Id, app.StartTime, services);
     }
 
-    private async Task<Appointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
+    private async Task<BasicAppointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
     {
         return await _dbSetAppointment
+            .Include(a => a.Services)
+            .Where(a => a.BarberShopId == barberShopId && a.Date == date)
+            .Select(a => new BasicAppointment(
+                a.Id,
+                a.StartTime,
+                a.Services.Select(s => new ServiceDuration(s.Id, s.Duration)).ToArray()
+            ))
             .AsNoTracking()
-            .Where(x => x.BarberShopId == barberShopId && x.Date == date)
-            .OrderBy(x => x.StartTime)
             .ToArrayAsync();
     }
 
-    private static TimeOnly[] CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, Appointment[] appointments, TimeSpan serviceDuration)
+    private static TimeOnly[] CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, BasicAppointment[] appointments, TimeSpan serviceDuration)
     {
         List<TimeOnly> availableSlots = [];
         var currentTime = openTime;
@@ -37,33 +62,24 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         {
             var nextAppointmentStartTime = appointment.StartTime;
 
-            // Verifica se há tempo disponível antes do próximo appointment
-            if (nextAppointmentStartTime > currentTime)
+            while (currentTime.Add(serviceDuration) <= nextAppointmentStartTime)
             {
-                var availableDuration = nextAppointmentStartTime - currentTime;
-
-                if (availableDuration >= serviceDuration)
-                {
-                    availableSlots.Add(currentTime);
-                }
+                availableSlots.Add(currentTime);
+                currentTime = currentTime.Add(serviceDuration);
             }
-
+            
             // Atualiza currentTime para o fim deste appointment (início + duração total do appointment)
             currentTime = appointment.Services.Aggregate(appointment.StartTime, (acc, curr) => acc.Add(curr.Duration));
         }
-
+        
         // Verifica se há tempo disponível após o último appointment até o horário de fechamento
-        if (closeTime > currentTime)
+        while (currentTime.Add(serviceDuration) <= closeTime)
         {
-            var availableDuration = closeTime - currentTime;
-
-            if (availableDuration >= serviceDuration)
-            {
-                availableSlots.Add(currentTime);
-            }
+            availableSlots.Add(currentTime);
+            currentTime = currentTime.Add(serviceDuration);
         }
-
-        return [.. availableSlots];
+        
+        return [..availableSlots];
     }
 
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
@@ -82,6 +98,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
                     AND RS.barber_shop_id = {barberShopId}
                     AND RS.day_of_week = {date.DayOfWeek}
                     AND (SS.is_closed IS NULL OR SS.is_closed = 0)
+                ORDER BY 1
             ")
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -90,6 +107,10 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             return [];
 
         var totalDuration = await CalculateTotalServiceDuration(barberShopId, serviceIds);
+
+        if (totalDuration == TimeSpan.Zero)
+            return [];
+        
         var appointments = await GetAppointmentsByDateAsync(barberShopId, date);
 
         return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
@@ -152,6 +173,22 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             .Select(x => x.Date)
             .ToArrayAsync();
     }
+
+    private record ServiceDuration(
+        int Id,
+        TimeSpan Duration
+    );
+
+    private record BasicAppointmentWithoutServices(
+        int Id,
+        TimeOnly StartTime
+    );
+
+    private record BasicAppointment(
+        int Id,
+        TimeOnly StartTime,
+        ServiceDuration[] Services
+    );
 
     private record AvailableSchedule(
         DateOnly Date,
