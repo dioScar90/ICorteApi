@@ -13,6 +13,9 @@ public static class ChatEndpoint
         var group = app.MapGroup(ENDPOINT_PREFIX)
             .WithTags(ENDPOINT_NAME);
 
+        group.MapGet("check", IsAllowedCheck)
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapPost(INDEX, CreateMessage)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -33,6 +36,16 @@ public static class ChatEndpoint
         string uri = EndpointPrefixes.Appointment + "/" + appointmentId + "/" + EndpointPrefixes.Chat + "/" + newId;
         object value = new { Message = "Mensagem enviada com sucesso" };
         return Results.Created(uri, value);
+    }
+
+    public static async Task<IResult> IsAllowedCheck(
+        int appointmentId,
+        IMessageService service,
+        IUserService userService)
+    {
+        int userId = await userService.GetMyUserIdAsync();
+        var result = await service.CanSendMessageAsync(appointmentId, userId);
+        return Results.Ok(result);
     }
 
     public static async Task<IResult> CreateMessage(

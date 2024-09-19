@@ -45,11 +45,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 
         query = props.Includes.Aggregate(query, (current, include) => current.Include(include));
         query = query.Where(props.Filter);
-
-        if (props.OrderBy is not null)
-        {
-            query = (bool)props.IsDescending! ? query.OrderByDescending(props.OrderBy) : query.OrderBy(props.OrderBy);
-        }
+        query = props.IsDescending ? query.OrderByDescending(props.OrderBy) : query.OrderBy(props.OrderBy);
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);

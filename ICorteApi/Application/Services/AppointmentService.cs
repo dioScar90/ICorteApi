@@ -50,7 +50,7 @@ public sealed class AppointmentService(
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(int? page, int? pageSize, int clientId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId));
+        var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId, new(x => x.Date)));
         
         return new(
             [..response.Data.Select(service => service.CreateDto())],

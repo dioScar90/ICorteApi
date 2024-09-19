@@ -13,17 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 //             assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
 // );
 
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(
+//         builder.Configuration.GetConnectionString("SqlServerConnection"),
+//         sqlServerOptionsAction: sqlOptions =>
+//         {
+//             sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+//             sqlOptions.EnableRetryOnFailure(
+//                 maxRetryCount: 5, // Número máximo de tentativas
+//                 maxRetryDelay: TimeSpan.FromSeconds(10), // Tempo máximo entre as tentativas
+//                 errorNumbersToAdd: null); // Tipos de erro adicionais para retentativa (pode ser null)
+//         }));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("SqlServerConnection"),
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5, // Número máximo de tentativas
-                maxRetryDelay: TimeSpan.FromSeconds(10), // Tempo máximo entre as tentativas
-                errorNumbersToAdd: null); // Tipos de erro adicionais para retentativa (pode ser null)
-        }));
+        builder.Configuration.GetConnectionString("SqlServerDesktopConnection"),
+        assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+);
 
 builder.Services.AddHttpContextAccessor();
 
@@ -65,6 +71,9 @@ app.DefineCultureLocalization("pt-BR");
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider;
+    /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
+    // await DataSeeder.ClearAllRowsBeforeSeedAsync(roleManager);
+    /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
 
     await RoleSeeder.SeedRoles(roleManager);
     await DataSeeder.SeedData(roleManager);
@@ -81,13 +90,6 @@ app.UseAuthorization();
 
 // Configuring all application endpoints.
 app.ConfigureMyEndpoints();
-
-if (app.Environment.IsDevelopment())
-{
-    /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
-    // app.ResetMyDatabase();
-    /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
-}
 
 app.UseExceptionHandler("/error");
 

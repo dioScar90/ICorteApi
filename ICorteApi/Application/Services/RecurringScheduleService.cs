@@ -28,7 +28,7 @@ public sealed class RecurringScheduleService(
     
     public async Task<PaginationResponse<RecurringScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, false, x => x.DayOfWeek));
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.DayOfWeek, true)));
         
         return new(
             [..response.Data.Select(service => service.CreateDto())],

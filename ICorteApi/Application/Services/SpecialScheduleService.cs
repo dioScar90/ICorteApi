@@ -28,7 +28,7 @@ public sealed class SpecialScheduleService(
     
     public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.Date)));
         
         return new(
             [..response.Data.Select(schedule => schedule.CreateDto())],

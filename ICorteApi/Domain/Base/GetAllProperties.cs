@@ -7,13 +7,14 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
     public int Page { get; init; }
     public int PageSize { get; init; }
     public Expression<Func<TEntity, bool>> Filter { get; init; }
-    public bool? IsDescending { get; init; }
-    public Expression<Func<TEntity, object>>? OrderBy { get; init; }
+    public bool IsDescending { get; init; }
+    public Expression<Func<TEntity, object>> OrderBy { get; init; }
     public Expression<Func<TEntity, object>>[] Includes { get; init; }
-
+    
     public PaginationProperties(
         int? page, int? pageSize,
         Expression<Func<TEntity, bool>> filter,
+        OrderByRec orderByRec,
         params Expression<Func<TEntity, object>>[] includes)
     {
         var (realPage, realPpageSize) = GetSanitizedPagination(page, pageSize);
@@ -22,24 +23,8 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
         PageSize = realPpageSize;
 
         Filter = filter;
-        Includes = includes;
-    }
-
-    public PaginationProperties(
-        int? page, int? pageSize,
-        Expression<Func<TEntity, bool>> filter,
-        bool isDescending,
-        Expression<Func<TEntity, object>> orderBy,
-        params Expression<Func<TEntity, object>>[] includes)
-    {
-        var (realPage, realPpageSize) = GetSanitizedPagination(page, pageSize);
-
-        Page = realPage;
-        PageSize = realPpageSize;
-
-        Filter = filter;
-        IsDescending = isDescending is true;
-        OrderBy = orderBy;
+        IsDescending = orderByRec.IsDescending is true;
+        OrderBy = orderByRec.OrderBy;
         Includes = includes;
     }
 
@@ -50,6 +35,11 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
 
         return (realPage, realPageSize);
     }
+
+    public record OrderByRec(
+        Expression<Func<TEntity, object>> OrderBy,
+        bool? IsDescending = null
+    );
 }
 
 public interface IPaginationProperties<TEntity>
@@ -58,7 +48,7 @@ public interface IPaginationProperties<TEntity>
     int PageSize { get; }
     Expression<Func<TEntity, bool>> Filter { get; }
     Expression<Func<TEntity, object>>[] Includes { get; }
-    bool? IsDescending { get; }
-    Expression<Func<TEntity, object>>? OrderBy { get; }
+    Expression<Func<TEntity, object>> OrderBy { get; }
+    bool IsDescending { get; }
 }
 

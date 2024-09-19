@@ -40,7 +40,7 @@ public sealed class ReportService(
     
     public async Task<PaginationResponse<ReportDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId));
+        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.Id)));
         
         return new(
             [..response.Data.Select(service => service.CreateDto())],

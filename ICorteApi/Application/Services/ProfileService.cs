@@ -58,8 +58,8 @@ public sealed class ProfileService(
     public async Task<bool> UpdateProfileImageAsync(int id, int userId, IFormFile? image)
     {
         if (ImageIsNullOrHasNoLength(image))
-            // errors.ThrowUpdateException("A imagem fornecida é inválida.");
-            errors.ThrowUpdateException();
+            // _errors.ThrowUpdateException("A imagem fornecida é inválida.");
+            _errors.ThrowUpdateException();
         
         var profile = await GetByIdAsync(id);
 

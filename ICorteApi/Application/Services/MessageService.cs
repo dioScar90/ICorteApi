@@ -15,6 +15,11 @@ public sealed class MessageService(
     private readonly IValidator<MessageDtoIsReadUpdate> _updateValidator = updateValidator;
     private readonly IMessageErrors _errors = errors;
 
+    public async Task<bool> CanSendMessageAsync(int appointmentId, int userId)
+    {
+        return await _repository.CanSendMessageAsync(appointmentId, userId);
+    }
+
     public async Task<MessageDtoResponse> CreateAsync(MessageDtoCreate dto, int appointmentId, int senderId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
@@ -37,7 +42,7 @@ public sealed class MessageService(
 
     public async Task<PaginationResponse<MessageDtoResponse>> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId));
+        var response = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId, new(x => x.SentAt)));
         
         return new(
             [..response.Data.Select(service => service.CreateDto())],
