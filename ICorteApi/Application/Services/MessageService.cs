@@ -55,6 +55,9 @@ public sealed class MessageService(
 
     public async Task<Message?> SendMessageAsync(MessageDtoCreate dtoRequest, int appointmentId, int senderId)
     {
+        if (!await _repository.CanSendMessageAsync(appointmentId, senderId))
+            _errors.ThrowNotAllowedToSendMessageException(senderId);
+
         var entity = new Message(dtoRequest, appointmentId, senderId);
         return await CreateAsync(entity);
     }
@@ -67,21 +70,8 @@ public sealed class MessageService(
         var ids = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
         return await _repository.MarkMessageAsReadAsync(ids, senderId);
     }
-
-    public async Task<bool> DeleteAsync(int id, int appointmentId)
-    {
-        var message = await GetByIdAsync(id);
-
-        if (message is null)
-            _errors.ThrowNotFoundException();
-
-        if (message!.AppointmentId != appointmentId)
-            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
-
-        return await DeleteAsync(message!);
-    }
-
-    public async Task<bool> DeleteMessageAsync(int id, int appointmentId, int senderId)
+    
+    public async Task<bool> DeleteAsync(int id, int appointmentId, int senderId)
     {
         var message = await GetByIdAsync(id);
 
@@ -101,12 +91,14 @@ public sealed class MessageService(
     {
         return await _repository.GetLastMessagesAsync(appointmentId, senderId, lastMessageId);
     }
+    
+    public async Task<ChatWithMessagesDtoResponse[]> GetChatHistoryAsync(int senderId, bool isBarber)
+    {
+        return await _repository.GetChatHistoryAsync(senderId, isBarber);
+    }
 
     // public async Task<List<Message>> GetConversationAsync(int barberId, int clientId);
-    // public async Task<bool> CanBarberSendMessageAsync(int barberId, int clientId);
     // public async Task<List<Message>> GetUnreadMessagesAsync(int barberId, int clientId);
-    // public async Task<List<Conversation>> GetClientChatHistoryAsync(int clientId);
-    // public async Task<List<Conversation>> GetBarberChatHistoryAsync(int barberId);
     // public async Task<bool> IsActiveConversationAsync(int barberId, int clientId);
     // public async Task<Conversation> StartConversationAsync(int clientId, int barberId);
 }

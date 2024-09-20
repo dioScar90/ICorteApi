@@ -20,3 +20,12 @@ public record MessageDtoResponse(
     string FirstName,
     string LastName
 ) : IDtoResponse<Message>;
+
+public record ChatWithMessagesDtoResponse(
+    int AppointmentId,
+    bool IsMe,
+    string Content,
+    DateTime SentAt,
+    string FirstName,
+    bool IsRead
+) : IDtoResponse<Message>;
