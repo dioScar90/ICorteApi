@@ -7,48 +7,14 @@ public sealed class MessageRepository(AppDbContext context)
 {
     public async Task<bool> CanSendMessageAsync(int appointmentId, int userId)
     {
-        // var result = await _context.Appointments.AnyAsync(
-        //     a => a.Id == appointmentId && (
-        //         a.ClientId == userId || (
-        //             a.BarberShop.OwnerId == userId
-        //             && a.Messages.Any(m => m.AppointmentId == a.Id && m.SenderId == a.ClientId)
-        //         )
-        //     )
-        // );
-
-        var result = await _context.Database
-            .SqlQuery<CanSend>(@$"
-                SELECT
-                    CASE
-                        WHEN EXISTS (
-                            SELECT 1
-                            FROM appointments A
-                            WHERE A.is_deleted = CAST(0 AS bit)
-                                AND A.id = {appointmentId}
-                                AND (
-                                    A.client_id = {userId} 
-                                    OR (
-                                        A.barber_shop_id = (
-                                            SELECT BS.id
-                                            FROM barber_shops BS
-                                            WHERE BS.is_deleted = CAST(0 AS bit)
-                                                AND BS.owner_id = {userId}
-                                        )
-                                        AND EXISTS (
-                                            SELECT 1
-                                            FROM messages M
-                                            WHERE M.appointment_id = A.id
-                                                AND M.sender_id = A.client_id
-                                        )
-                                    )
-                                )
-                        )
-                        THEN CAST(1 AS bit)
-                        ELSE CAST(0 AS bit)
-                    END AS IsAllowed
-            ").SingleAsync();
-
-        return result.IsAllowed;
+        return await _context.Appointments.AnyAsync(
+            a => a.Id == appointmentId && (
+                a.ClientId == userId || (
+                    a.BarberShop.OwnerId == userId
+                    && a.Messages.Any(m => m.AppointmentId == a.Id && m.SenderId == a.ClientId)
+                )
+            )
+        );
     }
 
     public async Task<bool> MarkMessageAsReadAsync(int[] messageIds, int senderId)
@@ -104,10 +70,10 @@ public sealed class MessageRepository(AppDbContext context)
                 WHERE A.is_deleted = CAST(0 AS BIT)
                     AND M.is_deleted = CAST(0 AS BIT)
                     AND A.barber_shop_id = (
-                        SELECT bs.id
-                        FROM barber_shops bs
+                        SELECT BS.id
+                        FROM barber_shops BS
                         WHERE BS.is_deleted = CAST(0 AS bit)
-                            AND bs.owner_id = {ownerBarberShopId}
+                            AND BS.owner_id = {ownerBarberShopId}
                     )
                     AND M.id = (
                         SELECT TOP 1 id
@@ -153,10 +119,10 @@ public sealed class MessageRepository(AppDbContext context)
                     AND (
                         A.client_id = {senderId}
                         OR A.barber_shop_id = (
-                            SELECT bs.id
-                            FROM barber_shops bs
+                            SELECT BS.id
+                            FROM barber_shops BS
                             WHERE BS.is_deleted = CAST(0 AS bit)
-                                AND bs.owner_id = {senderId}
+                                AND BS.owner_id = {senderId}
                         )
                     )
                     AND ({lastMessageId} IS NULL OR M.id > {lastMessageId})
@@ -165,6 +131,4 @@ public sealed class MessageRepository(AppDbContext context)
             .AsNoTracking()
             .ToArrayAsync();
     }
-
-    internal record CanSend(bool IsAllowed);
 }
