@@ -63,11 +63,108 @@ fi
 
 ### Create the React Router or Remix project:
 
-- With **React Router**:
-  - `npm create vite@latest client-app -- --template react-ts`
-  - `npm install react-router-dom`
-- with **Remix**:
-  - `npx create-remix@latest`
+- Creating With **Vite**:
+  - `npm create vite@latest`
+    - Name: _client-app_.
+    - React
+    - TypeScript
+  - `cd client-app`
+  - `npm i`
+
+- Installing Shadcn:
+  - `npm install -D tailwindcss postcss autoprefixer`
+  - `npx tailwindcss init -p`
+
+  - Add the paths to all of your template files in your _tailwind.config.js_ file.
+
+  ```
+  /** @type {import('tailwindcss').Config} */
+  export default {
+    content: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}",
+    ],
+    theme: {
+      extend: {},
+    },
+    plugins: [],
+  }
+  ```
+
+  - Add the _@tailwind_ directives for each of Tailwind’s layers to your _./src/index.css_ file.
+
+  ```
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  ```
+
+  - The current version of Vite splits TypeScript configuration into three files, two of which need to be edited. Add the _baseUrl_ and _paths_ properties to the _compilerOptions_ section of the _tsconfig.json_ and _tsconfig.app.json_ files:
+
+  ```
+  {
+    // ...
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./src/*"]
+      }
+    }
+    // ...
+  }
+  ```
+
+  Add the following code to the _vite.config.ts_ so your app can resolve paths without error
+
+  # (so you can import "path" without error)
+  - `npm i -D @types/node`
+
+  ```
+  import path from "path"
+  import react from "@vitejs/plugin-react"
+  import { defineConfig } from "vite"
+  
+  export default defineConfig({
+    plugins: [react()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+  })
+  ```
+
+  - `npx shadcn@latest init`
+    - Style: New York.
+    - Base color: Zinc.
+    - CSS variables: yes.
+
+  That's it! Now install your common components:
+    - npx shadcn@latest add button
+    - npx shadcn@latest add toast
+    - npx shadcn@latest add input
+    - npx shadcn@latest add label
+    - npx shadcn@latest add form
+    - npx shadcn@latest add dropdown-menu
+    - npx shadcn@latest add dialog
+    - npx shadcn@latest add card
+    - npx shadcn@latest add table
+
+- Other useful libs to add:
+  - `npm i react-router-dom`
+  - `npm i axios`
+  - `npm i @radix-ui/react-label @radix-ui/react-slot react-hook-form @hookform/resolvers zod`
+
+
+
+
+
+
+
+
+
+
+
 
 Some good libs to install (if needed):
 - `npm i sass`
@@ -75,20 +172,20 @@ Some good libs to install (if needed):
 - `npm i @mui/icons-material`
 - `npm install axios`
 - `npm i sweetalert2`
-- npx shadcn-ui@latest init
+- npx shadcn@latest init
   - Style: New York.
   - Base color: Zinc.
   - CSS variables: yes.
-- npx shadcn-ui@latest add button
-- npx shadcn-ui@latest add progress
-- npx shadcn-ui@latest add toast
-- npx shadcn-ui@latest add aspect-ratio
-- npx shadcn-ui@latest add scroll-area
-- npx shadcn-ui@latest add label
-- npx shadcn-ui@latest add dropdown-menu
-- npx shadcn-ui@latest add dialog
-- npx shadcn-ui@latest add card
-- npx shadcn-ui@latest add table
+- npx shadcn@latest add button
+- npx shadcn@latest add progress
+- npx shadcn@latest add toast
+- npx shadcn@latest add aspect-ratio
+- npx shadcn@latest add scroll-area
+- npx shadcn@latest add label
+- npx shadcn@latest add dropdown-menu
+- npx shadcn@latest add dialog
+- npx shadcn@latest add card
+- npx shadcn@latest add table
 - npm install lucide-react
 - npm install framer-motion
 - npm install react-dropzone

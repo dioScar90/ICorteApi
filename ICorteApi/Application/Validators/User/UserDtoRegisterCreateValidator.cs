@@ -7,23 +7,23 @@ public class UserDtoRegisterCreateValidator : AbstractValidator<UserDtoRegisterC
     public UserDtoRegisterCreateValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("O email é obrigatório")
+            .NotEmpty().WithMessage("Email obrigatório")
             .DependentRules(() =>
             {
                 RuleFor(dx => dx.Email)
-                    .EmailAddress().WithMessage("O email não é válido");
+                    .EmailAddress().WithMessage("Formato de email inválido");
             });
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("A senha é obrigatória")
+            .NotEmpty().WithMessage("Senha obrigatória")
             .DependentRules(() =>
             {
                 RuleFor(dx => dx.Password)
-                    .MinimumLength(8).WithMessage("A senha deve conter pelo menos 8 caracteres")
-                    .Must(ContainUppercase).WithMessage("A senha deve conter pelo menos uma letra maiúscula")
-                    .Must(ContainLowercase).WithMessage("A senha deve conter pelo menos uma letra minúscula")
-                    .Must(ContainDigit).WithMessage("A senha deve conter pelo menos um dígito")
-                    .Must(ContainNonAlphanumeric).WithMessage("A senha deve conter pelo menos um caractere especial");
+                    .MinimumLength(8).WithMessage("Senha deve conter pelo menos 8 caracteres")
+                    .Must(ContainUppercase).WithMessage("Senha deve conter pelo menos uma letra maiúscula")
+                    .Must(ContainLowercase).WithMessage("Senha deve conter pelo menos uma letra minúscula")
+                    .Must(ContainDigit).WithMessage("Senha deve conter pelo menos um dígito")
+                    .Must(ContainNonAlphanumeric).WithMessage("Senha deve conter pelo menos um caractere especial");
             });
     }
 
