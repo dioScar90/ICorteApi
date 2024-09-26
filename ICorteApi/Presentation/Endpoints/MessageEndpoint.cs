@@ -81,9 +81,11 @@ public static class ChatEndpoint
     public static async Task<IResult> DeleteMessage(
         int appointmentId,
         int id,
-        IMessageService service)
+        IMessageService service,
+        IUserService userService)
     {
-        await service.DeleteAsync(id, appointmentId);
+        int senderId = await userService.GetMyUserIdAsync();
+        await service.DeleteAsync(id, appointmentId, senderId);
         return Results.NoContent();
     }
 }

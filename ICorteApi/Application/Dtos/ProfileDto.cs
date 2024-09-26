@@ -10,7 +10,8 @@ public record ProfileDtoCreate(
 public record ProfileDtoUpdate(
     string FirstName,
     string LastName,
-    Gender Gender
+    Gender Gender,
+    string PhoneNumber
 ) : IDtoRequest<Profile>;
 
 public record ProfileDtoResponse(

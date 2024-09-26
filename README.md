@@ -72,7 +72,7 @@ fi
   - `npm i`
 
 - Installing Shadcn:
-  - `npm install -D tailwindcss postcss autoprefixer`
+  - `npm i -D tailwindcss postcss autoprefixer`
   - `npx tailwindcss init -p`
 
   - Add the paths to all of your template files in your _tailwind.config.js_ file.
@@ -114,9 +114,7 @@ fi
   }
   ```
 
-  Add the following code to the _vite.config.ts_ so your app can resolve paths without error
-
-  # (so you can import "path" without error)
+  - Add the following code to the _vite.config.ts_ so your app can resolve paths without error (so you can import "path" without error)
   - `npm i -D @types/node`
 
   ```
@@ -139,71 +137,24 @@ fi
     - Base color: Zinc.
     - CSS variables: yes.
 
-  That's it! Now install your common components:
-    - npx shadcn@latest add button
-    - npx shadcn@latest add toast
-    - npx shadcn@latest add input
-    - npx shadcn@latest add label
-    - npx shadcn@latest add form
-    - npx shadcn@latest add dropdown-menu
-    - npx shadcn@latest add dialog
-    - npx shadcn@latest add card
-    - npx shadcn@latest add table
+  - That's it! Now install your common components:
+    - `npx shadcn@latest add toast`
+    - `npx shadcn@latest add input`
+    - `npx shadcn@latest add form` (this includes also _button_ and _label_)
+    - `npx shadcn@latest add dropdown-menu`
+    - `npx shadcn@latest add dialog`
+    - `npx shadcn@latest add card`
+    - `npx shadcn@latest add table`
 
 - Other useful libs to add:
   - `npm i react-router-dom`
   - `npm i axios`
-  - `npm i @radix-ui/react-label @radix-ui/react-slot react-hook-form @hookform/resolvers zod`
-
-
-
-
-
-
-
-
-
-
-
-
-Some good libs to install (if needed):
-- `npm i sass`
-- `npm install @mui/material @emotion/react @emotion/styled`
-- `npm i @mui/icons-material`
-- `npm install axios`
-- `npm i sweetalert2`
-- npx shadcn@latest init
-  - Style: New York.
-  - Base color: Zinc.
-  - CSS variables: yes.
-- npx shadcn@latest add button
-- npx shadcn@latest add progress
-- npx shadcn@latest add toast
-- npx shadcn@latest add aspect-ratio
-- npx shadcn@latest add scroll-area
-- npx shadcn@latest add label
-- npx shadcn@latest add dropdown-menu
-- npx shadcn@latest add dialog
-- npx shadcn@latest add card
-- npx shadcn@latest add table
-- npm install lucide-react
-- npm install framer-motion
-- npm install react-dropzone
-- npm install uploadthing @uploadthing/react
-- npm install zod
-- npm install prisma @prisma/client
-  - npx prisma init
-  - npx prisma db push
-  - npx prisma studio
-- npm install sharp@0.32.6
-- npm install react-rnd
-- npm install @headlessui/react
-- npm install @tanstack/react-query
-- npm install react-dom-confetti
-- npm install stripe
-- npm install @react-email/components
-- npm install resend
-
+  - `npm i @tanstack/react-query`
+    - `npm i -D @tanstack/eslint-plugin-query` (recommended)
+  - `npm i react-hook-form @hookform/resolvers zod`
+  - `npm i sweetalert2`
+  - `npm i lucide-react`
+  
 ### Once the React project is created, on the root of this repository:
 - `npm init`
 - In _package.json_, _scripts_, add:
