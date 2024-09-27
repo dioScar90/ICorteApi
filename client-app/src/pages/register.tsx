@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { z } from "zod";
-import { schema } from "./consts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { userRegisterSchema, UserRegisterType } from "@/schemas/user";
 
 /*
   This example requires some changes to your config:
@@ -20,15 +19,14 @@ import { Button } from "@/components/ui/button";
   }
   ```
 */
-type inferredSchema = z.infer<typeof schema>
 
-function onSubmit(values: inferredSchema) {
+function onSubmit(values: UserRegisterType) {
   console.log('values', values)
 }
 
-export function Login() {
-  const form = useForm<inferredSchema>({
-    resolver: zodResolver(schema),
+export function Register() {
+  const form = useForm<UserRegisterType>({
+    resolver: zodResolver(userRegisterSchema),
     defaultValues: {
       email: '',
       password: '',

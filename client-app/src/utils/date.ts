@@ -1,7 +1,8 @@
-import { DateStringType } from "@/types/date"
+import { DateOnly, TimeOnly } from "@/types/date"
 
 type GetTodayProps = {
-  dateStr?: DateStringType,
+  dateOnly?: DateOnly,
+  timeOnly?: TimeOnly,
   isDateIso?: boolean,
   isTimeIso?: boolean,
   isFullIso?: boolean,
@@ -9,43 +10,41 @@ type GetTodayProps = {
   locale?: string,
 }
 
-function getNewDateObject(date?: DateStringType) {
-  if (!date) {
+function getNewDateObject(dateOnly?: DateOnly, timeOnly?: TimeOnly) {
+  if (!dateOnly) {
     return new Date(new Date().setHours(12))
   }
-
-  if (date.includes('T')) {
-    return new Date(date)
-  }
-
-  return new Date(date + 'T12:00')
+  
+  timeOnly ??= '12:00:00'
+  return new Date(dateOnly + 'T' + timeOnly)
 }
 
 export function getToday({
-    dateStr = undefined,
+    dateOnly = undefined,
+    timeOnly = undefined,
     isDateIso = undefined,
     isTimeIso = undefined,
     isFullIso = undefined,
     isString = undefined,
-    locale = undefined
+    locale = undefined,
   }: GetTodayProps) {
-  const date = getNewDateObject(dateStr)
-
-  if (isTimeIso) {
-    return date.toISOString().split('T')[1]
-  }
-
-  if (isDateIso) {
-    return date.toISOString().split('T')[0]
-  }
-
-  if (isFullIso) {
-    return date.toISOString()
-  }
+  const date = getNewDateObject(dateOnly, timeOnly)
 
   if (isString) {
-    return date.toLocaleDateString(locale ?? 'pt-BR')
+    locale ??= 'pt-BR'
+    return date.toLocaleDateString(locale)
   }
 
+  if (isFullIso || isTimeIso || isDateIso) {
+    const fullIso = date.toISOString()
+
+    if (isFullIso) {
+      return fullIso
+    }
+
+    const [dateIso, timeIso] = fullIso.split('T')
+    return isTimeIso ? timeIso : dateIso
+  }
+  
   return date
 }

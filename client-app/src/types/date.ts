@@ -1,16 +1,26 @@
-type BASE_RANGE_DAY =
-  '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' |
-  '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' |
-  '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '30' |
-  '31'
+const zeroToThree = [
+  '0', '1', '2', '3',
+] as const
 
-type BASE_RANGE_MONTH =
-  '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' |
-  '11' | '12'
+const zeroToFive = [
+  '0', '1', '2', '3', '4', '5',
+] as const
 
-type BASE_RANGE_YEAR = `${'19' | '20' | '21'}${number}${number}`
+const zeroToNine = [
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+] as const
 
-type TimeType = `${number}${number}:${number}${number}`
-type DateType = `${BASE_RANGE_YEAR}-${BASE_RANGE_MONTH}-${BASE_RANGE_DAY}`;
+const oneToNine = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9',
+] as const
 
-export type DateStringType = DateType | `${DateType}T${TimeType}`;
+type Hour = `0${typeof zeroToNine[number]}` | `1${typeof zeroToNine[number]}` | `2${typeof zeroToThree[number]}`
+type MinuteOrSecond = `${typeof zeroToFive[number]}${typeof zeroToNine[number]}`
+
+type Year = `20${typeof zeroToNine[number]}${typeof zeroToNine[number]}`
+type Month = `0${typeof oneToNine[number]}` | '10' | '11' | '12'
+type Day = `0${typeof oneToNine[number]}` | `1${typeof zeroToNine[number]}` | `2${typeof zeroToNine[number]}` | '30' | '31'
+
+export type TimeOnly = `${Hour}:${MinuteOrSecond}:${MinuteOrSecond}`
+export type DateOnly = `${Year}-${Month}-${Day}`
+// export type DateTime = `${DateOnly}T${TimeOnly}`
