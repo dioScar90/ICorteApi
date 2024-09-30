@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
@@ -19,24 +20,33 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         return services.Aggregate(TimeSpan.Zero, (acc, curr) => acc.Add(curr.Duration));
     }
     
-    private async Task<BasicAppointment> GetNewAppointmentWithServiceDuration(BasicAppointmentWithoutServices app)
+    private async Task<BasicAppointment> GetNewAppointmentWithServiceDuration(int appointmentId, TimeOnly startTime)
     {
-        var services = await _context.Database
-            .SqlQuery<ServiceDuration>(@$"
-                SELECT S.id AS Id
-                    ,S.duration AS Duration
-                FROM services S
-                WHERE S.is_deleted = 0
-                    AND EXISTS (
-                        SELECT 1
-                        FROM service_appointment SA
-                        WHERE SA.service_id = S.id AND SA.appointment_id = {app.Id}
-                    )
-            ")
+        var services = await _dbSetService
             .AsNoTracking()
+            .Where(x => x.Appointments.Any(a => a.Id == appointmentId))
+            .Select(x => new ServiceDuration(x.Id, x.Duration))
             .ToArrayAsync();
 
-        return new(app.Id, app.StartTime, services);
+        return new(appointmentId, startTime, services);
+
+
+        // var services = await _context.Database
+        //     .SqlQuery<ServiceDuration>(@$"
+        //         SELECT S.id AS Id
+        //             ,S.duration AS Duration
+        //         FROM services S
+        //         WHERE S.is_deleted = 0
+        //             AND EXISTS (
+        //                 SELECT 1
+        //                 FROM service_appointment SA
+        //                 WHERE SA.service_id = S.id AND SA.appointment_id = {appointmentId}
+        //             )
+        //     ")
+        //     .AsNoTracking()
+        //     .ToArrayAsync();
+
+        // return new(appointmentId, startTime, services);
     }
 
     private async Task<BasicAppointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
@@ -82,24 +92,44 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         return [..availableSlots];
     }
 
+
+
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
         var schedule = await _context.Database
+            // PostgreSQL
             .SqlQuery<AvailableSchedule>(@$"
-                SELECT TOP (1) {date} AS Date
-                    ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
-                    ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
-                FROM recurring_schedules AS RS
-                    LEFT JOIN special_schedules AS SS
-                        ON SS.barber_shop_id = RS.barber_shop_id
-                            AND RS.day_of_week = DATEPART(weekday, SS.date) - 1
-                            AND SS.is_active = 1
-                WHERE RS.is_active = 1
-                    AND RS.barber_shop_id = {barberShopId}
-                    AND RS.day_of_week = {date.DayOfWeek}
-                    AND (SS.is_closed IS NULL OR SS.is_closed = 0)
-                ORDER BY 1
+                SELECT {date} AS Date,
+                    COALESCE(SS.open_time, RS.open_time) AS OpenTime,
+                    COALESCE(SS.close_time, RS.close_time) AS CloseTime
+                FROM recurring_schedules RS
+                LEFT JOIN special_schedules SS
+                    ON SS.barber_shop_id = RS.barber_shop_id
+                    AND RS.day_of_week = EXTRACT(DOW FROM SS.date)
+                    AND SS.is_active = TRUE
+                WHERE RS.is_active = TRUE
+                AND RS.barber_shop_id = {barberShopId}
+                AND RS.day_of_week = EXTRACT(DOW FROM '{date:yyyy-MM-dd}'::DATE)
+                AND (SS.is_closed IS NULL OR SS.is_closed = FALSE)
+                ORDER BY RS.day_of_week
+                LIMIT 1
             ")
+            // // SQL Server
+            // .SqlQuery<AvailableSchedule>(@$"
+            //     SELECT TOP (1) {date} AS Date
+            //         ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
+            //         ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
+            //     FROM recurring_schedules AS RS
+            //         LEFT JOIN special_schedules AS SS
+            //             ON SS.barber_shop_id = RS.barber_shop_id
+            //                 AND RS.day_of_week = DATEPART(weekday, SS.date) - 1
+            //                 AND SS.is_active = 1
+            //     WHERE RS.is_active = 1
+            //         AND RS.barber_shop_id = {barberShopId}
+            //         AND RS.day_of_week = {date.DayOfWeek}
+            //         AND (SS.is_closed IS NULL OR SS.is_closed = 0)
+            //     ORDER BY 1
+            // ")
             .AsNoTracking()
             .FirstOrDefaultAsync();
 
@@ -178,12 +208,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         int Id,
         TimeSpan Duration
     );
-
-    private record BasicAppointmentWithoutServices(
-        int Id,
-        TimeOnly StartTime
-    );
-
+    
     private record BasicAppointment(
         int Id,
         TimeOnly StartTime,

@@ -3,6 +3,25 @@ import { passwordValidator } from './sharedValidators/passwordValidator'
 import { emailValidator } from './sharedValidators/emailValidator'
 import { phoneNumberValidator } from './sharedValidators/phoneNumberValidator'
 
+export const userEmailUpdate = z.object({
+  email: emailValidator(),
+})
+
+export type UserEmailUpdateType = z.infer<typeof userEmailUpdate>
+
+export const userPhoneNumberUpdate = z.object({
+  phoneNumber: phoneNumberValidator(),
+})
+
+export type UserPhoneNumberUpdateType = z.infer<typeof userPhoneNumberUpdate>
+
+export const userPasswordUpdate = z.object({
+  currentPassword: z.string(),
+  newPassword: passwordValidator(),
+})
+
+export type UserPasswordUpdateType = z.infer<typeof userPasswordUpdate>
+
 export const userRegisterSchema = z.object({
   email: emailValidator(),
   password: passwordValidator(),

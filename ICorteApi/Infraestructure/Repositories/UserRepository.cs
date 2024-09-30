@@ -107,9 +107,9 @@ public sealed class UserRepository : IUserRepository
             return null;
 
         var user = await _dbSet
+            .AsNoTracking()
             .Include(u => u.Profile)
             .Include(u => u.BarberShop)
-            .AsNoTracking()
             .AsSplitQuery()
             .FirstOrDefaultAsync(u => u.Id == userId);
 

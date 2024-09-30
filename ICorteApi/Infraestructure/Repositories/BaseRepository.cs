@@ -38,7 +38,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
                 (current, include) => current.Include(include))
             .SingleOrDefaultAsync(filterId);
     }
-
+    
     public virtual async Task<PaginationResponse<TEntity>> GetAllAsync(IPaginationProperties<TEntity> props)
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();

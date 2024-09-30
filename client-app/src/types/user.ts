@@ -89,7 +89,7 @@ export type Profile = {
   imageUrl?: string
 }
 
-export type User = {
+export type UserMe = {
   id: number
   email: string
   phoneNumber: string

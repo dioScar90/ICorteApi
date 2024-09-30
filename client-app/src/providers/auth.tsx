@@ -1,8 +1,17 @@
+import { UserService } from "@/services/user"
+import { BarberShop, Profile, UserMe, UserRole } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useLayoutEffect, useState } from "react"
 
+type UserType = Omit<UserMe, 'profile' | 'barberShop' | 'roles'>
 
+type User = {
+  user?: UserType
+  profile?: Profile
+  barberShop?: BarberShop
+  roles: UserRole[]
+}
 
-const AuthContext = createContext(undefined)
+const AuthContext = createContext<User | null>(null)
 
 export function useAuth() {
   const authContext = useContext(AuthContext)
@@ -19,7 +28,7 @@ function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const authPromise = new Promise<{ accessToken: boolean }>()
-    authPromise
+    UserService.getMe()
       .then(data => setToken(data.accessToken))
       .catch(err => setToken(null))
   }, [])
@@ -27,4 +36,10 @@ function AuthProvider({ children }: PropsWithChildren) {
   useLayoutEffect(() => {
     //
   }, [token])
+
+  const value = {
+    //
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
