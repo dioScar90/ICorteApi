@@ -1,18 +1,29 @@
 import { UserLoginType, UserRegisterType } from "@/schemas/user"
 import { httpClient } from "../httpClient"
 
-const MODULE = '/auth'
+function getUrl(final?: string) {
+  const baseEndpoint = `/auth`
+  
+  if (!final) {
+    return baseEndpoint
+  }
+  
+  return `${baseEndpoint}/${final}`
+}
 
 export class AuthService {
   static async register(data: UserRegisterType) {
-    return await httpClient.post(`${MODULE}/register`, { ...data })
+    const url = getUrl('register')
+    return await httpClient.post(url, { ...data })
   }
 
   static async login(data: UserLoginType) {
-    return await httpClient.post(`${MODULE}/login`, { ...data })
+    const url = getUrl('login')
+    return await httpClient.post(url, { ...data })
   }
 
   static async logout() {
-    return await httpClient.post(`${MODULE}/login`)
+    const url = getUrl('logout')
+    return await httpClient.post(url)
   }
 }

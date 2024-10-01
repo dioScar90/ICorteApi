@@ -1,4 +1,4 @@
-import { Profile } from "@/types/user";
+import { Profile } from "@/types/profile";
 import { Result } from "../result";
 import { IProfileRepository } from "./interfaces/IProfileRepository";
 import { ProfileType } from "@/schemas/profile";
@@ -36,7 +36,7 @@ export class ProfileRepository implements IProfileRepository {
 
   async updateProfileImage(id: number, file: File) {
     try {
-      const res = await this.service.updateProfile(id, file)
+      const res = await this.service.updateProfileImage(id, file)
       return Result.Success(res.data)
     } catch (err) {
       return Result.Failure<boolean>(err as Error)

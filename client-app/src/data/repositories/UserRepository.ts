@@ -1,15 +1,15 @@
-import { UserEmailUpdateType, UserLoginType, UserPasswordUpdateType, UserPhoneNumberUpdateType, UserRegisterType } from "@/schemas/user";
+import { UserEmailUpdateType, UserPasswordUpdateType, UserPhoneNumberUpdateType } from "@/schemas/user";
 import { IUserRepository } from "./interfaces/IUserRepository";
 import { UserMe } from "@/types/user";
 import { Result } from "../result";
 import { IUserService } from "../services/interfaces/IUserService";
 
 export class UserRepository implements IUserRepository {
-  constructor(private readonly userService: IUserService) {}
+  constructor(private readonly service: IUserService) {}
 
   async getMe() {
     try {
-      const res = await this.userService.getMe();
+      const res = await this.service.getMe();
       return Result.Success(res.data)
     } catch (err) {
       return Result.Failure<UserMe>(err as Error)

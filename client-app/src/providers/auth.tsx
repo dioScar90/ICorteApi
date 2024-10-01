@@ -1,17 +1,18 @@
-import { UserService } from "@/services/user"
-import { BarberShop, Profile, UserMe, UserRole } from "@/types/user"
+import { httpClient } from "@/data/httpClient"
+import { UserService } from "@/data/services/UserService"
+import { UserMe } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useLayoutEffect, useState } from "react"
 
-type UserType = Omit<UserMe, 'profile' | 'barberShop' | 'roles'>
+// type UserType = Omit<UserMe, 'profile' | 'barberShop' | 'roles'>
 
-type User = {
-  user?: UserType
-  profile?: Profile
-  barberShop?: BarberShop
-  roles: UserRole[]
-}
+// type User = {
+//   user?: UserType
+//   profile?: Profile
+//   barberShop?: BarberShop
+//   roles: UserRole[]
+// }
 
-const AuthContext = createContext<User | null>(null)
+const AuthContext = createContext<UserMe | null>(null)
 
 export function useAuth() {
   const authContext = useContext(AuthContext)
@@ -24,13 +25,13 @@ export function useAuth() {
 }
 
 function AuthProvider({ children }: PropsWithChildren) {
-  const [token, setToken] = useState<boolean | null>()
+  const service = new UserService(httpClient)
+  const [user, setUser] = useState<UserMe | null>()
 
   useEffect(() => {
-    const authPromise = new Promise<{ accessToken: boolean }>()
-    UserService.getMe()
-      .then(data => setToken(data.accessToken))
-      .catch(err => setToken(null))
+    service.getMe()
+      .then(data => setUser(data.data))
+      .catch((_) => setUser(null))
   }, [])
 
   useLayoutEffect(() => {

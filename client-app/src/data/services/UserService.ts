@@ -1,34 +1,43 @@
-import { UserEmailUpdateType, UserLoginType, UserPasswordUpdateType, UserPhoneNumberUpdateType, UserRegisterType } from "@/schemas/user"
+import { UserEmailUpdateType, UserPasswordUpdateType, UserPhoneNumberUpdateType } from "@/schemas/user"
 import { UserMe } from "@/types/user"
 import { IUserService } from "./interfaces/IUserService"
 import { HttpClient } from "@/data/httpClient"
 
-const MODULE = '/user'
+function getUrl(final?: string) {
+  const baseEndpoint = `/user`
+  
+  if (!final) {
+    return `${baseEndpoint}`
+  }
+  
+  return `${baseEndpoint}/${final}`
+}
 
 export class UserService implements IUserService {
   constructor(private readonly httpClient: HttpClient) {}
 
   async getMe() {
-    return await this.httpClient.get<UserMe>(`${MODULE}/me`)
+    const url = getUrl('me')
+    return await this.httpClient.get<UserMe>(url)
   }
-
-  // async findById(id) {
-  //   return await this.httpClient.get(`${MODULE}/${id}`)
-  // }
-
+  
   async changeEmail(data: UserEmailUpdateType) {
-    return await this.httpClient.patch(`${MODULE}/changeEmail`, { ...data })
+    const url = getUrl('changeEmail')
+    return await this.httpClient.patch(url, { ...data })
   }
 
   async changePassword(data: UserPasswordUpdateType) {
-    return await this.httpClient.patch(`${MODULE}/changePassword`, { ...data })
+    const url = getUrl('changePassword')
+    return await this.httpClient.patch(url, { ...data })
   }
 
   async changePhoneNumber(data: UserPhoneNumberUpdateType) {
-    return await this.httpClient.patch(`${MODULE}/changePhoneNumber`,  { ...data })
+    const url = getUrl('changePhoneNumber')
+    return await this.httpClient.patch(url,  { ...data })
   }
 
   async delete() {
-    return await this.httpClient.delete(MODULE)
+    const url = getUrl()
+    return await this.httpClient.delete(url)
   }
 }

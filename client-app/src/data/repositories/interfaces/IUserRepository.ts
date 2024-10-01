@@ -1,5 +1,5 @@
 import { Result } from "@/data/result";
-import { UserEmailUpdateType, UserLoginType, UserPasswordUpdateType, UserPhoneNumberUpdateType, UserRegisterType } from "@/schemas/user";
+import { UserEmailUpdateType, UserPasswordUpdateType, UserPhoneNumberUpdateType } from "@/schemas/user";
 import { UserMe } from "@/types/user";
 
 export interface IUserRepository {
