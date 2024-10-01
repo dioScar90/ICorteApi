@@ -1,4 +1,6 @@
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
+
+export type HttpClient = AxiosInstance
 
 const httpClient = axios.create({
   baseURL: process.env.BASE_URL,

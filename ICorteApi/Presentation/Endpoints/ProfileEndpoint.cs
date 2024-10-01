@@ -24,7 +24,7 @@ public static class ProfileEndpoint
 
         group.MapPatch("{id}/image", UpdateProfileImage) // Endpoint para troca de imagem
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh))
-            .DisableAntiforgery();;
+            .DisableAntiforgery();
 
         return app;
     }

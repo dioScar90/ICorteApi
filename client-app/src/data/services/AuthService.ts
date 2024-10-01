@@ -1,5 +1,5 @@
 import { UserLoginType, UserRegisterType } from "@/schemas/user"
-import { httpClient } from "./axios"
+import { httpClient } from "../httpClient"
 
 const MODULE = '/auth'
 
