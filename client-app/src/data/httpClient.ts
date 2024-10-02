@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from 'axios'
 export type HttpClient = AxiosInstance
 
 const httpClient = axios.create({
-  baseURL: process.env.BASE_URL,
+  baseURL: import.meta.env.BASE_URL,
   withCredentials: true,
 })
 

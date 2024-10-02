@@ -1,5 +1,6 @@
 import { UserLoginType, UserRegisterType } from "@/schemas/user"
-import { httpClient } from "../httpClient"
+import { HttpClient, httpClient } from "../httpClient"
+import { IAuthService } from "./interfaces/IAuthService"
 
 function getUrl(final?: string) {
   const baseEndpoint = `/auth`
@@ -11,19 +12,21 @@ function getUrl(final?: string) {
   return `${baseEndpoint}/${final}`
 }
 
-export class AuthService {
-  static async register(data: UserRegisterType) {
+export class AuthService implements IAuthService {
+  constructor(private readonly httpClient: HttpClient) {}
+
+  async register(data: UserRegisterType) {
     const url = getUrl('register')
-    return await httpClient.post(url, { ...data })
+    return await this.httpClient.post(url, { ...data })
   }
 
-  static async login(data: UserLoginType) {
+  async login(data: UserLoginType) {
     const url = getUrl('login')
-    return await httpClient.post(url, { ...data })
+    return await this.httpClient.post(url, { ...data })
   }
 
-  static async logout() {
+  async logout() {
     const url = getUrl('logout')
-    return await httpClient.post(url)
+    return await this.httpClient.post(url)
   }
 }

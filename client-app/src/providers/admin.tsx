@@ -4,8 +4,9 @@ import { UserRepository } from "@/data/repositories/UserRepository"
 import { AuthService } from "@/data/services/AuthService"
 import { UserService } from "@/data/services/UserService"
 import { UserRegisterType } from "@/schemas/user"
-import { UserMe } from "@/types/user"
+import { UserMe, UserRole } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from "react"
+import { Navigate, useLocation, useNavigate } from "react-router-dom"
 
 export type AuthUser = {
   user?: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
@@ -35,18 +36,21 @@ export function useAuth() {
   return authContext
 }
 
+// Definindo o estado de autenticação
 export type AuthState = {
   authUser: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
 }
 
+// Definindo os tipos de ações
 export type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: AuthUser }
   | { type: 'LOGIN_FAILURE' }
   | { type: 'LOGOUT' }
   | { type: 'SET_LOADING'; payload: boolean }
-  
+
+// Função reducer que vai tratar as ações
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
@@ -79,15 +83,18 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
+// Estado inicial da autenticação
 const initialAuthState: AuthState = {
   authUser: null,
   isLoading: true,
   isAuthenticated: false,
 }
 
-export function AuthProvider({ children }: PropsWithChildren) {
+export function AdminProvider({ children }: PropsWithChildren) {
   const authRepository = useMemo(() => new AuthRepository(new AuthService(httpClient)), [])
   const userRepository = useMemo(() => new UserRepository(new UserService(httpClient)), [])
+  // const location = useLocation();
+  // const navigate = useNavigate();
   const [state, dispatch] = useReducer(authReducer, initialAuthState)
 
   const register = async (data: UserRegisterType) => {
@@ -148,11 +155,38 @@ export function AuthProvider({ children }: PropsWithChildren) {
     authRepository.logout()
     dispatch({ type: 'LOGOUT' })
   }
-  
+
+  // if (!state.authUser) {
+  //   return <Navigate to="/" replace />
+  // }
+
   useEffect(() => {
     const checkAuthStatus = async () => await login()
     checkAuthStatus()
   }, [])
+
+  // useEffect(() => {
+  //   let to
+
+  //   const locationIncludes = (needle: string) => location.pathname.includes(needle)
+  //   const rolesIncludes = (role: UserRole) => state.authUser?.roles?.includes(role)
+
+  //   if (locationIncludes('dashboard') && !rolesIncludes('Admin')) {
+  //     to = '/login'
+  //   }
+
+  //   if (locationIncludes('barber-shop') && !rolesIncludes('BarberShop')) {
+  //     to = '/barber-shop/login'
+  //   }
+
+  //   if (locationIncludes('profile') && !rolesIncludes('Client')) {
+  //     to = '/login'
+  //   }
+    
+  //   if (to) {
+  //     navigate(to, { replace: true })
+  //   }
+  // }, [location])
   
   return (
     <AuthContext.Provider
