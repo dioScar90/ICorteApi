@@ -1,6 +1,6 @@
 import { IAddressRepository } from "./interfaces/IAddressRepository";
 import { IAddressService } from "../services/interfaces/IAddressService";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 import { AddressType } from "@/schemas/address";
 import { Address } from "@/types/address";
 

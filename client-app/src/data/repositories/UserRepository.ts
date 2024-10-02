@@ -1,7 +1,7 @@
 import { UserEmailUpdateType, UserPasswordUpdateType, UserPhoneNumberUpdateType } from "@/schemas/user";
 import { IUserRepository } from "./interfaces/IUserRepository";
 import { UserMe } from "@/types/user";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 import { IUserService } from "../services/interfaces/IUserService";
 
 export class UserRepository implements IUserRepository {

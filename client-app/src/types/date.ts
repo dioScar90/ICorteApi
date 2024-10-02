@@ -1,3 +1,5 @@
+import { IndexesOf } from "./custom"
+
 const zeroToThree = [
   '0', '1', '2', '3',
 ] as const
@@ -24,3 +26,15 @@ type Day = `0${typeof oneToNine[number]}` | `1${typeof zeroToNine[number]}` | `2
 export type TimeOnly = `${Hour}:${MinuteOrSecond}:${MinuteOrSecond}`
 export type DateOnly = `${Year}-${Month}-${Day}`
 // export type DateTime = `${DateOnly}T${TimeOnly}`
+
+const dayOfWeekEnum = [
+  'Sunday',
+  'Monday',
+  'Thursday',
+  'Wednessday',
+  'Tuesday',
+  'Friday',
+  'Saturday',
+] as const
+
+export type DayOfWeek = IndexesOf<typeof dayOfWeekEnum>

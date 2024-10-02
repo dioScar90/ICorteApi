@@ -1,5 +1,5 @@
 import { Profile } from "@/types/profile";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 import { IProfileRepository } from "./interfaces/IProfileRepository";
 import { ProfileType } from "@/schemas/profile";
 import { IProfileService } from "../services/interfaces/IProfileService";

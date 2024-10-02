@@ -1,5 +1,5 @@
 import { BarberShopType } from "@/schemas/barberShop";
-import { HttpClient } from "../httpClient";
+import { HttpClient } from "@/data/httpClient";
 import { IBarberShopService } from "./interfaces/IBarberShopService";
 
 function getUrl(id?: number) {

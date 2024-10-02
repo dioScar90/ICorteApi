@@ -1,7 +1,7 @@
 import { UserRegisterType, UserLoginType } from "@/schemas/user";
 import { IAuthRepository } from "./interfaces/IAuthRepository";
 import { IAuthService } from "../services/interfaces/IAuthService";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 
 export class AuthRepository implements IAuthRepository {
   constructor(private readonly service: IAuthService) {}

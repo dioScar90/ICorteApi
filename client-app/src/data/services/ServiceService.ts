@@ -1,9 +1,9 @@
-import { AddressType } from "@/schemas/address";
+import { ServiceType } from "@/schemas/service";
 import { HttpClient } from "@/data/httpClient";
-import { IAddressService } from "./interfaces/IAddressService";
+import { IServiceService } from "./interfaces/IServiceService";
 
 function getUrl(barberShpoId: number, id?: number) {
-  const baseEndpoint = `/barber-shop/${barberShpoId}/address`
+  const baseEndpoint = `/barber-shop/${barberShpoId}/service`
 
   if (!id) {
     return baseEndpoint
@@ -12,25 +12,30 @@ function getUrl(barberShpoId: number, id?: number) {
   return `${baseEndpoint}/${id}`
 }
 
-export class AddressService implements IAddressService {
+export class ServiceService implements IServiceService {
   constructor(private readonly httpClient: HttpClient) {}
   
-  async createAddress(barberShpoId: number, data: AddressType) {
+  async createService(barberShpoId: number, data: ServiceType) {
     const url = getUrl(barberShpoId)
     return await this.httpClient.post(url, { ...data })
   }
 
-  async getAddress(barberShpoId: number, id: number) {
+  async getService(barberShpoId: number, id: number) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.get(url)
   }
 
-  async updateAddress(barberShpoId: number, id: number, data: AddressType) {
+  async getAllServices(barberShpoId: number) {
+    const url = getUrl(barberShpoId)
+    return await this.httpClient.get(url)
+  }
+
+  async updateService(barberShpoId: number, id: number, data: ServiceType) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.put(url, { ...data })
   }
 
-  async deleteAddress(barberShpoId: number, id: number) {
+  async deleteService(barberShpoId: number, id: number) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.delete(url)
   }

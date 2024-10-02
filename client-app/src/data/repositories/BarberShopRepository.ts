@@ -1,5 +1,5 @@
 import { BarberShop } from "@/types/barberShop";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 import { IBarberShopRepository } from "./interfaces/IBarberShopRepository";
 import { BarberShopType } from "@/schemas/barberShop";
 import { IBarberShopService } from "../services/interfaces/IBarberShopService";

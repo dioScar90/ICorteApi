@@ -1,9 +1,9 @@
-import { AddressType } from "@/schemas/address";
+import { ReportType } from "@/schemas/report";
 import { HttpClient } from "@/data/httpClient";
-import { IAddressService } from "./interfaces/IAddressService";
+import { IReportService } from "./interfaces/IReportService";
 
 function getUrl(barberShpoId: number, id?: number) {
-  const baseEndpoint = `/barber-shop/${barberShpoId}/address`
+  const baseEndpoint = `/barber-shop/${barberShpoId}/report`
 
   if (!id) {
     return baseEndpoint
@@ -12,25 +12,30 @@ function getUrl(barberShpoId: number, id?: number) {
   return `${baseEndpoint}/${id}`
 }
 
-export class AddressService implements IAddressService {
+export class ReportService implements IReportService {
   constructor(private readonly httpClient: HttpClient) {}
   
-  async createAddress(barberShpoId: number, data: AddressType) {
+  async createReport(barberShpoId: number, data: ReportType) {
     const url = getUrl(barberShpoId)
     return await this.httpClient.post(url, { ...data })
   }
 
-  async getAddress(barberShpoId: number, id: number) {
+  async getReport(barberShpoId: number, id: number) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.get(url)
   }
 
-  async updateAddress(barberShpoId: number, id: number, data: AddressType) {
+  async getAllReports(barberShpoId: number) {
+    const url = getUrl(barberShpoId)
+    return await this.httpClient.get(url)
+  }
+
+  async updateReport(barberShpoId: number, id: number, data: ReportType) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.put(url, { ...data })
   }
 
-  async deleteAddress(barberShpoId: number, id: number) {
+  async deleteReport(barberShpoId: number, id: number) {
     const url = getUrl(barberShpoId, id)
     return await this.httpClient.delete(url)
   }

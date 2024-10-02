@@ -1,5 +1,5 @@
 import { AppointmentType } from "@/schemas/appointment";
-import { HttpClient } from "../httpClient";
+import { HttpClient } from "@/data/httpClient";
 import { IAppointmentService } from "./interfaces/IAppointmentService";
 
 function getUrl(id?: number) {

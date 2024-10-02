@@ -1,5 +1,6 @@
 import { Address } from "./address"
 import { RecurringSchedule } from "./recurringSchedule"
+import { Report } from "./report"
 import { Service } from "./service"
 import { SpecialSchedule } from "./specialSchedule"
 
@@ -16,3 +17,5 @@ export type BarberShop = {
   services: Service[],
   reports: Report[],
 }
+
+export type TopBarberShop = Pick<BarberShop, 'id' | 'name' | 'description'> & Pick<Report, 'rating'>

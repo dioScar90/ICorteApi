@@ -1,6 +1,6 @@
 import { IAppointmentRepository } from "./interfaces/IAppointmentRepository";
 import { IAppointmentService } from "../services/interfaces/IAppointmentService";
-import { Result } from "../result";
+import { Result } from "@/data/result";
 import { AppointmentType } from "@/schemas/appointment";
 import { Appointment } from "@/types/appointment";
 
