@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/providers/auth";
 import { ROUTE_ENUM } from "@/App";
 
-export function BarberShopLayout() {
+export function BarberScheduleLayout() {
   const { authUser } = useAuth()
 
   if (!authUser?.barberShop) {

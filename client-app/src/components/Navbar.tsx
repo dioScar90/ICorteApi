@@ -1,36 +1,48 @@
-// import Link from "next/link"
+import { useAuth } from "@/providers/auth"
 import { MaxWidthWrapper } from "./MaxWidthWrapper"
 import { buttonVariants } from "./ui/button"
 import { ArrowRight } from "lucide-react"
-// import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { Link } from "react-router-dom"
+import { ROUTE_ENUM } from "@/App"
 
 export function Navbar() {
-  // const { getUser } = getKindeServerSession()
-  // const user = await getUser()
-  // const isAdmin = user?.email === process.env.ADMIN_EMAIL
-  const user = { email: 'diogols@live.com' }
-  const isAdmin = user?.email === 'diogols@live.com'
-
+  const { isAuthenticated, isClient, isBarberShop, isAdmin } = useAuth()
+  
   return (
     <nav className="sticky z-[100] h-14 inset-x-0 top-0 w-full border-b border-gray-200 bg-white/75 backdrop-blur-lg transition-all">
       <MaxWidthWrapper>
         <div className="flex h-14 items-center justify-between border-b border-zinc 200">
-          <Link to="/" className="flex z-40 font-semibold">
+          <Link to={ROUTE_ENUM.ROOT} className="flex z-40 font-semibold">
             use<span style={{ color: 'hsl(var(--primary))'}}>case</span>
           </Link>
 
           <div className="h-full flex items-center space-x-4">
-            {user ? (
+            {isAuthenticated ? (
               <>
-                <Link to="/api/auth/logout" className={buttonVariants({
+                <Link to={ROUTE_ENUM.LOGOUT} className={buttonVariants({
                   size: 'sm',
                   variant: 'ghost',
                 })}>
-                  Sign out
+                  Logout
                 </Link>
+                {isClient && (
+                  <Link to={ROUTE_ENUM.ADMIN} className={buttonVariants({
+                    size: 'sm',
+                    variant: 'ghost',
+                  })}>
+                    Dashboard ✨
+                  </Link>
+                )}
+                {isBarberShop && (
+                  <Link to={ROUTE_ENUM.ADMIN} className={buttonVariants({
+                    size: 'sm',
+                    variant: 'ghost',
+                  })}>
+                    Dashboard ✨
+                  </Link>
+                )}
                 {isAdmin && (
-                  <Link to="/dashboard" className={buttonVariants({
+                  <Link to={ROUTE_ENUM.ADMIN} className={buttonVariants({
                     size: 'sm',
                     variant: 'ghost',
                   })}>
@@ -47,13 +59,13 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/api/auth/register" className={buttonVariants({
+                <Link to={ROUTE_ENUM.REGISTER} className={buttonVariants({
                   size: 'sm',
                   variant: 'ghost',
                 })}>
-                  Sign up
+                  Cadastrar
                 </Link>
-                <Link to="/api/auth/login" className={buttonVariants({
+                <Link to={ROUTE_ENUM.LOGIN} className={buttonVariants({
                   size: 'sm',
                   variant: 'ghost',
                 })}>

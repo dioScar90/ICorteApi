@@ -8,9 +8,9 @@ import { UserMe } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from "react"
 
 export type AuthUser = {
-  user?: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
-  roles?: UserMe['roles']
-  profile: UserMe['profile']
+  user: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
+  roles: UserMe['roles']
+  profile?: UserMe['profile']
   barberShop?: UserMe['barberShop']
 }
 
@@ -18,6 +18,9 @@ export type AuthContextType = {
   authUser: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
+  isClient: boolean
+  isBarberShop: boolean
+  isAdmin: boolean
   register: (data: UserRegisterType) => Promise<void>
   login: (data: UserRegisterType) => Promise<void>
   logout: () => void
@@ -36,9 +39,13 @@ export function useAuth() {
 }
 
 export type AuthState = {
-  authUser: AuthUser | null
   isLoading: boolean
-  isAuthenticated: boolean
+  isAuthenticated: false
+  authUser: null
+} | {
+  isLoading: boolean
+  isAuthenticated: true
+  authUser: AuthUser
 }
 
 export type AuthAction =
@@ -160,6 +167,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         authUser: state.authUser,
         isLoading: state.isLoading,
         isAuthenticated: state.isAuthenticated,
+        isClient: !!state.authUser?.roles?.includes('Client'),
+        isBarberShop: !!state.authUser?.roles?.includes('BarberShop'),
+        isAdmin: !!state.authUser?.roles?.includes('Admin'),
         register,
         login,
         logout,

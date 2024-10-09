@@ -3,7 +3,7 @@ import { Footer } from "../Footer";
 // import { Header } from "./Header";
 import "@/index.css"
 import { Toaster } from "../ui/toaster";
-import Providers from "../Providers";
+import { Providers } from "../Providers";
 import { Navbar } from "../Navbar";
 
 export function AdminLayout() {
