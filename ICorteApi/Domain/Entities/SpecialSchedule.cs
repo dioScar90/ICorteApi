@@ -5,6 +5,7 @@ namespace ICorteApi.Domain.Entities;
 public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 {
     public DateOnly Date { get; init; }
+    public DayOfWeek DayOfWeek { get; set; }
     public string? Notes { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
@@ -20,6 +21,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
         Date = dto.Date;
         BarberShopId = barberShopId ?? default;
         
+        DayOfWeek = Date.DayOfWeek;
         Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
@@ -30,6 +32,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
     {
         utcNow ??= DateTime.UtcNow;
         
+        DayOfWeek = dto.Date.DayOfWeek;
         Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes;
         OpenTime = dto.OpenTime;
         CloseTime = dto.CloseTime;
@@ -54,6 +57,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
         new(
             Date,
             BarberShopId,
+            DayOfWeek,
             Notes,
             OpenTime,
             CloseTime,

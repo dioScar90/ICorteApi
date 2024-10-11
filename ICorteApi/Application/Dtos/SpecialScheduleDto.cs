@@ -19,6 +19,7 @@ public record SpecialScheduleDtoUpdate(
 public record SpecialScheduleDtoResponse(
     DateOnly Date,
     int BarberShopId,
+    DayOfWeek DayOfWeek,
     string? Notes,
     TimeOnly? OpenTime,
     TimeOnly? CloseTime,

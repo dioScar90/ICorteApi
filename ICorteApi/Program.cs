@@ -66,7 +66,7 @@ if (app.Environment.IsDevelopment())
     app.Environment.WebRootPath = app.Configuration.GetValue<string>("ImagesPath")!;
 }
 
-app.DefineCultureLocalization("pt-BR");
+app.DefineCultureLocalization();
 
 using (var scope = app.Services.CreateScope())
 {
