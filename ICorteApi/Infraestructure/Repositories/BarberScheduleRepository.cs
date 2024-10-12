@@ -94,20 +94,6 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("Fazendo aqui a consulta das consultas!");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-        Console.WriteLine("---");
-
         var schedule = await _context.RecurringSchedules
             .AsNoTracking()
             .GroupJoin(_context.SpecialSchedules, // Left Join
@@ -119,11 +105,11 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             )
             .Where(x => x.rs.BarberShopId == barberShopId
                 && x.rs.DayOfWeek == date.DayOfWeek
-                && (x.ss == null || !x.ss.IsClosed))
+                && (x.ss == null || (x.ss.Date == date && !x.ss.IsClosed)))
             .Select(x => new AvailableSchedule(
                 date,
-                x.ss.Date == date ? x.ss.OpenTime ?? x.rs.OpenTime : x.rs.OpenTime,
-                x.ss.Date == date ? x.ss.CloseTime ?? x.rs.CloseTime : x.rs.CloseTime
+                x.ss == null ? x.rs.OpenTime : x.ss.OpenTime ?? x.rs.OpenTime,
+                x.ss == null ? x.rs.CloseTime : x.ss.CloseTime ?? x.rs.CloseTime
             ))
             .FirstOrDefaultAsync();
             
@@ -142,98 +128,97 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
 
     public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
     {
-        var availableDaysQuery = _context.RecurringSchedules
+        return await _context.BarberShops
             .AsNoTracking()
-            .Where(rs => rs.IsActive)
-            .GroupJoin(
-                _context.SpecialSchedules.Where(ss => ss.IsActive && firstDateOfWeek <= ss.Date && ss.Date <= lastDateOfWeek),
-                rs => new { rs.BarberShopId, AvailableDate = firstDateOfWeek.AddDays((int)rs.DayOfWeek) },
-                ss => new { ss.BarberShopId, ss.Date },
-                (rs, ssGroup) => new
-                {
-                    rs.BarberShopId,
-                    AvailableDate = firstDateOfWeek.AddDays((int)rs.DayOfWeek),
-                    SpecialSchedules = ssGroup
-                })
-            .Where(result =>
-                !result.SpecialSchedules.Any() || result.SpecialSchedules.Any(ss => ss.IsClosed == false))
-            .Where(result => result.AvailableDate >= firstDateOfWeek && result.AvailableDate <= lastDateOfWeek)
-            .Select(result => new
-            {
-                result.BarberShopId,
-                result.AvailableDate
-            })
-            .Distinct(); // Garantir que não haja duplicatas.
-
-        var topBarberShops = await _context.BarberShops
-            .Where(bs => availableDaysQuery.Any(ad => ad.BarberShopId == bs.Id))
-            .OrderByDescending(bs => bs.Rating)
+            .Join(_context.RecurringSchedules,
+                b => b.Id,
+                rs => rs.BarberShopId,
+                (b, rs) => new { b, rs })
+            .Where(x => !x.b.SpecialSchedules.Any(
+                    ss => ss.Date >= firstDateOfWeek && ss.Date <= lastDateOfWeek && ss.DayOfWeek == x.rs.DayOfWeek
+                ) || x.b.SpecialSchedules.Any(
+                    ss => ss.Date >= firstDateOfWeek && ss.Date <= lastDateOfWeek && ss.DayOfWeek == x.rs.DayOfWeek && !ss.IsClosed
+                ))
+            .OrderByDescending(x => x.b.Rating)
+                .ThenBy(x => x.b.Name)
             .Take(take)
-            .Select(bs => new TopBarberShopDtoResponse
-            {
-                Id = bs.Id,
-                Name = bs.Name,
-                Description = bs.Description,
-                Rating = bs.Rating
-            })
-            .AsNoTracking()
+            .Select(x => new TopBarberShopDtoResponse(
+                x.b.Id,
+                x.b.Name,
+                x.b.Description,
+                x.b.Rating
+            ))
+            .Distinct()
             .ToArrayAsync();
+            
+        // return await _context.Database
+        //     .SqlQuery<TopBarberShopDtoResponse>(@$"
+        //         WITH available_days AS (
+        //             SELECT 
+        //                 RS.barber_shop_id,
+        //                 DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS available_date
+        //             FROM recurring_schedules AS RS
+        //             LEFT JOIN special_schedules AS SS
+        //                 ON SS.barber_shop_id = RS.barber_shop_id
+        //                 AND SS.is_active = 1
+        //                 AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) = SS.date
+        //             WHERE RS.is_active = 1
+        //             AND (SS.is_closed IS NULL OR SS.is_closed = 0)
+        //             AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) BETWEEN {firstDateOfWeek} AND {lastDateOfWeek}
+        //             GROUP BY RS.barber_shop_id, RS.day_of_week, SS.open_time, SS.close_time
+        //         )
 
-
-        return await _context.Database
-            .SqlQuery<TopBarberShopDtoResponse>(@$"
-                WITH available_days AS (
-                    SELECT 
-                        RS.barber_shop_id,
-                        DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS available_date
-                    FROM recurring_schedules AS RS
-                    LEFT JOIN special_schedules AS SS
-                        ON SS.barber_shop_id = RS.barber_shop_id
-                        AND SS.is_active = 1
-                        AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) = SS.date
-                    WHERE RS.is_active = 1
-                    AND (SS.is_closed IS NULL OR SS.is_closed = 0)
-                    AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) BETWEEN {firstDateOfWeek} AND {lastDateOfWeek}
-                    GROUP BY RS.barber_shop_id, RS.day_of_week, SS.open_time, SS.close_time
-                )
-
-                SELECT TOP ({take}) BS.id AS Id
-                    ,BS.name AS Name
-                    ,BS.description AS Description
-                    ,BS.rating AS Rating
-                FROM barber_shops AS BS
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM available_days AS AD
-                    WHERE AD.barber_shop_id = BS.id
-                )
-                ORDER BY BS.rating DESC
-            ")
-            .AsNoTracking()
-            .ToArrayAsync();
+        //         SELECT TOP ({take}) BS.id AS Id
+        //             ,BS.name AS Name
+        //             ,BS.description AS Description
+        //             ,BS.rating AS Rating
+        //         FROM barber_shops AS BS
+        //         WHERE EXISTS (
+        //             SELECT 1
+        //             FROM available_days AS AD
+        //             WHERE AD.barber_shop_id = BS.id
+        //         )
+        //         ORDER BY BS.rating DESC
+        //     ")
+        //     .AsNoTracking()
+        //     .ToArrayAsync();
     }
 
     public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly firstDateOfWeek)
     {
-        return await _context.Database
-            // Using ORDER BY without TOP or OFFSET throws an Exception.
-            .SqlQuery<AvailableSchedule>(@$"
-                SELECT TOP (7) DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS Date
-                    ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
-                    ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
-                FROM recurring_schedules AS RS
-                    LEFT JOIN special_schedules AS SS
-                        ON SS.barber_shop_id = RS.barber_shop_id
-                            AND SS.is_active = 1
-                            AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) = SS.date
-                WHERE RS.is_active = 1
-                    AND RS.barber_shop_id = {barberShopId}
-                    AND (SS.is_closed IS NULL OR SS.is_closed = 0)
-                ORDER BY 1
-            ")
+        return await _context.RecurringSchedules
             .AsNoTracking()
-            .Select(x => x.Date)
+            .GroupJoin(_context.SpecialSchedules, // Left Join
+                rs => new { rs.BarberShopId, rs.DayOfWeek },
+                ss => new { ss.BarberShopId, ss.DayOfWeek },
+                (rs, ss) => new { rs, ss })
+            .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
+                (ssrs, ss) => new { ssrs.rs, ss })
+            .Where(x => x.rs.BarberShopId == barberShopId
+                && (x.ss == null || (x.ss.Date >= firstDateOfWeek && !x.ss.IsClosed)))
+            .OrderBy(x => x.rs.DayOfWeek)
+            .Select(x => firstDateOfWeek.AddDays((int)x.rs.DayOfWeek))
             .ToArrayAsync();
+
+        // return await _context.Database
+        //     // Using ORDER BY without TOP or OFFSET throws an Exception.
+        //     .SqlQuery<AvailableSchedule>(@$"
+        //         SELECT TOP (7) DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) AS Date
+        //             ,COALESCE(SS.open_time, RS.open_time) AS OpenTime
+        //             ,COALESCE(SS.close_time, RS.close_time) AS CloseTime
+        //         FROM recurring_schedules AS RS
+        //             LEFT JOIN special_schedules AS SS
+        //                 ON SS.barber_shop_id = RS.barber_shop_id
+        //                     AND SS.is_active = 1
+        //                     AND DATEADD(DAY, RS.day_of_week, {firstDateOfWeek}) = SS.date
+        //         WHERE RS.is_active = 1
+        //             AND RS.barber_shop_id = {barberShopId}
+        //             AND (SS.is_closed IS NULL OR SS.is_closed = 0)
+        //         ORDER BY 1
+        //     ")
+        //     .AsNoTracking()
+        //     .Select(x => x.Date)
+        //     .ToArrayAsync();
     }
 
     private record ServiceDuration(
