@@ -6,7 +6,6 @@
 # MY PERSONAL IGNORING
 appsettings.Development.json
 dotnet-alias.sh
-ICorteApi/Migrations/*
 ICorteApi/*.db
 
 # dotenv files
