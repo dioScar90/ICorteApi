@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Settings;
 
-public class RoleSeeder
+public static class RoleSeeder
 {
     public static async Task SeedRoles(IServiceProvider serviceProvider)
     {

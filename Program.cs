@@ -53,13 +53,15 @@ app.DefineCultureLocalization();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider;
+    var serviceProvider = scope.ServiceProvider;
     /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
-    // await DataSeeder.ClearAllRowsBeforeSeedAsync(roleManager);
+    // await DataSeeder.ClearAllRowsBeforeSeedAsync(serviceProvider);
     /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
 
-    await RoleSeeder.SeedRoles(roleManager);
-    await DataSeeder.SeedData(roleManager);
+    await MigrationApplier.ApplyMigration(serviceProvider);
+    
+    await RoleSeeder.SeedRoles(serviceProvider);
+    await DataSeeder.SeedData(serviceProvider);
 }
 
 app.UseRouting();

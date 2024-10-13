@@ -1,41 +1,41 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+// using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Settings;
 
 public static class DataSeeder
 {
-    public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
-    {
-        var context = serviceProvider.GetRequiredService<AppDbContext>();
+    // public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
+    // {
+    //     var context = serviceProvider.GetRequiredService<AppDbContext>();
 
-        // Desabilitar as constraints antes de limpar as tabelas (opcional)
-        await context.Database.ExecuteSqlRawAsync("EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'");
+    //     // Desabilitar as constraints antes de limpar as tabelas (opcional)
+    //     await context.Database.ExecuteSqlRawAsync("EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'");
 
-        // Executar DELETE nas tabelas mapeadas
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM messages");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM reports");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM service_appointment");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM services");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM appointments");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM recurring_schedules");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM special_schedules");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM addresses");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM barber_shops");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM profiles");
+    //     // Executar DELETE nas tabelas mapeadas
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM messages");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM reports");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM service_appointment");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM services");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM appointments");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM recurring_schedules");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM special_schedules");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM addresses");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM barber_shops");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM profiles");
 
-        // AspNet Identity tables
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoleClaims");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserClaims");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserLogins");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserRoles");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserTokens");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoles");
-        await context.Database.ExecuteSqlRawAsync("DELETE FROM asp_net_users");
+    //     // AspNet Identity tables
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoleClaims");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserClaims");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserLogins");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserRoles");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetUserTokens");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM AspNetRoles");
+    //     await context.Database.ExecuteSqlRawAsync("DELETE FROM asp_net_users");
 
-        // Habilitar as constraints novamente (opcional)
-        await context.Database.ExecuteSqlRawAsync("EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'");
-    }
+    //     // Habilitar as constraints novamente (opcional)
+    //     await context.Database.ExecuteSqlRawAsync("EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'");
+    // }
 
     public static async Task SeedData(IServiceProvider serviceProvider)
     {
