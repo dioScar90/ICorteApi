@@ -1,4 +1,3 @@
-import { httpClient } from "@/data/httpClient"
 import { AuthRepository } from "@/data/repositories/AuthRepository"
 import { UserRepository } from "@/data/repositories/UserRepository"
 import { AuthService } from "@/data/services/AuthService"
@@ -6,6 +5,7 @@ import { UserService } from "@/data/services/UserService"
 import { UserRegisterType } from "@/schemas/user"
 import { UserMe } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from "react"
+import { useProxy } from "./proxy"
 
 export type AuthUser = {
   user: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
@@ -93,6 +93,7 @@ const initialAuthState: AuthState = {
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const { httpClient } = useProxy()
   const authRepository = useMemo(() => new AuthRepository(new AuthService(httpClient)), [])
   const userRepository = useMemo(() => new UserRepository(new UserService(httpClient)), [])
   const [state, dispatch] = useReducer(authReducer, initialAuthState)

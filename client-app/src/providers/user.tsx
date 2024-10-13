@@ -1,17 +1,16 @@
-import { httpClient } from "@/data/httpClient"
 import { AuthRepository } from "@/data/repositories/AuthRepository"
 import { UserRepository } from "@/data/repositories/UserRepository"
 import { AuthService } from "@/data/services/AuthService"
 import { UserService } from "@/data/services/UserService"
 import { UserRegisterType } from "@/schemas/user"
-import { UserMe, UserRole } from "@/types/user"
+import { UserMe } from "@/types/user"
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from "react"
-import { Navigate, useLocation, useNavigate } from "react-router-dom"
+import { useProxy } from "./proxy"
 
 export type AuthUser = {
-  user?: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
-  roles?: UserMe['roles']
-  profile: UserMe['profile']
+  user: Omit<UserMe, 'roles' | 'profile' | 'barberShop'>
+  roles: UserMe['roles']
+  profile?: UserMe['profile']
   barberShop?: UserMe['barberShop']
 }
 
@@ -19,6 +18,9 @@ export type AuthContextType = {
   authUser: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
+  isClient: boolean
+  isBarberShop: boolean
+  isAdmin: boolean
   register: (data: UserRegisterType) => Promise<void>
   login: (data: UserRegisterType) => Promise<void>
   logout: () => void
@@ -36,21 +38,22 @@ export function useAuth() {
   return authContext
 }
 
-// Definindo o estado de autenticação
 export type AuthState = {
-  authUser: AuthUser | null
   isLoading: boolean
-  isAuthenticated: boolean
+  isAuthenticated: false
+  authUser: null
+} | {
+  isLoading: boolean
+  isAuthenticated: true
+  authUser: AuthUser
 }
 
-// Definindo os tipos de ações
 export type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: AuthUser }
   | { type: 'LOGIN_FAILURE' }
   | { type: 'LOGOUT' }
   | { type: 'SET_LOADING'; payload: boolean }
-
-// Função reducer que vai tratar as ações
+  
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
@@ -83,18 +86,16 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
-// Estado inicial da autenticação
 const initialAuthState: AuthState = {
   authUser: null,
   isLoading: true,
   isAuthenticated: false,
 }
 
-export function GuestProvider({ children }: PropsWithChildren) {
+export function AuthProvider({ children }: PropsWithChildren) {
+  const { httpClient } = useProxy()
   const authRepository = useMemo(() => new AuthRepository(new AuthService(httpClient)), [])
   const userRepository = useMemo(() => new UserRepository(new UserService(httpClient)), [])
-  // const location = useLocation();
-  // const navigate = useNavigate();
   const [state, dispatch] = useReducer(authReducer, initialAuthState)
 
   const register = async (data: UserRegisterType) => {
@@ -155,38 +156,11 @@ export function GuestProvider({ children }: PropsWithChildren) {
     authRepository.logout()
     dispatch({ type: 'LOGOUT' })
   }
-
-  // if (!state.authUser) {
-  //   return <Navigate to="/" replace />
-  // }
-
+  
   useEffect(() => {
     const checkAuthStatus = async () => await login()
     checkAuthStatus()
   }, [])
-
-  // useEffect(() => {
-  //   let to
-
-  //   const locationIncludes = (needle: string) => location.pathname.includes(needle)
-  //   const rolesIncludes = (role: UserRole) => state.authUser?.roles?.includes(role)
-
-  //   if (locationIncludes('dashboard') && !rolesIncludes('Admin')) {
-  //     to = '/login'
-  //   }
-
-  //   if (locationIncludes('barber-shop') && !rolesIncludes('BarberShop')) {
-  //     to = '/barber-shop/login'
-  //   }
-
-  //   if (locationIncludes('profile') && !rolesIncludes('Client')) {
-  //     to = '/login'
-  //   }
-    
-  //   if (to) {
-  //     navigate(to, { replace: true })
-  //   }
-  // }, [location])
   
   return (
     <AuthContext.Provider
@@ -194,6 +168,9 @@ export function GuestProvider({ children }: PropsWithChildren) {
         authUser: state.authUser,
         isLoading: state.isLoading,
         isAuthenticated: state.isAuthenticated,
+        isClient: !!state.authUser?.roles?.includes('Client'),
+        isBarberShop: !!state.authUser?.roles?.includes('BarberShop'),
+        isAdmin: !!state.authUser?.roles?.includes('Admin'),
         register,
         login,
         logout,

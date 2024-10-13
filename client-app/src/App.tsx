@@ -7,6 +7,9 @@ import { ClientLayout } from './components/layouts/ClientLayout'
 import { BarberShopLayout } from './components/layouts/BarberShopLayout'
 import { AdminLayout } from './components/layouts/AdminLayout'
 import { BarberScheduleLayout } from './components/layouts/BarberScheduleLayout'
+import { ProtectedClientRoute } from './protectedRoutes/client'
+import { ProtectedBarberShopRoute } from './protectedRoutes/barberShop'
+import { ProtectedAdminRoute } from './protectedRoutes/admin'
 
 export const ROUTE_ENUM = {
   ROOT: '/',
@@ -29,33 +32,37 @@ export function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           
-          <Route path={ROUTE_ENUM.CLIENT} element={<ClientLayout />}>
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
+          <Route element={<ProtectedClientRoute />}>
+            <Route path={ROUTE_ENUM.CLIENT} element={<ClientLayout />}>
+              <Route index element={<Home />} />
+            </Route>
+
+            <Route path={ROUTE_ENUM.PROFILE} element={<ClientLayout />}>
+              <Route path=":id" element={<p>Profile</p>} />
+              <Route path=":id/edit" element={<p>Edit</p>} />
+            </Route>
+
+            <Route path={ROUTE_ENUM.BARBER_SCHEDULE} element={<BarberScheduleLayout />}>
+              <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+            </Route>
           </Route>
 
-          <Route path={ROUTE_ENUM.PROFILE} element={<ClientLayout />}>
-            <Route path=":id" element={<p>Profile</p>} />
-            <Route path=":id/edit" element={<p>Edit</p>} />
+          <Route element={<ProtectedBarberShopRoute />}>
+            <Route path={ROUTE_ENUM.BARBER_SHOP} element={<BarberShopLayout />}>
+              <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+            </Route>
           </Route>
           
-          <Route path={ROUTE_ENUM.BARBER_SHOP} element={<BarberShopLayout />}>
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-          </Route>
-          
-          <Route path={ROUTE_ENUM.BARBER_SCHEDULE} element={<BarberScheduleLayout />}>
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-          </Route>
-          
-          <Route path={ROUTE_ENUM.ADMIN} element={<AdminLayout />}>
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
+          <Route element={<ProtectedAdminRoute />}>
+            <Route path={ROUTE_ENUM.ADMIN} element={<AdminLayout />}>
+              <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+            </Route>
           </Route>
         </Route>
       </Route>
