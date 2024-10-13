@@ -6,11 +6,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql( // PostgreSQL
     // options.UseSqlServer( // SLQ Server
     // options.UseSqlite( // SQLite
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+        builder.Configuration.GetConnectionString(connectionString),
         assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
 );
 
@@ -59,7 +62,7 @@ using (var scope = app.Services.CreateScope())
     /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
 
     await MigrationApplier.ApplyMigration(serviceProvider);
-    
+
     await RoleSeeder.SeedRoles(serviceProvider);
     await DataSeeder.SeedData(serviceProvider);
 }
