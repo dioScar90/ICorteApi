@@ -13,9 +13,11 @@ public static class MigrationApplier
         Console.WriteLine();
         Console.WriteLine("db");
         Console.WriteLine(db);
+        Console.WriteLine(db.Database);
         Console.WriteLine();
         Console.WriteLine();
         Console.WriteLine();
+        
         await db.Database.MigrateAsync();
     }
 }

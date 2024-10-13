@@ -6,11 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
-var pgHost = Environment.GetEnvironmentVariable("PG_HOST");
-var pgPort = Environment.GetEnvironmentVariable("PG_PORT");
-var pgDb = Environment.GetEnvironmentVariable("PG_DATABASE");
-var pgUser = Environment.GetEnvironmentVariable("PG_USER");
-var pgPass = Environment.GetEnvironmentVariable("PG_PASSWORD");
+var pgHost = Environment.GetEnvironmentVariable("PGHOST");
+var pgPort = Environment.GetEnvironmentVariable("PGPORT");
+var pgDb = Environment.GetEnvironmentVariable("PGDATABASE");
+var pgUser = Environment.GetEnvironmentVariable("PGUSER");
+var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD");
 
 Console.WriteLine("pgHost => " + pgHost);
 Console.WriteLine("pgPort => " + pgPort);
