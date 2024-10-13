@@ -91,6 +91,8 @@ app.UseRouting();
 // This call must be between `UseRouting` and `UseEndpoints`.
 // app.UseAntiforgery();
 
+app.UseHttpsRedirection();
+
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
 app.UseAuthorization();
