@@ -1,19 +1,27 @@
-# https://hub.docker.com/_/microsoft-dotnet
+# Usar a imagem do SDK .NET 8.0
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /source
 
-# copy csproj and restore as distinct layers
-# COPY *.sln .
-COPY ICorteApi/*.csproj ./ICorteApi/
-RUN dotnet restore
+# Definir o diretório de trabalho
+WORKDIR /src
 
-# copy everything else and build app
-COPY ICorteApi/. ./ICorteApi/
-WORKDIR /source/ICorteApi
-RUN dotnet publish -c release -o /app --no-restore
+# Copiar o arquivo .csproj e restaurar as dependências
+COPY ["ICorteApi.csproj", "./"]
+RUN dotnet restore "ICorteApi.csproj"
 
-# final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Copiar o restante dos arquivos
+COPY . .
+
+# Compilar o projeto
+RUN dotnet publish "ICorteApi.csproj" -c Release -o /app/publish
+
+# Usar a imagem do runtime .NET
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+# Definir o diretório de trabalho
 WORKDIR /app
-COPY --from=build /app ./
+
+# Copiar os arquivos publicados do estágio anterior
+COPY --from=build /app/publish .
+
+# Definir o ponto de entrada
 ENTRYPOINT ["dotnet", "ICorteApi.dll"]
