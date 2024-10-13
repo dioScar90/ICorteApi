@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copie os arquivos do projeto
-COPY . .
+COPY ICorteApi/. ./ICorteApi/
 
 # Restaure as dependências
 RUN dotnet restore "ICorteApi/ICorteApi.csproj"
