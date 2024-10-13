@@ -6,8 +6,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
+var pgHost = Environment.GetEnvironmentVariable("PG_HOST");
+var pgPort = Environment.GetEnvironmentVariable("PG_PORT");
+var pgDb = Environment.GetEnvironmentVariable("PG_DATABASE");
+var pgUser = Environment.GetEnvironmentVariable("PG_USER");
+var pgPass = Environment.GetEnvironmentVariable("PG_PASSWORD");
+
+Console.WriteLine("pgHost => " + pgHost);
+Console.WriteLine("pgPort => " + pgPort);
+Console.WriteLine("pgDb => " + pgDb);
+Console.WriteLine("pgUser => " + pgUser);
+Console.WriteLine("pgPass => " + pgPass);
+
+var connectionString = "Host=${PG_HOST};Port=${PG_PORT};Database=${PG_DATABASE};Username=${PG_USER};Password=${PG_PASSWORD};";
+
+// var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+ArgumentNullException.ThrowIfNullOrEmpty(pgHost, nameof(pgHost));
+ArgumentNullException.ThrowIfNullOrEmpty(pgPort, nameof(pgPort));
+ArgumentNullException.ThrowIfNullOrEmpty(pgDb, nameof(pgDb));
+ArgumentNullException.ThrowIfNullOrEmpty(pgUser, nameof(pgUser));
+ArgumentNullException.ThrowIfNullOrEmpty(pgPass, nameof(pgPass));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql( // PostgreSQL
