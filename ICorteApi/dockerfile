@@ -9,12 +9,12 @@ COPY . .
 RUN dotnet restore "ICorteApi/ICorteApi.csproj"
 
 # Compile o projeto
-RUN dotnet publish "ICorteApi/ICorteApi.csproj" -c Release -o out
+RUN dotnet publish "ICorteApi/ICorteApi.csproj" -c Release -o /app/publish
 
 # Fase de runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=build /app/out ./
+COPY --from=build /app/publish .
 
 # Comando para iniciar a aplicação
 ENTRYPOINT ["dotnet", "ICorteApi.dll"]
