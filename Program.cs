@@ -19,7 +19,7 @@ Console.WriteLine("pgUser => " + pgUser);
 Console.WriteLine("pgPass => " + pgPass);
 
 var connectionString = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};";
-Console.WriteLine("connectionString => " + pgPass);
+Console.WriteLine("connectionString => " + connectionString);
 
 // var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 ArgumentNullException.ThrowIfNullOrEmpty(pgHost, nameof(pgHost));
