@@ -6,6 +6,8 @@ public static class ConfigureEndpoints
 {
     public static IEndpointRouteBuilder ConfigureMyEndpoints(this IEndpointRouteBuilder endpointBuilder)
     {
+        endpointBuilder.MapGet("/", () => "Hello, world!");
+        
         return endpointBuilder
             .MapAuthEndpoint()
             .MapAddressEndpoint()
