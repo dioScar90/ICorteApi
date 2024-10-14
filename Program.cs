@@ -4,6 +4,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var apiPort = Environment.GetEnvironmentVariable("API_HOST");
+ArgumentNullException.ThrowIfNullOrEmpty(apiPort, nameof(apiPort));
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(int.Parse(apiPort)));
+
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
 var pgHost = Environment.GetEnvironmentVariable("PG_HOST");
