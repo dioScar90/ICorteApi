@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var apiPort = Environment.GetEnvironmentVariable("API_HOST");
+var apiPort = Environment.GetEnvironmentVariable("API_PORT");
 ArgumentNullException.ThrowIfNullOrEmpty(apiPort, nameof(apiPort));
 builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(int.Parse(apiPort)));
 
