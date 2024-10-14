@@ -5,19 +5,13 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 var apiHttpPort = Environment.GetEnvironmentVariable("API_HTTP_PORT");
-var apiHttpsPort = Environment.GetEnvironmentVariable("API_HTTPS_PORT");
-
 ArgumentNullException.ThrowIfNullOrEmpty(apiHttpPort, nameof(apiHttpPort));
-ArgumentNullException.ThrowIfNullOrEmpty(apiHttpsPort, nameof(apiHttpsPort));
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    // Escutando na porta HTTP (normalmente Railway usa 8080 para HTTP)
-    options.ListenAnyIP(int.Parse(apiHttpPort));
-
-    // Escutando na porta HTTPS
-    options.ListenAnyIP(int.Parse(apiHttpsPort), listenOptions => listenOptions.UseHttps());
-});
+// Em ambientes de produção, como o Railway, geralmente o proxy (ou plataforma)
+// cuida do SSL/HTTPS externamente, e sua aplicação deve escutar apenas na porta 
+// TTP (sem configurar o HTTPS manualmente). GPT
+// Porém mantenha `app.UseHttpsRedirection()` ativo. GPT
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(int.Parse(apiHttpPort)));
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
@@ -102,6 +96,13 @@ app.UseRouting();
 
 if (!app.Environment.IsDevelopment())
 {
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine("PRODUCTIOOOOOOOOOOOOON!");
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
     app.UseHttpsRedirection();
 }
 
