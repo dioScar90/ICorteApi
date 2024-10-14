@@ -12,14 +12,7 @@ var pgDb = Environment.GetEnvironmentVariable("PG_DATABASE");
 var pgUser = Environment.GetEnvironmentVariable("PG_USER");
 var pgPass = Environment.GetEnvironmentVariable("PG_PASSWORD");
 
-Console.WriteLine("pgHost => " + pgHost);
-Console.WriteLine("pgPort => " + pgPort);
-Console.WriteLine("pgDb => " + pgDb);
-Console.WriteLine("pgUser => " + pgUser);
-Console.WriteLine("pgPass => " + pgPass);
-
 var connectionString = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};";
-Console.WriteLine("connectionString => " + connectionString);
 
 // var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 ArgumentNullException.ThrowIfNullOrEmpty(pgHost, nameof(pgHost));
@@ -32,7 +25,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql( // PostgreSQL
     // options.UseSqlServer( // SLQ Server
     // options.UseSqlite( // SQLite
-        builder.Configuration.GetConnectionString(connectionString),
+        // builder.Configuration.GetConnectionString(connectionString),
+        connectionString,
         assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
 );
 
