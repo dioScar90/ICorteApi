@@ -60,13 +60,13 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
     
-    app.Environment.WebRootPath = app.Configuration.GetValue<string>("ImagesPath")!;
+    app.Environment.WebRootPath = app.Configuration.GetValue<string?>("ImagesPath") ?? "nothing";
 }
 
 app.DefineCultureLocalization();
@@ -93,6 +93,7 @@ app.UseHttpsRedirection();
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Configuring all application endpoints.
