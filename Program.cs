@@ -4,9 +4,20 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var apiPort = Environment.GetEnvironmentVariable("API_PORT");
-ArgumentNullException.ThrowIfNullOrEmpty(apiPort, nameof(apiPort));
-builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(int.Parse(apiPort)));
+var apiHttpPort = Environment.GetEnvironmentVariable("API_HTTP_PORT");
+var apiHttpsPort = Environment.GetEnvironmentVariable("API_HTTPS_PORT");
+
+ArgumentNullException.ThrowIfNullOrEmpty(apiHttpPort, nameof(apiHttpPort));
+ArgumentNullException.ThrowIfNullOrEmpty(apiHttpsPort, nameof(apiHttpsPort));
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // Escutando na porta HTTP (normalmente Railway usa 8080 para HTTP)
+    options.ListenAnyIP(int.Parse(apiHttpPort));
+
+    // Escutando na porta HTTPS
+    options.ListenAnyIP(int.Parse(apiHttpsPort), listenOptions => listenOptions.UseHttps());
+});
 
 // builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
 
@@ -89,7 +100,10 @@ app.UseRouting();
 // This call must be between `UseRouting` and `UseEndpoints`.
 // app.UseAntiforgery();
 
-// app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
