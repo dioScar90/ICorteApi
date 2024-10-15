@@ -97,22 +97,22 @@ public static class DataSeeder
         try
         {
             // 1. Consultar todas as tabelas no esquema público (exceto tabelas de sistema)
-            var tables = await context.Database.ExecuteSqlRawAsync(@"
+            await context.Database.ExecuteSqlRawAsync(@"
                 DO $$ 
                 DECLARE
-                    table_name text;
+                    t_name text;
                 BEGIN
                     -- Desabilitar temporariamente as constraints de foreign key
                     EXECUTE 'SET CONSTRAINTS ALL DEFERRED';
 
                     -- Loop sobre todas as tabelas no esquema público e excluir todas as linhas
-                    FOR table_name IN 
+                    FOR t_name IN 
                         SELECT table_name 
                         FROM information_schema.tables 
                         WHERE table_schema = 'public' 
                         AND table_type = 'BASE TABLE' 
                     LOOP
-                        EXECUTE 'DELETE FROM ' || quote_ident(table_name) || ' CASCADE';
+                        EXECUTE 'DELETE FROM ' || quote_ident(t_name) || ' CASCADE';
                     END LOOP;
 
                     -- Reativar as constraints
@@ -133,6 +133,7 @@ public static class DataSeeder
             throw;
         }
     }
+
     
     public static async Task SeedData(IServiceProvider serviceProvider)
     {
