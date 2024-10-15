@@ -8,8 +8,8 @@ public sealed class AdminService(IAdminRepository repository, IAdminErrors error
 
     public async Task RemoveAllRows(string passphrase, string userEmail)
     {
-        var passphraseHardDelete = Environment.GetEnvironmentVariable("PASSPHRASE_HARD_DELETE");
-        var emailHardDelete = Environment.GetEnvironmentVariable("EMAIL_HARD_DELETE");
+        var passphraseHardDelete = Environment.GetEnvironmentVariable("PASSPHRASE_TO_HARD_DELETE");
+        var emailHardDelete = Environment.GetEnvironmentVariable("EMAIL_TO_HARD_DELETE");
 
         Console.WriteLine();
         Console.WriteLine();
