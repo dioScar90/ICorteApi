@@ -80,14 +80,14 @@ public static class DataSeeder
         Console.WriteLine("\n\n\n\n\n\n\n\n\nHere starts ExecuteUpdateAsync\n\n\n");
 
         await db.Profiles
-            .Where(p => p.ImageUrl == null)
+            .Where(p => p.ImageUrl != null)
             .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.ImageUrl,
-                p => profileBaseUrl + "/" + (p.Gender == Gender.Male ? "men" : "women") + "/" + (99 - p.Id)));
+                p => profileBaseUrl + "/" + (p.Gender == Gender.Male ? "men" : "women") + "/" + (99 - p.Id) + ".jpg"));
 
         await db.BarberShops
-            .Where(p => p.ImageUrl == null)
+            .Where(p => p.ImageUrl != null)
             .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.ImageUrl,
-                p => barberShopBaseUrl + "/" + (950 - p.Id) + "/300"));
+                p => barberShopBaseUrl + "/" + (950 - p.OwnerId) + "/300"));
     }
     
     private static HashSet<string> GetUserRolesToBeSetted(User user)
