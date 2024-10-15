@@ -98,7 +98,6 @@ app.UseRouting();
 if (!app.Environment.IsDevelopment())
 {
     Console.WriteLine("\n\n\nPRODUCTIOOOOOOOOOOOOON!\n\n\n");
-
     app.UseHttpsRedirection();
 }
 
@@ -110,8 +109,6 @@ app.UseAuthorization();
 app.ConfigureMyEndpoints();
 
 app.UseExceptionHandler("/error");
-
-app.UseStaticFiles();
 
 // Regenera o token de sessão na inicialização
 SessionTokenManager.RegenerateToken();

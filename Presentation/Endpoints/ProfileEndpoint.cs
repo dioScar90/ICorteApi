@@ -22,10 +22,6 @@ public static class ProfileEndpoint
         group.MapPut("{id}", UpdateProfile)
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPatch("{id}/image", UpdateProfileImage) // Endpoint para troca de imagem
-            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh))
-            .DisableAntiforgery();
-
         return app;
     }
 
@@ -64,17 +60,6 @@ public static class ProfileEndpoint
     {
         int userId = await userService.GetMyUserIdAsync();
         await service.UpdateAsync(dto, id, userId);
-        return Results.NoContent();
-    }
-
-    public static async Task<IResult> UpdateProfileImage(
-        int id,
-        IFormFile image,
-        IProfileService service,
-        IUserService userService)
-    {
-        int userId = await userService.GetMyUserIdAsync();
-        await service.UpdateProfileImageAsync(id, userId, image);
         return Results.NoContent();
     }
 }

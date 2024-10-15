@@ -34,7 +34,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IBarberScheduleService, BarberScheduleService>();
         services.AddScoped<IBarberShopService, BarberShopService>();
-        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
