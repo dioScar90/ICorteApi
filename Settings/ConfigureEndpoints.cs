@@ -10,6 +10,7 @@ public static class ConfigureEndpoints
         
         return endpointBuilder
             .MapAuthEndpoint()
+            .MapAdminEndpoint()
             .MapAddressEndpoint()
             .MapAppointmentEndpoint()
             .MapBarberScheduleEndpoint()
