@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
+        services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IBarberScheduleRepository, BarberScheduleRepository>();
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IBarberScheduleService, BarberScheduleService>();
@@ -47,8 +49,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddErrors(this IServiceCollection services)
     {
-        services.AddScoped<IAddressErrors, AddressErrors>();
         services.AddScoped<IAdminErrors, AdminErrors>();
+        services.AddScoped<IAddressErrors, AddressErrors>();
         services.AddScoped<IAppointmentErrors, AppointmentErrors>();
         services.AddScoped<IProfileErrors, ProfileErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
