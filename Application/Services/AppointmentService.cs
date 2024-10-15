@@ -45,7 +45,12 @@ public sealed class AppointmentService(
 
     public async Task<AppointmentDtoResponse> GetByIdAsync(int id)
     {
-        return (await _repository.GetByIdWithServicesAsync(id))!.CreateDto();
+        var appointment = await base.GetByIdAsync(id);
+
+        if (appointment is null)
+            _errors.ThrowNotFoundException();
+        
+        return appointment!.CreateDto();
     }
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(int? page, int? pageSize, int clientId)

@@ -23,7 +23,12 @@ public sealed class RecurringScheduleService(
 
     public async Task<RecurringScheduleDtoResponse> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return (await base.GetByIdAsync(dayOfWeek, barberShopId))!.CreateDto();
+        var schedule = await base.GetByIdAsync(dayOfWeek, barberShopId);
+
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
+        
+        return schedule!.CreateDto();
     }
     
     public async Task<PaginationResponse<RecurringScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)

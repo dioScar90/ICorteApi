@@ -23,7 +23,12 @@ public sealed class SpecialScheduleService(
 
     public async Task<SpecialScheduleDtoResponse> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return (await base.GetByIdAsync(date, barberShopId))!.CreateDto();
+        var schedule = await base.GetByIdAsync(date, barberShopId);
+
+        if (schedule is null)
+            _errors.ThrowNotFoundException();
+
+        return schedule!.CreateDto();
     }
     
     public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)

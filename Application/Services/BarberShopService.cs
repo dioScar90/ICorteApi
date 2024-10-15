@@ -23,7 +23,12 @@ public sealed class BarberShopService(
     
     public async Task<BarberShopDtoResponse> GetByIdAsync(int id)
     {
-        return (await base.GetByIdAsync(id))!.CreateDto();
+        var barberShop = await base.GetByIdAsync(id);
+
+        if (barberShop is null)
+            _errors.ThrowNotFoundException();
+            
+        return barberShop!.CreateDto();
     }
     
     public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)
