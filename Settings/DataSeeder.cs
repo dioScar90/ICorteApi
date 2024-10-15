@@ -37,6 +37,103 @@ public static class DataSeeder
     //     await context.Database.ExecuteSqlRawAsync("EXEC sp_MSforeachtable @command1 = 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'");
     // }
 
+    // public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
+    // {
+    //     var context = serviceProvider.GetRequiredService<AppDbContext>();
+
+    //     // 1. Desativar as constraints de maneira genérica não é tão comum no PostgreSQL quanto no SQL Server.
+    //     // No entanto, em alguns casos, pode-se optar por truncar as tabelas (isso depende se as constraints podem ser restauradas sem problemas).
+    //     // As constraints podem ser manualmente gerenciadas, ou você pode utilizar transações.
+
+    //     // Iniciar uma transação
+    //     using var transaction = await context.Database.BeginTransactionAsync();
+
+    //     try
+    //     {
+    //         // 2. Limpar as tabelas de domínio
+    //         context.Messages.RemoveRange(context.Messages);
+    //         context.Reports.RemoveRange(context.Reports);
+    //         context.ServiceAppointments.RemoveRange(context.ServiceAppointments);
+    //         context.Services.RemoveRange(context.Services);
+    //         context.Appointments.RemoveRange(context.Appointments);
+    //         context.RecurringSchedules.RemoveRange(context.RecurringSchedules);
+    //         context.SpecialSchedules.RemoveRange(context.SpecialSchedules);
+    //         context.Addresses.RemoveRange(context.Addresses);
+    //         context.BarberShops.RemoveRange(context.BarberShops);
+    //         context.Profiles.RemoveRange(context.Profiles);
+
+    //         // 3. Limpar as tabelas de AspNet Identity
+    //         context.AspNetRoleClaims.RemoveRange(context.AspNetRoleClaims);
+    //         context.AspNetUserClaims.RemoveRange(context.AspNetUserClaims);
+    //         context.AspNetUserLogins.RemoveRange(context.AspNetUserLogins);
+    //         context.AspNetUserRoles.RemoveRange(context.AspNetUserRoles);
+    //         context.AspNetUserTokens.RemoveRange(context.AspNetUserTokens);
+    //         context.AspNetRoles.RemoveRange(context.AspNetRoles);
+    //         context.AspNetUsers.RemoveRange(context.AspNetUsers);
+
+    //         // 4. Salvar as alterações
+    //         await context.SaveChangesAsync();
+
+    //         // 5. Commitar a transação
+    //         await transaction.CommitAsync();
+    //     }
+    //     catch
+    //     {
+    //         // Rollback em caso de falha
+    //         await transaction.RollbackAsync();
+    //         throw;
+    //     }
+
+    //     // 6. Opcional: Dependendo do comportamento das constraints, pode ser necessário reiniciar algumas delas manualmente.
+    // }
+
+    public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<AppDbContext>();
+
+        // Iniciar uma transação
+        using var transaction = await context.Database.BeginTransactionAsync();
+
+        try
+        {
+            // 1. Consultar todas as tabelas no esquema público (exceto tabelas de sistema)
+            var tables = await context.Database.ExecuteSqlRawAsync(@"
+                DO $$ 
+                DECLARE
+                    table_name text;
+                BEGIN
+                    -- Desabilitar temporariamente as constraints de foreign key
+                    EXECUTE 'SET CONSTRAINTS ALL DEFERRED';
+
+                    -- Loop sobre todas as tabelas no esquema público e excluir todas as linhas
+                    FOR table_name IN 
+                        SELECT table_name 
+                        FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_type = 'BASE TABLE' 
+                    LOOP
+                        EXECUTE 'DELETE FROM ' || quote_ident(table_name) || ' CASCADE';
+                    END LOOP;
+
+                    -- Reativar as constraints
+                    EXECUTE 'SET CONSTRAINTS ALL IMMEDIATE';
+                END $$;
+            ");
+
+            // 2. Salvar as alterações
+            await context.SaveChangesAsync();
+
+            // 3. Commitar a transação
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            // Rollback em caso de falha
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+    
     public static async Task SeedData(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
