@@ -12,8 +12,9 @@ public static class AdminEndpoint
             .WithTags(ENDPOINT_NAME);
 
         group.MapPost("remove-all", RemoveAllRows)
-            .RequireAuthorization(nameof(PolicyUserRole.AdminOnly))
-            .WithDescription("Remove all rows in all tables - *** BEWARE ***");
+            .WithName("RemoveAllRows")
+            .WithDescription("Remove all rows in all tables - *** BEWARE ***")
+            .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
 
         return app;
     }

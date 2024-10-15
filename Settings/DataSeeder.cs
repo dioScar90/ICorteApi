@@ -120,7 +120,7 @@ public static class DataSeeder
         return roles;
     }
     
-    private static User[] GetAllUsersToMock() =>
+    public static User[] GetAllUsersToMock() =>
         [
             ..GetAdminUsers(),
             ..GetBarberShopUsers(),
