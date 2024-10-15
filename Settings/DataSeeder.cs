@@ -96,34 +96,15 @@ public static class DataSeeder
 
         try
         {
-            // 1. Consultar todas as tabelas no esquema público (exceto tabelas de sistema)
-            await context.Database.ExecuteSqlRawAsync(@"
-                DO $$ 
-                DECLARE
-                    t_name text;
-                BEGIN
-                    -- Desabilitar temporariamente as constraints de foreign key
-                    EXECUTE 'SET CONSTRAINTS ALL DEFERRED';
+            // Apagar e recriar o esquema 'public'
+            await context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
+            await context.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
+            
+            // Restaurar permissões
+            await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO postgres;");
+            await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO public;");
 
-                    -- Loop sobre todas as tabelas no esquema público e excluir todas as linhas
-                    FOR t_name IN 
-                        SELECT table_name 
-                        FROM information_schema.tables 
-                        WHERE table_schema = 'public' 
-                        AND table_type = 'BASE TABLE' 
-                    LOOP
-                        EXECUTE 'DELETE FROM ' || quote_ident(t_name) || ' CASCADE';
-                    END LOOP;
-
-                    -- Reativar as constraints
-                    EXECUTE 'SET CONSTRAINTS ALL IMMEDIATE';
-                END $$;
-            ");
-
-            // 2. Salvar as alterações
-            await context.SaveChangesAsync();
-
-            // 3. Commitar a transação
+            // Commitar a transação
             await transaction.CommitAsync();
         }
         catch (Exception ex)
@@ -133,6 +114,7 @@ public static class DataSeeder
             throw;
         }
     }
+
 
     
     public static async Task SeedData(IServiceProvider serviceProvider)
