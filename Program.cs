@@ -87,6 +87,7 @@ using (var scope = app.Services.CreateScope())
 
     await RoleSeeder.SeedRoles(serviceProvider);
     await DataSeeder.SeedData(serviceProvider);
+    // await DataSeeder.UpdateImageUrlsForFirstTime(serviceProvider);
 }
 
 app.UseRouting();
@@ -96,19 +97,13 @@ app.UseRouting();
 
 if (!app.Environment.IsDevelopment())
 {
-    Console.WriteLine();
-    Console.WriteLine();
-    Console.WriteLine();
-    Console.WriteLine("PRODUCTIOOOOOOOOOOOOON!");
-    Console.WriteLine();
-    Console.WriteLine();
-    Console.WriteLine();
+    Console.WriteLine("\n\n\nPRODUCTIOOOOOOOOOOOOON!\n\n\n");
+
     app.UseHttpsRedirection();
 }
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
-app.UseAuthentication();
 app.UseAuthorization();
 
 // Configuring all application endpoints.

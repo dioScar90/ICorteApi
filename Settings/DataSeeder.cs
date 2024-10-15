@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-// using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Settings;
 
@@ -66,6 +66,28 @@ public static class DataSeeder
             
             await userManager.AddToRolesAsync(user, [..GetUserRolesToBeSetted(user)]);
         }
+
+        await UpdateImageUrlsForFirstTime(serviceProvider);
+    }
+    
+    private static async Task UpdateImageUrlsForFirstTime(IServiceProvider serviceProvider)
+    {
+        string profileBaseUrl = Profile.GetProfileBaseImageUrlPlaceholder();
+        string barberShopBaseUrl = BarberShop.GetBarberShopBaseImageUrlPlaceholder();
+        
+        var db = serviceProvider.GetRequiredService<AppDbContext>();
+
+        Console.WriteLine("\n\n\n\n\n\n\n\n\nHere starts ExecuteUpdateAsync\n\n\n");
+
+        await db.Profiles
+            .Where(p => p.ImageUrl == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.ImageUrl,
+                p => profileBaseUrl + "/" + (p.Gender == Gender.Male ? "men" : "women") + "/" + (99 - p.Id)));
+
+        await db.BarberShops
+            .Where(p => p.ImageUrl == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.ImageUrl,
+                p => barberShopBaseUrl + "/" + (950 - p.Id) + "/300"));
     }
     
     private static HashSet<string> GetUserRolesToBeSetted(User user)

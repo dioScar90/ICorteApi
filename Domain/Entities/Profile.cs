@@ -21,9 +21,22 @@ public sealed class Profile : BaseEntity<Profile>
         FirstName = dto.FirstName;
         LastName = dto.LastName;
         Gender = dto.Gender;
+        ImageUrl = userId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder, dto.Gender) : default;
 
         _phoneNumber = dto.PhoneNumber;
     }
+
+    public static string GetProfileBaseImageUrlPlaceholder() => "https://randomuser.me/api/portraits";
+    
+    private static string GetImageUrlPlaceholder(int id, Gender gender)
+    {
+        string baseUrl = GetProfileBaseImageUrlPlaceholder();
+        string sex = gender is Gender.Male ? "men" : "women";
+        id = 99 - id;
+        return $"{baseUrl}/{sex}/{id}.jpg";
+    }
+
+    private void UpdateImageUrlIfFirstTime() => ImageUrl ??= GetImageUrlPlaceholder(Id, Gender);
 
     public string GetPhoneNumberToUserEntity() => _phoneNumber;
 
@@ -34,6 +47,8 @@ public sealed class Profile : BaseEntity<Profile>
         FirstName = dto.FirstName;
         LastName = dto.LastName;
         Gender = dto.Gender;
+
+        UpdateImageUrlIfFirstTime();
 
         UpdatedAt = utcNow;
     }

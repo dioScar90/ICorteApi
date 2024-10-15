@@ -42,8 +42,20 @@ public sealed class BarberShop : BaseEntity<BarberShop>
         if (dto.Services is not null)
             Services = dto.Services.Select(s => new Service(s)).ToArray();
 
+        ImageUrl = ownerId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder) : default;
         OwnerId = ownerId ?? default;
     }
+
+    public static string GetBarberShopBaseImageUrlPlaceholder() => "https://placebear.com";
+
+    private static string GetImageUrlPlaceholder(int id)
+    {
+        string baseUrl = GetBarberShopBaseImageUrlPlaceholder();
+        id = 950 - id;
+        return $"{baseUrl}/{id}/300";
+    }
+
+    private void UpdateImageUrlIfFirstTime() => ImageUrl ??= GetImageUrlPlaceholder(OwnerId);
 
     public void UpdateRating(float rating) => Rating = rating;
 
@@ -58,6 +70,8 @@ public sealed class BarberShop : BaseEntity<BarberShop>
 
         if (dto.Address is not null)
             Address?.UpdateEntityByDto(dto.Address, utcNow);
+
+        UpdateImageUrlIfFirstTime();
 
         UpdatedAt = utcNow;
     }

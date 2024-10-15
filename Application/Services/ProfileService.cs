@@ -72,7 +72,7 @@ public sealed class ProfileService(
         // Salve a imagem no sistema de arquivos ou em um serviço de nuvem
         string imageUrl = await _imageService.SaveImageAsync(image);
 
-        profile.UpdateImageUrl(imageUrl);
+        // profile.UpdateImageUrl(imageUrl);
         return await _repository.UpdateAsync(profile);
     }
 }
