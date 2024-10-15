@@ -87,6 +87,34 @@ public static class DataSeeder
     //     // 6. Opcional: Dependendo do comportamento das constraints, pode ser necessário reiniciar algumas delas manualmente.
     // }
 
+    // public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
+    // {
+    //     var context = serviceProvider.GetRequiredService<AppDbContext>();
+
+    //     // Iniciar uma transação
+    //     using var transaction = await context.Database.BeginTransactionAsync();
+
+    //     try
+    //     {
+    //         // Apagar e recriar o esquema 'public'
+    //         await context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
+    //         await context.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
+            
+    //         // Restaurar permissões
+    //         await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO postgres;");
+    //         await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO public;");
+
+    //         // Commitar a transação
+    //         await transaction.CommitAsync();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         // Rollback em caso de falha
+    //         await transaction.RollbackAsync();
+    //         throw;
+    //     }
+    // }
+
     public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
@@ -96,13 +124,44 @@ public static class DataSeeder
 
         try
         {
-            // Apagar e recriar o esquema 'public'
-            await context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
-            await context.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
+            // context.Messages.RemoveRange(context.Messages);
+            // context.Reports.RemoveRange(context.Reports);
+
+            // context.Appointments.RemoveRange(context.Appointments);
+            // context.Services.RemoveRange(context.Services);
             
-            // Restaurar permissões
-            await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO postgres;");
-            await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO public;");
+            // context.SpecialSchedules.RemoveRange(context.SpecialSchedules);
+            // context.RecurringSchedules.RemoveRange(context.RecurringSchedules);
+            // context.Addresses.RemoveRange(context.Addresses);
+            // context.BarberShops.RemoveRange(context.BarberShops);
+            
+            // context.Profiles.RemoveRange(context.Profiles);
+
+            await context.Messages.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Reports.IgnoreQueryFilters().ExecuteDeleteAsync();
+
+            await context.Appointments.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Services.IgnoreQueryFilters().ExecuteDeleteAsync();
+            
+            await context.SpecialSchedules.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.RecurringSchedules.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Addresses.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.BarberShops.IgnoreQueryFilters().ExecuteDeleteAsync();
+            
+            await context.Profiles.IgnoreQueryFilters().ExecuteDeleteAsync();
+
+            await context.Users
+                .IgnoreQueryFilters()
+                .Where(u => u.Email != "diogols@live.com")
+                .ExecuteDeleteAsync();
+
+            // // Apagar e recriar o esquema 'public'
+            // await context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE;");
+            // await context.Database.ExecuteSqlRawAsync("CREATE SCHEMA public;");
+            
+            // // Restaurar permissões
+            // await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO postgres;");
+            // await context.Database.ExecuteSqlRawAsync("GRANT ALL ON SCHEMA public TO public;");
 
             // Commitar a transação
             await transaction.CommitAsync();
