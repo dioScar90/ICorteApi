@@ -80,7 +80,7 @@ using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
     /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
-    await DataSeeder.ClearAllRowsBeforeSeedAsync(serviceProvider);
+    // await DataSeeder.ClearAllRowsBeforeSeedAsync(serviceProvider);
     /* DESCOMENTE ISSO APENAS EM CASO DE NECESSIDADE E DEPOIS COMENTE NOVAMENTE PELO AMOR DE DEUS */
 
     await MigrationApplier.ApplyMigration(serviceProvider);

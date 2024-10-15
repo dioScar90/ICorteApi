@@ -3,6 +3,7 @@ namespace ICorteApi.Presentation.Endpoints;
 public static class EndpointNames
 {
     public static readonly string Address = "Address";
+    public static readonly string Admin = "Admin";
     public static readonly string Appointment = "Appointment";
     public static readonly string Auth = "Auth";
     public static readonly string BarberShop = "Barber Shop";

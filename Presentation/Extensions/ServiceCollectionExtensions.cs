@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddErrors(this IServiceCollection services)
     {
         services.AddScoped<IAddressErrors, AddressErrors>();
+        services.AddScoped<IAdminErrors, AdminErrors>();
         services.AddScoped<IAppointmentErrors, AppointmentErrors>();
         services.AddScoped<IProfileErrors, ProfileErrors>();
         services.AddScoped<IBarberShopErrors, BarberShopErrors>();
