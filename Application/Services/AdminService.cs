@@ -11,6 +11,16 @@ public sealed class AdminService(IAdminRepository repository, IAdminErrors error
         var passphraseHardDelete = Environment.GetEnvironmentVariable("PASSPHRASE_HARD_DELETE");
         var emailHardDelete = Environment.GetEnvironmentVariable("EMAIL_HARD_DELETE");
 
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine("passphraseHardDelete => " + passphraseHardDelete);
+        Console.WriteLine("emailHardDelete => " + emailHardDelete);
+        Console.WriteLine("passphrase => " + passphrase);
+        Console.WriteLine("userEmail => " + userEmail);
+
         if (string.IsNullOrEmpty(passphraseHardDelete))
             _errors.ThrowNullPassphaseException();
 
