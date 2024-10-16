@@ -4,22 +4,23 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberScheduleEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberSchedule;
-    private static readonly string ENDPOINT_NAME = EndpointNames.BarberSchedule;
-
     public static IEndpointRouteBuilder MapBarberScheduleEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-schedule").WithTags("Barber Schedule");
 
         group.MapGet("{barberShopId}/dates/{dateOfWeek}", GetAvailableDatesForBarberAsync)
+            .WithSummary("Get Available Dates For Barber")
+            .WithDescription("Get all available dates a barber has in a specific week by providing one of that week's date.")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("{barberShopId}/slots/{date}", GetAvailableSlotsAsync)
+            .WithSummary("Get Available Slots")
+            .WithDescription("Get all possible slots of time a barber has to get a new appointment in a specific day by providing also the wishing services.")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         group.MapGet("top-barbers/{dateOfWeek}", GetTopBarbersWithAvailabilityAsync)
+            .WithSummary("Get Top Barbers With Availability")
+            .WithDescription("Get the barbers with the highest rates with available times to get new appointments in a specific week by providing one of that week's date.")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;

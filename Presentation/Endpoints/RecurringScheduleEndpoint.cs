@@ -4,41 +4,37 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class RecurringScheduleEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.RecurringSchedule;
-    private static readonly string ENDPOINT_NAME = EndpointNames.RecurringSchedule;
-
     public static IEndpointRouteBuilder MapRecurringScheduleEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-shop/{barberShopId}/recurring-schedule").WithTags("Recurring Schedule");
 
-        group.MapPost(INDEX, CreateRecurringSchedule)
+        group.MapPost("", CreateRecurringScheduleAsync)
+            .WithSummary("Create Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{dayOfWeek}", GetRecurringSchedule)
+        group.MapGet("{dayOfWeek}", GetRecurringScheduleAsync)
+            .WithSummary("Get Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet(INDEX, GetAllRecurringSchedules)
+        group.MapGet("", GetAllRecurringSchedulesAsync)
+            .WithSummary("Get All Recurring Schedules")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{dayOfWeek}", UpdateRecurringSchedule)
+        group.MapPut("{dayOfWeek}", UpdateRecurringScheduleAsync)
+            .WithSummary("Update Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
-        group.MapDelete("{dayOfWeek}", DeleteRecurringSchedule)
+        group.MapDelete("{dayOfWeek}", DeleteRecurringScheduleAsync)
+            .WithSummary("Delete Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         return app;
     }
     
-    public static IResult GetCreatedResult(DayOfWeek newId, int barberShopId)
-    {
-        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.RecurringSchedule + "/" + newId;
-        object value = new { Message = "Horário de funcionamento criado com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(DayOfWeek newId, int barberShopId) =>
+        Results.Created($"barber-shop/{barberShopId}/recurring-schedule/{newId}", new { Message = "Horário de funcionamento criado com sucesso" });
 
-    public static async Task<IResult> CreateRecurringSchedule(
+    public static async Task<IResult> CreateRecurringScheduleAsync(
         int barberShopId,
         RecurringScheduleDtoCreate dto,
         IRecurringScheduleService service)
@@ -47,7 +43,7 @@ public static class RecurringScheduleEndpoint
         return GetCreatedResult(schedule.DayOfWeek, schedule.BarberShopId);
     }
 
-    public static async Task<IResult> GetRecurringSchedule(
+    public static async Task<IResult> GetRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         IRecurringScheduleService service)
@@ -56,7 +52,7 @@ public static class RecurringScheduleEndpoint
         return Results.Ok(schedule);
     }
 
-    public static async Task<IResult> GetAllRecurringSchedules(
+    public static async Task<IResult> GetAllRecurringSchedulesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -66,7 +62,7 @@ public static class RecurringScheduleEndpoint
         return Results.Ok(schedules);
     }
 
-    public static async Task<IResult> UpdateRecurringSchedule(
+    public static async Task<IResult> UpdateRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoUpdate dto,
@@ -76,7 +72,7 @@ public static class RecurringScheduleEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteRecurringSchedule(
+    public static async Task<IResult> DeleteRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         IRecurringScheduleService service)

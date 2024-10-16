@@ -4,41 +4,38 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class ChatEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment + "/{appointmentId}/" + EndpointPrefixes.Chat;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Chat;
-
     public static IEndpointRouteBuilder MapMessageEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("appointment/{appointmentId}/chat").WithTags("Chat");
 
-        group.MapGet("check", IsAllowedCheck)
+        group.MapGet("check", IsAllowedCheckAsync)
+            .WithSummary("Is Allowed Check")
+            .WithDescription("Check if the user has permission to send messages in an specific appointment.")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPost(INDEX, CreateMessage)
+        group.MapPost("", CreateMessageAsync)
+            .WithSummary("Create Message")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{id}", GetMessage)
+        group.MapGet("{id}", GetMessageAsync)
+            .WithSummary("Get Message")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet(INDEX, GetAllMessages)
+        group.MapGet("", GetAllMessagesAsync)
+            .WithSummary("Get All Messages")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapDelete("{id}", DeleteMessage)
+        group.MapDelete("{id}", DeleteMessageAsync)
+            .WithSummary("Delete Message")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
             
         return app;
     }
 
-    public static IResult GetCreatedResult(int newId, int appointmentId)
-    {
-        string uri = EndpointPrefixes.Appointment + "/" + appointmentId + "/" + EndpointPrefixes.Chat + "/" + newId;
-        object value = new { Message = "Mensagem enviada com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId, int appointmentId) =>
+        Results.Created($"appointment/{appointmentId}/chat/{newId}", new { Message = "Mensagem enviada com sucesso" });
 
-    public static async Task<IResult> IsAllowedCheck(
+    public static async Task<IResult> IsAllowedCheckAsync(
         int appointmentId,
         IMessageService service,
         IUserService userService)
@@ -48,7 +45,7 @@ public static class ChatEndpoint
         return Results.Ok(result);
     }
 
-    public static async Task<IResult> CreateMessage(
+    public static async Task<IResult> CreateMessageAsync(
         int appointmentId,
         MessageDtoCreate dto,
         IMessageService service,
@@ -59,7 +56,7 @@ public static class ChatEndpoint
         return GetCreatedResult(message.Id, message.AppointmentId);
     }
 
-    public static async Task<IResult> GetMessage(
+    public static async Task<IResult> GetMessageAsync(
         int id,
         int appointmentId,
         IMessageService service)
@@ -68,7 +65,7 @@ public static class ChatEndpoint
         return Results.Ok(message);
     }
 
-    public static async Task<IResult> GetAllMessages(
+    public static async Task<IResult> GetAllMessagesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
@@ -78,7 +75,7 @@ public static class ChatEndpoint
         return Results.Ok(messages);
     }
 
-    public static async Task<IResult> DeleteMessage(
+    public static async Task<IResult> DeleteMessageAsync(
         int appointmentId,
         int id,
         IMessageService service,

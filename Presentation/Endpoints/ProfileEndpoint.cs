@@ -4,35 +4,29 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class ProfileEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Profile;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Profile;
-
     public static IEndpointRouteBuilder MapProfileEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("Profile").WithTags("profile");
 
-        group.MapPost(INDEX, CreateProfile)
+        group.MapPost("", CreateProfileAsync)
+            .WithSummary("Create Profile")
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
-        group.MapGet("{id}", GetProfileById)
+        group.MapGet("{id}", GetProfileAsync)
+            .WithSummary("Get Profile")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{id}", UpdateProfile)
+        group.MapPut("{id}", UpdateProfileAsync)
+            .WithSummary("Update Profile")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
     }
 
-    public static IResult GetCreatedResult()
-    {
-        string uri = EndpointPrefixes.User + "/me";
-        object value = new { Message = "Pessoa criada com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult() =>
+        Results.Created("user/me", new { Message = "Pessoa criada com sucesso" });
 
-    public static async Task<IResult> CreateProfile(
+    public static async Task<IResult> CreateProfileAsync(
         [FromBody] ProfileDtoCreate dto,
         IProfileService service,
         IUserService userService)
@@ -42,7 +36,7 @@ public static class ProfileEndpoint
         return GetCreatedResult();
     }
 
-    public static async Task<IResult> GetProfileById(
+    public static async Task<IResult> GetProfileAsync(
         int id,
         IProfileService service,
         IUserService userService)
@@ -52,7 +46,7 @@ public static class ProfileEndpoint
         return Results.Ok(profile);
     }
 
-    public static async Task<IResult> UpdateProfile(
+    public static async Task<IResult> UpdateProfileAsync(
         int id,
         [FromBody] ProfileDtoUpdate dto,
         IProfileService service,

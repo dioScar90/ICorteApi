@@ -4,41 +4,37 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class ServiceEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Service;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Service;
-
     public static IEndpointRouteBuilder MapServiceEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-shop/{barberShopId}/service").WithTags("Service");
 
-        group.MapPost(INDEX, CreateService)
+        group.MapPost("", CreateServiceAsync)
+            .WithSummary("Create Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{id}", GetService)
+        group.MapGet("{id}", GetServiceAsync)
+            .WithSummary("Get Service")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet(INDEX, GetAllServices)
+        group.MapGet("", GetAllServicesAsync)
+            .WithSummary("Get All Services")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{id}", UpdateService)
+        group.MapPut("{id}", UpdateServiceAsync)
+            .WithSummary("Update Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{id}", DeleteService)
+        group.MapDelete("{id}", DeleteServiceAsync)
+            .WithSummary("Delete Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId, int barberShopId)
-    {
-        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Service + "/" + newId;
-        object value = new { Message = "Serviço criado com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId, int barberShopId) =>
+        Results.Created($"barber-shop/{barberShopId}/service/{newId}", new { Message = "Serviço criado com sucesso" });
 
-    public static async Task<IResult> CreateService(
+    public static async Task<IResult> CreateServiceAsync(
         int barberShopId,
         ServiceDtoCreate dto,
         IServiceService service)
@@ -47,7 +43,7 @@ public static class ServiceEndpoint
         return GetCreatedResult(serviceEntity.Id, serviceEntity.BarberShopId);
     }
 
-    public static async Task<IResult> GetService(
+    public static async Task<IResult> GetServiceAsync(
         int id,
         int barberShopId,
         IServiceService service)
@@ -56,7 +52,7 @@ public static class ServiceEndpoint
         return Results.Ok(serviceDto);
     }
 
-    public static async Task<IResult> GetAllServices(
+    public static async Task<IResult> GetAllServicesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -66,7 +62,7 @@ public static class ServiceEndpoint
         return Results.Ok(services);
     }
 
-    public static async Task<IResult> UpdateService(
+    public static async Task<IResult> UpdateServiceAsync(
         int id,
         int barberShopId,
         ServiceDtoUpdate dto,
@@ -76,7 +72,7 @@ public static class ServiceEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteService(
+    public static async Task<IResult> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
         int id,
         int barberShopId,

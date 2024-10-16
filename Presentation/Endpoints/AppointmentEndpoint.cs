@@ -5,41 +5,37 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class AppointmentEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Appointment;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Appointment;
-
     public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("appointment").WithTags("Appointment");
 
-        group.MapPost(INDEX, CreateAppointment)
+        group.MapPost("", CreateAppointmentAsync)
+            .WithSummary("Create Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{id}", GetAppointment)
+        group.MapGet("{id}", GetAppointmentAsync)
+            .WithSummary("Get Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet(INDEX, GetAllAppointments)
+        group.MapGet("", GetAllAppointmentsAsync)
+            .WithSummary("Get All Appointments")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{id}", UpdateAppointment)
+        group.MapPut("{id}", UpdateAppointmentAsync)
+            .WithSummary("Update Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapDelete("{id}", DeleteAppointment)
+        group.MapDelete("{id}", DeleteAppointmentAsync)
+            .WithSummary("Delete Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId)
-    {
-        string uri = EndpointPrefixes.Appointment + "/" + newId;
-        object value = new { Message = "Agendamento criado com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId) =>
+        Results.Created($"appointment/{newId}", new { Message = "Agendamento criado com sucesso" });
 
-    public static async Task<IResult> CreateAppointment(
+    public static async Task<IResult> CreateAppointmentAsync(
         AppointmentDtoCreate dto,
         IAppointmentService service,
         IUserService userService)
@@ -49,7 +45,7 @@ public static class AppointmentEndpoint
         return GetCreatedResult(appointment.Id);
     }
 
-    public static async Task<IResult> GetAppointment(
+    public static async Task<IResult> GetAppointmentAsync(
         int id,
         IAppointmentService service)
     {
@@ -57,7 +53,7 @@ public static class AppointmentEndpoint
         return Results.Ok(appointment);
     }
 
-    public static async Task<IResult> GetAllAppointments(
+    public static async Task<IResult> GetAllAppointmentsAsync(
         int clientId,
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
@@ -68,7 +64,7 @@ public static class AppointmentEndpoint
         return Results.Ok(appointments);
     }
 
-    public static async Task<IResult> UpdateAppointment(
+    public static async Task<IResult> UpdateAppointmentAsync(
         int id,
         AppointmentDtoUpdate dto,
         IAppointmentService service,
@@ -79,7 +75,7 @@ public static class AppointmentEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteAppointment(
+    public static async Task<IResult> DeleteAppointmentAsync(
         int id,
         IAppointmentService service,
         IUserService userService)

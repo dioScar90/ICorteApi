@@ -6,22 +6,20 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class AuthEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Auth;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Auth;
-
     public static IEndpointRouteBuilder MapAuthEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("auth").WithTags("Auth");
             
-        group.MapPost("register", RegisterUser)
+        group.MapPost("register", RegisterAsync)
+            .WithSummary("Register")
             .AllowAnonymous();
             
         group.MapPost("login", LoginAsync)
+            .WithSummary("Login")
             .AllowAnonymous();
         
         group.MapPost("logout", LogoutUserAsync)
+            .WithSummary("Logout")
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
         return app;
@@ -35,7 +33,7 @@ public static class AuthEndpoint
     
     // This method was written using both inspiration of Chat GPT and real Microsoft ASP.NET Core documentation,
     // that you can find in: https://github.com/dotnet/aspnetcore/blob/main/src/Identity/Core/src/IdentityApiEndpointRouteBuilderExtensions.cs
-    public static async Task<IResult> RegisterUser(
+    public static async Task<IResult> RegisterAsync(
         UserDtoRegisterCreate dto,
         IValidator<UserDtoRegisterCreate> validator,
         IUserService service,
@@ -52,10 +50,8 @@ public static class AuthEndpoint
 
         if (!result.Succeeded)
             return Results.Unauthorized();
-
-        string uri = EndpointPrefixes.User + "/me";
-        object value = new { Message = "Usuário criado com sucesso" };
-        return Results.Created(uri, value);
+        
+        return Results.Created("user/me", new { Message = "Usuário criado com sucesso" });
     }
 
     public static async Task<IResult> LoginAsync(

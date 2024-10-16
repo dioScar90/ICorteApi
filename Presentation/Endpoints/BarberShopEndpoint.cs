@@ -2,38 +2,33 @@
 
 public static class BarberShopEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop;
-    private static readonly string ENDPOINT_NAME = EndpointNames.BarberShop;
-
     public static IEndpointRouteBuilder MapBarberShopEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-shop").WithTags("Barber Shop");
         
-        group.MapPost(INDEX, CreateBarberShop)
+        group.MapPost("", CreateBarberShopAsync)
+            .WithSummary("Create BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapGet("{id}", GetBarberShop)
+        group.MapGet("{id}", GetBarberShopAsync)
+            .WithSummary("Get BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
         
-        group.MapPut("{id}", UpdateBarberShop)
+        group.MapPut("{id}", UpdateBarberShopAsync)
+            .WithSummary("Update BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
         
-        group.MapDelete("{id}", DeleteBarberShop)
+        group.MapDelete("{id}", DeleteBarberShopAsync)
+            .WithSummary("Delete BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
         
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId)
-    {
-        string uri = EndpointPrefixes.BarberShop + "/" + newId;
-        object value = new { Message = "Barbearia criada com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId) =>
+        Results.Created($"barber-shop/{newId}", new { Message = "Barbearia criada com sucesso" });
     
-    public static async Task<IResult> CreateBarberShop(
+    public static async Task<IResult> CreateBarberShopAsync(
         BarberShopDtoCreate dto,
         IBarberShopService service,
         IUserService userService)
@@ -43,7 +38,7 @@ public static class BarberShopEndpoint
         return GetCreatedResult(barberShop.Id);
     }
 
-    public static async Task<IResult> GetBarberShop(
+    public static async Task<IResult> GetBarberShopAsync(
         int id,
         IBarberShopService service)
     {
@@ -51,7 +46,7 @@ public static class BarberShopEndpoint
         return Results.Ok(barberShop);
     }
 
-    public static async Task<IResult> UpdateBarberShop(
+    public static async Task<IResult> UpdateBarberShopAsync(
         int id,
         BarberShopDtoUpdate dto,
         IBarberShopService service,
@@ -62,7 +57,7 @@ public static class BarberShopEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteBarberShop(
+    public static async Task<IResult> DeleteBarberShopAsync(
         int id,
         IBarberShopService service,
         IUserService userService)

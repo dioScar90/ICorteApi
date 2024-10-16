@@ -2,18 +2,13 @@
 
 public static class AdminEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.Admin;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Admin;
-
     public static IEndpointRouteBuilder MapAdminEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("admin").WithTags("Admin");
 
         group.MapPost("remove-all", RemoveAllRows)
-            .WithName("RemoveAllRows")
-            .WithDescription("Remove all rows in all tables - *** BEWARE ***")
+            .WithSummary("Remove All Rows")
+            .WithDescription("*** BEWARE *** - Remove all rows in all tables.")
             .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
 
         return app;
@@ -25,8 +20,6 @@ public static class AdminEndpoint
         await service.RemoveAllRows(dto.Passphrase, user?.Email ?? "");
         return Results.NoContent();
     }
-}
 
-public record AdminRemoveAllDto(
-    string Passphrase
-);
+    public record AdminRemoveAllDto(string Passphrase);
+}

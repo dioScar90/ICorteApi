@@ -2,38 +2,33 @@
 
 public static class AddressEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Address;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Address;
-
     public static IEndpointRouteBuilder MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-shop/{barberShopId}/address").WithTags("Address");
 
-        group.MapPost(INDEX, CreateAddress)
+        group.MapPost("", CreateAddressAsync)
+            .WithSummary("Create Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{id}", GetAddress)
+        group.MapGet("{id}", GetAddressAsync)
+            .WithSummary("Get Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapPut("{id}", UpdateAddress)
+        group.MapPut("{id}", UpdateAddressAsync)
+            .WithSummary("Update Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{id}", DeleteAddress)
+        group.MapDelete("{id}", DeleteAddressAsync)
+            .WithSummary("Delete Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
         return app;
     }
 
-    public static IResult GetCreatedResult(int newId, int barberShopId)
-    {
-        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Address + "/" + newId;
-        object value = new { Message = "Endereço criado com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId, int barberShopId) =>
+        Results.Created($"barber-shop/{barberShopId}/address/{newId}", new { Message = "Endereço criado com sucesso" });
 
-    public static async Task<IResult> CreateAddress(
+    public static async Task<IResult> CreateAddressAsync(
         int barberShopId,
         AddressDtoCreate dto,
         IAddressService service)
@@ -42,7 +37,7 @@ public static class AddressEndpoint
         return GetCreatedResult(address.Id, address.BarberShopId);
     }
 
-    public static async Task<IResult> GetAddress(
+    public static async Task<IResult> GetAddressAsync(
         int barberShopId,
         int id,
         IAddressService service)
@@ -51,7 +46,7 @@ public static class AddressEndpoint
         return Results.Ok(address);
     }
 
-    public static async Task<IResult> UpdateAddress(
+    public static async Task<IResult> UpdateAddressAsync(
         int barberShopId,
         int id,
         AddressDtoUpdate dto,
@@ -61,7 +56,7 @@ public static class AddressEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteAddress(
+    public static async Task<IResult> DeleteAddressAsync(
         int barberShopId,
         int id,
         IAddressService service)

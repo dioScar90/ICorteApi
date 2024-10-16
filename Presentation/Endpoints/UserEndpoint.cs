@@ -1,48 +1,50 @@
 ﻿using FluentValidation;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class UserEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.User;
-    private static readonly string ENDPOINT_NAME = EndpointNames.User;
-
     public static IEndpointRouteBuilder MapUserEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("user").WithTags("User");
             
-        group.MapGet("me", GetMe)
+        group.MapGet("me", GetMeAsync)
+            .WithSummary("Get Me")
+            .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.")
             .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
 
-        group.MapPatch("changeEmail", UpdateUserEmail)
+        group.MapPatch("changeEmail", UpdateUserEmailAsync)
+            .WithSummary("Update User's Email")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPatch("changePassword", UpdateUserPassword)
+        group.MapPatch("changePassword", UpdateUserPasswordAsync)
+            .WithSummary("Update User's Password")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPatch("changePhoneNumber", UpdateUserPhoneNumber)
+        group.MapPatch("changePhoneNumber", UpdateUserPhoneNumberAsync)
+            .WithSummary("Update User's PhoneNumber")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapDelete(INDEX, DeleteUser)
+        group.MapDelete("", DeleteUserAsync)
+            .WithSummary("Delete User")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
     }
 
-    public static async Task<IResult> GetMe(IUserService service, IUserErrors errors)
+    public static async Task<Ok<UserDtoResponse>> GetMeAsync(IUserService service, IUserErrors errors)
     {
         var user = await service.GetMeAsync();
 
         if (user is null)
             errors.ThrowNotFoundException();
 
-        return Results.Ok(user!.CreateDto());
+        return TypedResults.Ok(user!.CreateDto());
     }
 
-    public static async Task<IResult> UpdateUserEmail(
+    public static async Task<IResult> UpdateUserEmailAsync(
         UserDtoEmailUpdate dto,
         IValidator<UserDtoEmailUpdate> validator,
         IUserService service,
@@ -57,7 +59,7 @@ public static class UserEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> UpdateUserPassword(
+    public static async Task<IResult> UpdateUserPasswordAsync(
         UserDtoPasswordUpdate dto,
         IValidator<UserDtoPasswordUpdate> validator,
         IUserService service,
@@ -72,7 +74,7 @@ public static class UserEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> UpdateUserPhoneNumber(
+    public static async Task<IResult> UpdateUserPhoneNumberAsync(
         UserDtoPhoneNumberUpdate dto,
         IValidator<UserDtoPhoneNumberUpdate> validator,
         IUserService service,
@@ -87,7 +89,7 @@ public static class UserEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteUser(IUserService service, IUserErrors errors)
+    public static async Task<IResult> DeleteUserAsync(IUserService service, IUserErrors errors)
     {
         int userId = await service.GetMyUserIdAsync();
         var result = await service.DeleteAsync(userId);

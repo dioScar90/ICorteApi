@@ -4,41 +4,37 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class ReportEndpoint
 {
-    private static readonly string INDEX = "";
-    private static readonly string ENDPOINT_PREFIX = EndpointPrefixes.BarberShop + "/{barberShopId}/" + EndpointPrefixes.Report;
-    private static readonly string ENDPOINT_NAME = EndpointNames.Report;
-
     public static IEndpointRouteBuilder MapReportEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ENDPOINT_PREFIX)
-            .WithTags(ENDPOINT_NAME);
+        var group = app.MapGroup("barber-shop/{barberShopId}/report").WithTags("Report");
 
-        group.MapPost(INDEX, CreateReport)
+        group.MapPost("", CreateReportAsync)
+            .WithSummary("Create Report")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapGet("{id}", GetReport)
+        group.MapGet("{id}", GetReportAsync)
+            .WithSummary("Get Report")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapGet(INDEX, GetAllReports)
+        group.MapGet("", GetAllReportsAsync)
+            .WithSummary("Get All Reports")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapPut("{id}", UpdateReport)
+        group.MapPut("{id}", UpdateReportAsync)
+            .WithSummary("Update Report")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
-        group.MapDelete("{id}", DeleteReport)
+        group.MapDelete("{id}", DeleteReportAsync)
+            .WithSummary("Delete Report")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOnly));
 
         return app;
     }
 
-    public static IResult GetCreatedResult(int newId, int barberShopId)
-    {
-        string uri = EndpointPrefixes.BarberShop + "/" + barberShopId + "/" + EndpointPrefixes.Report + "/" + newId;
-        object value = new { Message = "Pagamento criado com sucesso" };
-        return Results.Created(uri, value);
-    }
+    public static IResult GetCreatedResult(int newId, int barberShopId) =>
+        Results.Created($"barber-shop/{barberShopId}/report/{newId}", new { Message = "Pagamento criado com sucesso" });
 
-    public static async Task<IResult> CreateReport(
+    public static async Task<IResult> CreateReportAsync(
         int barberShopId,
         ReportDtoCreate dto,
         IReportService service,
@@ -49,7 +45,7 @@ public static class ReportEndpoint
         return GetCreatedResult(report.Id, report.BarberShopId);
     }
 
-    public static async Task<IResult> GetReport(
+    public static async Task<IResult> GetReportAsync(
         int id,
         int barberShopId,
         IReportService service,
@@ -60,7 +56,7 @@ public static class ReportEndpoint
         return Results.Ok(report);
     }
 
-    public static async Task<IResult> GetAllReports(
+    public static async Task<IResult> GetAllReportsAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -70,7 +66,7 @@ public static class ReportEndpoint
         return Results.Ok(reports);
     }
 
-    public static async Task<IResult> UpdateReport(
+    public static async Task<IResult> UpdateReportAsync(
         int id,
         int barberShopId,
         ReportDtoUpdate dto,
@@ -82,7 +78,7 @@ public static class ReportEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteReport(
+    public static async Task<IResult> DeleteReportAsync(
         int id,
         int barberShopId,
         IReportService service,
