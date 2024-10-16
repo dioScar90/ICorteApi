@@ -8,10 +8,12 @@ public static class DatabaseConnection
     {
         if (builder.Environment.IsDevelopment())
         {
+            Console.WriteLine("IsDevelopment");
             builder.StartDesktopConnection();
         }
         else
         {
+            Console.WriteLine("!IsDevelopment");
             builder.StartRailwayConnection();
         }
 
@@ -61,6 +63,7 @@ public static class DatabaseConnection
 
     private static void StartWithSqlite(this WebApplicationBuilder builder, string? connectionString = null)
     {
+        Console.WriteLine("StartWithSqlite");
         connectionString ??= "Data Source=sqlite.db";
         
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -72,6 +75,7 @@ public static class DatabaseConnection
 
     private static void StartWithSqlServer(this WebApplicationBuilder builder, string? connectionString = null)
     {
+        Console.WriteLine("StartWithSqlServer");
         connectionString ??= builder.Configuration.GetConnectionString("developmentConnection");
 
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -83,8 +87,9 @@ public static class DatabaseConnection
 
     private static void StartWithPostgreSql(this WebApplicationBuilder builder, string connectionString)
     {
+        Console.WriteLine("StartWithPostgreSql");
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(
+            options.UseNpgsql(
                 connectionString,
                 assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         );
