@@ -1,45 +1,9 @@
 using ICorteApi.Settings;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var apiHttpPort = Environment.GetEnvironmentVariable("API_HTTP_PORT");
-ArgumentNullException.ThrowIfNullOrEmpty(apiHttpPort, nameof(apiHttpPort));
-
-// Em ambientes de produção, como o Railway, geralmente o proxy (ou plataforma)
-// cuida do SSL/HTTPS externamente, e sua aplicação deve escutar apenas na porta 
-// TTP (sem configurar o HTTPS manualmente). GPT
-// Porém mantenha `app.UseHttpsRedirection()` ativo. GPT
-builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(int.Parse(apiHttpPort)));
-
-// builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("AppDb"));
-
-var pgHost = Environment.GetEnvironmentVariable("PG_HOST");
-var pgPort = Environment.GetEnvironmentVariable("PG_PORT");
-var pgDb = Environment.GetEnvironmentVariable("PG_DATABASE");
-var pgUser = Environment.GetEnvironmentVariable("PG_USER");
-var pgPass = Environment.GetEnvironmentVariable("PG_PASSWORD");
-
-var connectionString = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};";
-
-// var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-ArgumentNullException.ThrowIfNullOrEmpty(pgHost, nameof(pgHost));
-ArgumentNullException.ThrowIfNullOrEmpty(pgPort, nameof(pgPort));
-ArgumentNullException.ThrowIfNullOrEmpty(pgDb, nameof(pgDb));
-ArgumentNullException.ThrowIfNullOrEmpty(pgUser, nameof(pgUser));
-ArgumentNullException.ThrowIfNullOrEmpty(pgPass, nameof(pgPass));
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql( // PostgreSQL
-    // options.UseSqlServer( // SLQ Server
-    // options.UseSqlite( // SQLite
-        // builder.Configuration.GetConnectionString(connectionString),
-        connectionString,
-        assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-);
-
-builder.Services.AddHttpContextAccessor();
+builder.StartDatabaseWithAppropriateConnectionStrings();
 
 // Most important applications services
 // This order was suggested by Chat GPT
@@ -51,7 +15,6 @@ builder.Services
     .AddValidators()
     .AddAuthorizationRules()
     .AddCookieConfiguration()
-    // .AddAntiCsrfConfiguration()
     .AddExceptionHandlers()
 ;
 
@@ -65,16 +28,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-{
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    
-    app.Environment.WebRootPath = app.Configuration.GetValue<string?>("ImagesPath") ?? "nothing";
-}
-
-// app.DefineCultureLocalization();
+app.UseDeveloperExceptionPage();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -91,9 +47,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseRouting();
-
-// This call must be between `UseRouting` and `UseEndpoints`.
-// app.UseAntiforgery();
 
 if (!app.Environment.IsDevelopment())
 {

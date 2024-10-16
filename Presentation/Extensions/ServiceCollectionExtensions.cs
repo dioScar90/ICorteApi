@@ -254,26 +254,4 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-
-    public static IServiceCollection AddAntiCsrfConfiguration(this IServiceCollection services)
-    {
-        // Configuração de proteção contra ataques de Cross-Site Request Forgery (CSRF).
-        services.AddAntiforgery(options =>
-        {
-            /*
-            Frontend:
-                Ao enviar uma requisição que pode alterar dados (como uma requisição POST), o token CSRF
-                deve ser incluído no cabeçalho da requisição com o nome "X-CSRF-TOKEN". Isso é geralmente
-                feito em requisições AJAX, onde você pode configurar o cliente HTTP (por exemplo, Axios,
-                Fetch API) para incluir o token no cabeçalho.
-            Backend:
-                No servidor, o ASP.NET Core verifica a presença do token no cabeçalho "X-CSRF-TOKEN" e
-                valida seu valor. Se o token estiver ausente ou for inválido, a requisição é rejeitada,
-                protegendo a aplicação contra ataques CSRF.
-            */
-            options.HeaderName = "X-CSRF-TOKEN";
-        });
-
-        return services;
-    }
 }
