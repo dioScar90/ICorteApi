@@ -13,10 +13,10 @@ builder.Services
     .AddServices()
     .AddErrors()
     .AddValidators()
+    .AddCorsConfiguration()
     .AddAuthorizationRules()
     .AddCookieConfiguration()
     .AddExceptionHandlers()
-    .AddCorsConfiguration()
 ;
 
 builder.Services.AddEndpointsApiExplorer();
@@ -55,6 +55,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAll");
+
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
 app.UseAuthorization();
@@ -66,8 +69,5 @@ app.UseExceptionHandler("/error");
 
 // Regenera o token de sessão na inicialização
 SessionTokenManager.RegenerateToken();
-
-// app.UseCors("AllowSpecificOrigin");
-app.UseCors("AllowAll");
 
 app.Run();

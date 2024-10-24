@@ -265,7 +265,8 @@ public static class ServiceCollectionExtensions
                     .WithOrigins() // This way any origin is allowed. Beware in production.
                     // .WithOrigins("http://localhost:5173") // This must be preferable overrided by env variable
                     .AllowAnyHeader()
-                    .AllowAnyMethod());
+                    .AllowAnyMethod()
+                    .AllowCredentials()); // Permite o uso de cookies ou cabeçalhos de autenticação
         });
 
         return services;
