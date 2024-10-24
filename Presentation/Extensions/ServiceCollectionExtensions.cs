@@ -254,4 +254,20 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddCorsConfiguration(this IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            // options.AddPolicy("AllowSpecificOrigin",
+            options.AddPolicy("AllowAll",
+                builder => builder
+                    .WithOrigins() // This way any origin is allowed. Beware in production.
+                    // .WithOrigins("http://localhost:5173") // This must be preferable overrided by env variable
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
+        });
+
+        return services;
+    }
 }

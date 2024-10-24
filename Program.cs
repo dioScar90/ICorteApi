@@ -16,6 +16,7 @@ builder.Services
     .AddAuthorizationRules()
     .AddCookieConfiguration()
     .AddExceptionHandlers()
+    .AddCorsConfiguration()
 ;
 
 builder.Services.AddEndpointsApiExplorer();
@@ -65,5 +66,8 @@ app.UseExceptionHandler("/error");
 
 // Regenera o token de sessão na inicialização
 SessionTokenManager.RegenerateToken();
+
+// app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAll");
 
 app.Run();
