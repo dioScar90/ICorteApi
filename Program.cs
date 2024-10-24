@@ -55,8 +55,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// app.UseCors("AllowSpecificOrigin");
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigin");
+// app.UseCors("AllowAll");
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.

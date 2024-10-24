@@ -259,11 +259,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddCors(options =>
         {
-            // options.AddPolicy("AllowSpecificOrigin",
-            options.AddPolicy("AllowAll",
+            options.AddPolicy("AllowSpecificOrigin",
+            // options.AddPolicy("AllowAll",
                 builder => builder
-                    .WithOrigins() // This way any origin is allowed. Beware in production.
-                    // .WithOrigins("http://localhost:5173") // This must be preferable overrided by env variable
+                    // .WithOrigins() // This way any origin is allowed. Beware in production.
+                    .WithOrigins("http://localhost:5173") // This must be preferable overrided by env variable
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials()); // Permite o uso de cookies ou cabeçalhos de autenticação
