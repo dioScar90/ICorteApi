@@ -6,7 +6,7 @@ public static class ProfileEndpoint
 {
     public static IEndpointRouteBuilder MapProfileEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("Profile").WithTags("profile");
+        var group = app.MapGroup("profile").WithTags("Profile");
 
         group.MapPost("", CreateProfileAsync)
             .WithSummary("Create Profile")

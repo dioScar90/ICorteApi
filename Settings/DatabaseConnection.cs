@@ -22,15 +22,15 @@ public static class DatabaseConnection
     
     private static void StartDesktopConnection(this WebApplicationBuilder builder)
     {
-        var databaseToConnect = builder.Configuration.GetConnectionString("connectionString");
+        var databaseToConnect = builder.Configuration.GetConnectionString("databaseToConnect");
         
         if (databaseToConnect == "SQL_SERVER")
         {
-            builder.StartWithSqlite();
+            builder.StartWithSqlServer();
         }
         else
         {
-            builder.StartWithSqlServer();
+            builder.StartWithSqlite();
         }
     }
 
