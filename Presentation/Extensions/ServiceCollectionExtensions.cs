@@ -190,7 +190,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddCookieConfiguration(this IServiceCollection services)
+    public static IServiceCollection AddCookieConfiguration(this IServiceCollection services, bool isDevelopment)
     {
         // Configuração de autenticação por cookies
         services.ConfigureApplicationCookie(options =>
@@ -219,9 +219,17 @@ public static class ServiceCollectionExtensions
                 // Garante que os cookies sejam enviados apenas em conexões HTTPS, o que é ótimo para segurança.
                 // Porém aqui foi deixado como 'None' pois isso atrapalha em conexões com localhost.
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                // options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 
                 // // Necessário para cross-origin
-                // options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+
+                // options.Cookie.SameSite = isDevelopment
+                //     ? SameSiteMode.Lax
+                //     : SameSiteMode.None;
+                // options.Cookie.SecurePolicy = isDevelopment
+                //     ? CookieSecurePolicy.None
+                //     : CookieSecurePolicy.Always;
 
                 // Útil para prolongar a sessão ativa se o usuário estiver ativo.
                 options.SlidingExpiration = true;

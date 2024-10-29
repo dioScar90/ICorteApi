@@ -15,7 +15,7 @@ builder.Services
     .AddValidators()
     .AddCorsConfiguration()
     .AddAuthorizationRules()
-    .AddCookieConfiguration()
+    .AddCookieConfiguration(builder.Environment.IsDevelopment())
     .AddExceptionHandlers()
 ;
 
