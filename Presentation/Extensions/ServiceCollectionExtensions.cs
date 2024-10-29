@@ -218,11 +218,11 @@ public static class ServiceCollectionExtensions
 
                 // Garante que os cookies sejam enviados apenas em conexões HTTPS, o que é ótimo para segurança.
                 // Porém aqui foi deixado como 'None' pois isso atrapalha em conexões com localhost.
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                // options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                // options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 
                 // // Necessário para cross-origin
-                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SameSite = SameSiteMode.None;
 
                 // options.Cookie.SameSite = isDevelopment
                 //     ? SameSiteMode.Lax
