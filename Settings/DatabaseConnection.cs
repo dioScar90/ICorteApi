@@ -78,8 +78,13 @@ public static class DatabaseConnection
         Console.WriteLine("StartWithSqlServer");
         connectionString ??= builder.Configuration.GetConnectionString("developmentConnection");
 
+        // builder.Services.AddDbContext<AppDbContext>(options =>
+        //     options.UseSqlServer(
+        //         connectionString,
+        //         assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+        // );
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(
+            options.UseNpgsql(
                 connectionString,
                 assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         );

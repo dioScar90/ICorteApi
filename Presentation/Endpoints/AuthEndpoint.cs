@@ -71,9 +71,6 @@ public static class AuthEndpoint
     
     public static async Task<IResult> LogoutUserAsync(object? empty, SignInManager<User> signInManager)
     {
-        if (empty is null)
-            return Results.Unauthorized();
-
         await signInManager.SignOutAsync();
         return Results.StatusCode(StatusCodes.Status205ResetContent);
     }
