@@ -31,8 +31,8 @@ public static class RecurringScheduleEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(DayOfWeek newId, int barberShopId) =>
-        Results.Created($"barber-shop/{barberShopId}/recurring-schedule/{newId}", new { Message = "Horário de funcionamento criado com sucesso" });
+    public static IResult GetCreatedResult(RecurringScheduleDtoResponse dto) =>
+        Results.Created($"barber-shop/{dto.BarberShopId}/recurring-dto/{dto.DayOfWeek}", new { Message = "Horário de funcionamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateRecurringScheduleAsync(
         int barberShopId,
@@ -40,7 +40,7 @@ public static class RecurringScheduleEndpoint
         IRecurringScheduleService service)
     {
         var schedule = await service.CreateAsync(dto, barberShopId);
-        return GetCreatedResult(schedule.DayOfWeek, schedule.BarberShopId);
+        return GetCreatedResult(schedule);
     }
 
     public static async Task<IResult> GetRecurringScheduleAsync(

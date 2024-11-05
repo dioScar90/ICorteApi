@@ -22,15 +22,16 @@ public static class DatabaseConnection
     
     private static void StartDesktopConnection(this WebApplicationBuilder builder)
     {
-        var databaseToConnect = builder.Configuration.GetConnectionString("databaseToConnect");
-        
-        if (databaseToConnect == "SQL_SERVER")
-        {
-            builder.StartWithSqlServer();
-        }
-        else
-        {
-            builder.StartWithSqlite();
+        switch (builder.Configuration.GetConnectionString("databaseToConnect")) {
+            case "SQL_SERVER":
+                builder.StartWithSqlServer();
+                break;
+            case "POSTGRES":
+                builder.StartWithPostgreSql();
+                break;
+            default:
+                builder.StartWithSqlite();
+                break;
         }
     }
 
@@ -78,21 +79,18 @@ public static class DatabaseConnection
         Console.WriteLine("StartWithSqlServer");
         connectionString ??= builder.Configuration.GetConnectionString("developmentConnection");
 
-        // builder.Services.AddDbContext<AppDbContext>(options =>
-        //     options.UseSqlServer(
-        //         connectionString,
-        //         assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-        // );
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(
+            options.UseSqlServer(
                 connectionString,
                 assembly => assembly.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
         );
     }
 
-    private static void StartWithPostgreSql(this WebApplicationBuilder builder, string connectionString)
+    private static void StartWithPostgreSql(this WebApplicationBuilder builder, string? connectionString = null)
     {
         Console.WriteLine("StartWithPostgreSql");
+        connectionString ??= builder.Configuration.GetConnectionString("developmentConnection");
+
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(
                 connectionString,

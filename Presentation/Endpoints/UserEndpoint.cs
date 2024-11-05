@@ -9,7 +9,7 @@ public static class UserEndpoint
     public static IEndpointRouteBuilder MapUserEndpoint(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("user").WithTags("User");
-            
+        
         group.MapGet("me", GetMeAsync)
             .WithSummary("Get Me")
             .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.")

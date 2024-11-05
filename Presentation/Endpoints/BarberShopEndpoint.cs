@@ -25,8 +25,8 @@ public static class BarberShopEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId) =>
-        Results.Created($"barber-shop/{newId}", new { Message = "Barbearia criada com sucesso" });
+    public static IResult GetCreatedResult(BarberShopDtoResponse dto) =>
+        Results.Created($"barber-shop/{dto.Id}", new { Message = "Barbearia criada com sucesso", Item = dto });
     
     public static async Task<IResult> CreateBarberShopAsync(
         BarberShopDtoCreate dto,
@@ -35,7 +35,7 @@ public static class BarberShopEndpoint
     {
         int ownerId = await userService.GetMyUserIdAsync();
         var barberShop = await service.CreateAsync(dto, ownerId);
-        return GetCreatedResult(barberShop.Id);
+        return GetCreatedResult(barberShop);
     }
 
     public static async Task<IResult> GetBarberShopAsync(

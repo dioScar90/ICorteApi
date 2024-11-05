@@ -51,7 +51,7 @@ public static class AuthEndpoint
         if (!result.Succeeded)
             return Results.Unauthorized();
         
-        return Results.Created("user/me", new { Message = "Usuário criado com sucesso" });
+        return Results.Created("user/me", new { Message = "Usuário criado com sucesso", Item = user.CreateDto() });
     }
 
     public static async Task<IResult> LoginAsync(

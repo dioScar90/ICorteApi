@@ -33,12 +33,12 @@ public static class DataSeeder
             
     //         await context.Profiles
     //             .IgnoreQueryFilters()
-    //             .Where(p => p.User.Email != "diogols@live.com")
+    //             // .Where(p => p.User.Email != "diogols@live.com")
     //             .ExecuteDeleteAsync();
 
     //         await context.Users
     //             .IgnoreQueryFilters()
-    //             .Where(u => u.Email != "diogols@live.com")
+    //             // .Where(u => u.Email != "diogols@live.com")
     //             .ExecuteDeleteAsync();
                 
     //         await transaction.CommitAsync();
@@ -375,15 +375,36 @@ public static class DataSeeder
                     ],
                     [
                         new(
-                            new(2024, 03, 10),
+                            new(2024, 12, 12),
                             null,
                             new(09, 00, 00),
                             new(13, 00, 00),
                             false
                         ),
                         new(
-                            new(2024, 11, 02),
-                            "Finados",
+                            new(2024, 12, 24),
+                            "Véspera Natal",
+                            null,
+                            null,
+                            true
+                        ),
+                        new(
+                            new(2025, 12, 24),
+                            "Natal",
+                            null,
+                            null,
+                            true
+                        ),
+                        new(
+                            new(2025, 12, 25),
+                            "Véspera Ano Novo",
+                            null,
+                            null,
+                            true
+                        ),
+                        new(
+                            new(2025, 01, 01),
+                            "Ano Novo",
                             null,
                             null,
                             true
@@ -453,15 +474,29 @@ public static class DataSeeder
                     ],
                     [
                         new(
-                            new(2024, 07, 09),
+                            new(2024, 12, 12),
                             null,
                             new(08, 00, 00),
                             new(12, 00, 00),
                             false
                         ),
                         new(
-                            new(2024, 11, 15),
-                            "Proclamação da República",
+                            new(2024, 12, 24),
+                            null,
+                            new(09, 00, 00),
+                            new(12, 00, 00),
+                            false
+                        ),
+                        new(
+                            new(2024, 12, 25),
+                            "Natal",
+                            null,
+                            null,
+                            true
+                        ),
+                        new(
+                            new(2025, 01, 01),
+                            "Ano Novo",
                             null,
                             null,
                             true
@@ -531,8 +566,8 @@ public static class DataSeeder
                     ],
                     [
                         new(
-                            new(2024, 05, 12),
-                            "Dia das Mães",
+                            new(2024, 12, 12),
+                            "Imaculada Conceição",
                             null,
                             null,
                             true
@@ -609,11 +644,18 @@ public static class DataSeeder
                     ],
                     [
                         new(
-                            new(2024, 08, 22),
+                            new(2024, 12, 25),
+                            "Natal",
                             null,
-                            new(08, 00, 00),
                             null,
-                            false
+                            true
+                        ),
+                        new(
+                            new(2024, 12, 26),
+                            "Viagem",
+                            null,
+                            null,
+                            true
                         ),
                         new(
                             new(2024, 12, 31),

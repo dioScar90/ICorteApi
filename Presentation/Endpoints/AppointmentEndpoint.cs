@@ -32,8 +32,8 @@ public static class AppointmentEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId) =>
-        Results.Created($"appointment/{newId}", new { Message = "Agendamento criado com sucesso" });
+    public static IResult GetCreatedResult(AppointmentDtoResponse dto) =>
+        Results.Created($"appointment/{dto.Id}", new { Message = "Agendamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateAppointmentAsync(
         AppointmentDtoCreate dto,
@@ -42,7 +42,7 @@ public static class AppointmentEndpoint
     {
         int clientId = await userService.GetMyUserIdAsync();
         var appointment = await service.CreateAsync(dto, clientId);
-        return GetCreatedResult(appointment.Id);
+        return GetCreatedResult(appointment);
     }
 
     public static async Task<IResult> GetAppointmentAsync(

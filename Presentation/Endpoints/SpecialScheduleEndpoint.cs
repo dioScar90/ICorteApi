@@ -31,8 +31,8 @@ public static class SpecialScheduleEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(DateOnly newId, int barberShopId) =>
-        Results.Created($"barber-shop/{barberShopId}/special-schedule/{newId}", new { Message = "Horário especial criado com sucesso" });
+    public static IResult GetCreatedResult(SpecialScheduleDtoResponse dto) =>
+        Results.Created($"barber-shop/{dto.BarberShopId}/special-schedule/{dto.Date}", new { Message = "Horário especial criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateSpecialScheduleAsync(
         int barberShopId,
@@ -40,7 +40,7 @@ public static class SpecialScheduleEndpoint
         ISpecialScheduleService service)
     {
         var schedule = await service.CreateAsync(dto, barberShopId);
-        return GetCreatedResult(schedule.Date, schedule.BarberShopId);
+        return GetCreatedResult(schedule);
     }
 
     public static async Task<IResult> GetSpecialScheduleAsync(

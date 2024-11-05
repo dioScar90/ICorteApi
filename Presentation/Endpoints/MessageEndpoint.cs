@@ -32,8 +32,8 @@ public static class ChatEndpoint
         return app;
     }
 
-    public static IResult GetCreatedResult(int newId, int appointmentId) =>
-        Results.Created($"appointment/{appointmentId}/chat/{newId}", new { Message = "Mensagem enviada com sucesso" });
+    public static IResult GetCreatedResult(MessageDtoResponse dto) =>
+        Results.Created($"appointment/{dto.AppointmentId}/chat/{dto.Id}", new { Message = "Mensagem enviada com sucesso", Item = dto });
 
     public static async Task<IResult> IsAllowedCheckAsync(
         int appointmentId,
@@ -53,7 +53,7 @@ public static class ChatEndpoint
     {
         int senderId = await userService.GetMyUserIdAsync();
         var message = await service.CreateAsync(dto, appointmentId, senderId);
-        return GetCreatedResult(message.Id, message.AppointmentId);
+        return GetCreatedResult(message);
     }
 
     public static async Task<IResult> GetMessageAsync(

@@ -31,8 +31,8 @@ public static class ServiceEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(int newId, int barberShopId) =>
-        Results.Created($"barber-shop/{barberShopId}/service/{newId}", new { Message = "Serviço criado com sucesso" });
+    public static IResult GetCreatedResult(ServiceDtoResponse dto) =>
+        Results.Created($"barber-shop/{dto.BarberShopId}/service/{dto.Id}", new { Message = "Serviço criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateServiceAsync(
         int barberShopId,
@@ -40,7 +40,7 @@ public static class ServiceEndpoint
         IServiceService service)
     {
         var serviceEntity = await service.CreateAsync(dto, barberShopId);
-        return GetCreatedResult(serviceEntity.Id, serviceEntity.BarberShopId);
+        return GetCreatedResult(serviceEntity);
     }
 
     public static async Task<IResult> GetServiceAsync(

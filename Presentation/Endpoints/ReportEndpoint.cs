@@ -31,8 +31,8 @@ public static class ReportEndpoint
         return app;
     }
 
-    public static IResult GetCreatedResult(int newId, int barberShopId) =>
-        Results.Created($"barber-shop/{barberShopId}/report/{newId}", new { Message = "Pagamento criado com sucesso" });
+    public static IResult GetCreatedResult(ReportDtoResponse dto) =>
+        Results.Created($"barber-shop/{dto.BarberShopId}/report/{dto.Id}", new { Message = "Pagamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateReportAsync(
         int barberShopId,
@@ -42,7 +42,7 @@ public static class ReportEndpoint
     {
         int userId = await userService.GetMyUserIdAsync();
         var report = await service.CreateAsync(dto, userId, barberShopId);
-        return GetCreatedResult(report.Id, report.BarberShopId);
+        return GetCreatedResult(report);
     }
 
     public static async Task<IResult> GetReportAsync(

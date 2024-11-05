@@ -23,8 +23,8 @@ public static class ProfileEndpoint
         return app;
     }
 
-    public static IResult GetCreatedResult() =>
-        Results.Created("user/me", new { Message = "Pessoa criada com sucesso" });
+    public static IResult GetCreatedResult(ProfileDtoResponse dto) =>
+        Results.Created("user/me", new { Message = "Pessoa criada com sucesso", Item = dto });
 
     public static async Task<IResult> CreateProfileAsync(
         [FromBody] ProfileDtoCreate dto,
@@ -32,8 +32,8 @@ public static class ProfileEndpoint
         IUserService userService)
     {
         int userId = await userService.GetMyUserIdAsync();
-        await service.CreateAsync(dto, userId);
-        return GetCreatedResult();
+        var profile = await service.CreateAsync(dto, userId);
+        return GetCreatedResult(profile);
     }
 
     public static async Task<IResult> GetProfileAsync(
