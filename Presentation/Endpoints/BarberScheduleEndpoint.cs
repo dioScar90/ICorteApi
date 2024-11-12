@@ -23,6 +23,11 @@ public static class BarberScheduleEndpoint
             .WithDescription("Get the barbers with the highest rates with available times to get new appointments in a specific week by providing one of that week's date.")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
+        group.MapGet("services", SearchServicesByNameAsync)
+            .WithSummary("Search Services By Name")
+            .WithDescription("Get the services that matches in total or in part of a given value to be searched.")
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         return app;
     }
 
@@ -51,6 +56,14 @@ public static class BarberScheduleEndpoint
         IBarberScheduleService service)
     {
         var TopBarberShopDtoResponses = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
+        return Results.Ok(TopBarberShopDtoResponses);
+    }
+    
+    public static async Task<IResult> SearchServicesByNameAsync(
+        [FromQuery] string q,
+        IBarberScheduleService service)
+    {
+        var TopBarberShopDtoResponses = await service.SearchServicesByName(q);
         return Results.Ok(TopBarberShopDtoResponses);
     }
 }

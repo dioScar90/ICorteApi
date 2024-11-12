@@ -12,7 +12,7 @@ public static class ServiceEndpoint
             .WithSummary("Create Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{id}", GetServiceAsync)
+        group.MapGet("{serviceId}", GetServiceAsync)
             .WithSummary("Get Service")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -20,11 +20,11 @@ public static class ServiceEndpoint
             .WithSummary("Get All Services")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{id}", UpdateServiceAsync)
+        group.MapPut("{serviceId}", UpdateServiceAsync)
             .WithSummary("Update Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{id}", DeleteServiceAsync)
+        group.MapDelete("{serviceId}", DeleteServiceAsync)
             .WithSummary("Delete Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
@@ -44,11 +44,11 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> GetServiceAsync(
-        int id,
+        int serviceId,
         int barberShopId,
         IServiceService service)
     {
-        var serviceDto = await service.GetByIdAsync(id, barberShopId);
+        var serviceDto = await service.GetByIdAsync(serviceId, barberShopId);
         return Results.Ok(serviceDto);
     }
 
@@ -63,22 +63,22 @@ public static class ServiceEndpoint
     }
 
     public static async Task<IResult> UpdateServiceAsync(
-        int id,
+        int serviceId,
         int barberShopId,
         ServiceDtoUpdate dto,
         IServiceService service)
     {
-        await service.UpdateAsync(dto, id, barberShopId);
+        await service.UpdateAsync(dto, serviceId, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
-        int id,
+        int serviceId,
         int barberShopId,
         IServiceService service)
     {
-        await service.DeleteAsync(id, barberShopId, forceDelete is true);
+        await service.DeleteAsync(serviceId, barberShopId, forceDelete is true);
         return Results.NoContent();
     }
 }

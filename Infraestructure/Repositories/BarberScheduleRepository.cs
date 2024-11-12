@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
@@ -166,4 +167,12 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         TimeOnly OpenTime,
         TimeOnly CloseTime
     );
+    
+    public async Task<Service[]> SearchServicesByName(string[] keywords)
+    {
+        return await _context.Services
+            .AsNoTracking()
+            .Where(x => keywords.Any(keyword => EF.Functions.Like(x.Name, "%" + keyword + "%")))
+            .ToArrayAsync();
+    }
 }
