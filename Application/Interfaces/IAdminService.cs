@@ -2,5 +2,5 @@ namespace ICorteApi.Application.Interfaces;
 
 public interface IAdminService : IService
 {
-    Task RemoveAllRows(string passphrase, string userEmail);
+    Task RemoveAllRows(string passphrase, string userEmail, bool? evenMasterAdmin);
 }

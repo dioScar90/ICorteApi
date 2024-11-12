@@ -1,4 +1,6 @@
-﻿namespace ICorteApi.Presentation.Endpoints;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AdminEndpoint
 {
@@ -14,10 +16,17 @@ public static class AdminEndpoint
         return app;
     }
     
-    public static async Task<IResult> RemoveAllRows(AdminRemoveAllDto dto, IAdminService service, IUserService userService)
+    public static async Task<IResult> RemoveAllRows(
+        AdminRemoveAllDto dto,
+        [FromQuery] bool? evenMasterAdmin,
+        IAdminService service,
+        IUserService userService)
     {
         var user = await userService.GetMeAsync();
-        await service.RemoveAllRows(dto.Passphrase, user?.Email ?? "");
+        var userEmail = user?.Email ?? string.Empty;
+
+        await service.RemoveAllRows(dto.Passphrase, userEmail, evenMasterAdmin);
+
         return Results.NoContent();
     }
 
