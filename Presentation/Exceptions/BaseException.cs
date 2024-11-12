@@ -18,6 +18,7 @@ public abstract class BaseException(string message, params Error[]? errors) : Ex
                 e => e.Select(e => e.Description).ToArray()
             );
     }
-
-    private static string GetCamelCaseFormat(string value) => char.ToLower(value[0]) + value[1..];
+    
+    private static string GetCamelCaseFormat(string value) =>
+        string.Join(".", value.Split(".").Select(sub => char.ToLower(sub[0]) + sub[1..]));
 }

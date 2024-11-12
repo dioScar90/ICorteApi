@@ -37,6 +37,10 @@ public sealed class UserDtoRegisterCreateValidator : AbstractValidator<UserDtoRe
         RuleFor(x => x.Email).ApplyEmailValidation();
         
         RuleFor(x => x.Password).ApplyPasswordValidation();
+
+        RuleFor(x => x.Profile)
+            .SetValidator(new ProfileDtoCreateValidator())
+            .When(x => x.Profile is not null);
     }
 }
 

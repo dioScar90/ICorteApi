@@ -19,6 +19,10 @@ public sealed class BarberShopDtoCreateValidator : AbstractValidator<BarberShopD
             .NotEmpty().WithMessage("Email obrigatório")
             .Must(LastCharIsNotADot).WithMessage("Email incompleto ou com formato inválido")
             .EmailAddress().WithMessage("Email com formato inválido");
+
+        RuleFor(x => x.Address)
+            .SetValidator(new AddressDtoCreateValidator())
+            .When(x => x.Address is not null);
     }
 
     private bool LastCharIsNotADot(string? email) => email is not null && !email.EndsWith('.');

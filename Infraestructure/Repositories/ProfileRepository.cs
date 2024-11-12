@@ -32,6 +32,25 @@ public sealed class ProfileRepository(AppDbContext context, IUserRepository user
         }
     }
 
+    public async Task<bool> UpdateAsync(Profile profile, string phoneNumber)
+    {
+        using var transaction = await BeginTransactionAsync();
+
+        try
+        {
+            _dbSet.Update(profile);
+            await _userRepository.UpdatePhoneNumberAsync(phoneNumber);
+            
+            await CommitAsync(transaction);
+            return true;
+        }
+        catch (Exception)
+        {
+            await RollbackAsync(transaction);
+            throw;
+        }
+    }
+
     public override async Task<bool> DeleteAsync(Profile profile)
     {
         using var transaction = await BeginTransactionAsync();

@@ -48,6 +48,6 @@ public sealed class ProfileService(
             _errors.ThrowProfileNotBelongsToUserException(userId);
 
         profile.UpdateEntityByDto(dto);
-        return await UpdateAsync(profile);
+        return await _repository.UpdateAsync(profile, dto.PhoneNumber);
     }
 }

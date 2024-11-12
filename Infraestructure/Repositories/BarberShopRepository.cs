@@ -1,4 +1,5 @@
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
 
@@ -30,7 +31,14 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
             throw;
         }
     }
-
+    
+    public async Task<BarberShop?> GetByIdAsync(int barberShopId)
+    {
+        return await _dbSet.Where(x => x.Id == barberShopId)
+            .Include(x => x.Address)
+            .FirstOrDefaultAsync();
+    }
+    
     public override async Task<bool> DeleteAsync(BarberShop barberShop)
     {
         using var transaction = await BeginTransactionAsync();

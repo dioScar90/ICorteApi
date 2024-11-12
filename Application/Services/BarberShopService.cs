@@ -10,6 +10,7 @@ public sealed class BarberShopService(
     IBarberShopErrors errors)
     : BaseService<BarberShop>(repository), IBarberShopService
 {
+    private new readonly IBarberShopRepository _repository = repository;
     private readonly IValidator<BarberShopDtoCreate> _createValidator = createValidator;
     private readonly IValidator<BarberShopDtoUpdate> _updateValidator = updateValidator;
     private readonly IBarberShopErrors _errors = errors;
@@ -23,7 +24,7 @@ public sealed class BarberShopService(
     
     public async Task<BarberShopDtoResponse> GetByIdAsync(int id)
     {
-        var barberShop = await base.GetByIdAsync(id);
+        var barberShop = await _repository.GetByIdAsync(id);
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();

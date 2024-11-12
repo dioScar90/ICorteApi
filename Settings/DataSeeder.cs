@@ -101,11 +101,13 @@ public static class DataSeeder
             .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.ImageUrl,
                 p => barberShopBaseUrl + "/" + (950 - p.OwnerId) + "/300"));
     }
+
+    private static HashSet<string> GetAdminRoles() => [nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.Admin)];
     
     private static HashSet<string> GetUserRolesToBeSetted(User user)
     {
         if (user.Email == "diogols@live.com" || user.Email!.StartsWith("admin"))
-            return [nameof(UserRole.Admin)];
+            return GetAdminRoles();
         
         HashSet<string> roles = [nameof(UserRole.Guest)];
 
