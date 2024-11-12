@@ -73,22 +73,22 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         return [..availableSlots];
     }
     
-    public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
+    public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly dateToSearchForSlots, DateOnly firstDateThisWeek, int[] serviceIds)
     {
         var schedule = await _context.RecurringSchedules
             .AsNoTracking()
             .GroupJoin(_context.SpecialSchedules, // Left Join
-                rs => new { rs.BarberShopId, rs.DayOfWeek, Date = date.AddDays((int)rs.DayOfWeek) },
+                rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
                 (rs, ss) => new { rs, ss })
             .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
                 (ssrs, ss) => new { ssrs.rs, ss }
             )
             .Where(x => x.rs.BarberShopId == barberShopId
-                && x.rs.DayOfWeek == date.DayOfWeek
+                && x.rs.DayOfWeek == dateToSearchForSlots.DayOfWeek
                 && (x.ss == null || !x.ss.IsClosed))
             .Select(x => new AvailableSchedule(
-                date,
+                dateToSearchForSlots,
                 x.ss == null ? x.rs.OpenTime : x.ss.OpenTime ?? x.rs.OpenTime,
                 x.ss == null ? x.rs.CloseTime : x.ss.CloseTime ?? x.rs.CloseTime
             ))
@@ -102,12 +102,12 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         if (totalDuration == TimeSpan.Zero)
             return [];
         
-        var appointments = await GetAppointmentsByDateAsync(barberShopId, date);
+        var appointments = await GetAppointmentsByDateAsync(barberShopId, dateToSearchForSlots);
 
         return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
     }
 
-    public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateOfWeek, DateOnly lastDateOfWeek, int take)
+    public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateThisWeek, DateOnly lastDateThisWeek, int take)
     {
         return await _context.BarberShops
             .AsNoTracking()
@@ -116,9 +116,9 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
                 rs => rs.BarberShopId,
                 (b, rs) => new { b, rs })
             .Where(x => !x.b.SpecialSchedules.Any(
-                    ss => ss.Date >= firstDateOfWeek && ss.Date <= lastDateOfWeek && ss.DayOfWeek == x.rs.DayOfWeek
+                    ss => ss.Date >= firstDateThisWeek && ss.Date <= lastDateThisWeek && ss.DayOfWeek == x.rs.DayOfWeek
                 ) || x.b.SpecialSchedules.Any(
-                    ss => ss.Date >= firstDateOfWeek && ss.Date <= lastDateOfWeek && ss.DayOfWeek == x.rs.DayOfWeek && !ss.IsClosed
+                    ss => ss.Date >= firstDateThisWeek && ss.Date <= lastDateThisWeek && ss.DayOfWeek == x.rs.DayOfWeek && !ss.IsClosed
                 ))
             .OrderByDescending(x => x.b.Rating)
                 .ThenBy(x => x.b.Name)
@@ -133,12 +133,12 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             .ToArrayAsync();
     }
 
-    public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly firstDateOfWeek)
+    public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly firstDateThisWeek)
     {
         return await _context.RecurringSchedules
             .AsNoTracking()
             .GroupJoin(_context.SpecialSchedules, // Left Join
-                rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateOfWeek.AddDays((int)rs.DayOfWeek) },
+                rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
                 (rs, ss) => new { rs, ss })
             .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
@@ -146,7 +146,7 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
             .Where(x => x.rs.BarberShopId == barberShopId
                 && (x.ss == null || !x.ss.IsClosed))
             .OrderBy(x => x.rs.DayOfWeek)
-            .Select(x => firstDateOfWeek.AddDays((int)x.rs.DayOfWeek))
+            .Select(x => firstDateThisWeek.AddDays((int)x.rs.DayOfWeek))
             .ToArrayAsync();
     }
 

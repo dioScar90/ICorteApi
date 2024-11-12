@@ -8,10 +8,10 @@ public class BarberScheduleService(IBarberScheduleRepository repository) : IBarb
 
     private static (DateOnly, DateOnly) GetFirstAndLastDatesOfWeek(DateOnly randomDate)
     {
-        DateOnly firstDateOfWeek = randomDate.AddDays(-(int)randomDate.DayOfWeek);
-        DateOnly lastDateOfWeek = firstDateOfWeek.AddDays(6);
+        DateOnly firstDateThisWeek = randomDate.AddDays(-(int)randomDate.DayOfWeek);
+        DateOnly lastDateThisWeek = firstDateThisWeek.AddDays(6);
 
-        return (firstDateOfWeek, lastDateOfWeek);
+        return (firstDateThisWeek, lastDateThisWeek);
     }
 
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
@@ -19,18 +19,19 @@ public class BarberScheduleService(IBarberScheduleRepository repository) : IBarb
         if (serviceIds.Length == 0)
             return [];
         
-        return await _repository.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
+        var (firstDateThisWeek, _) = GetFirstAndLastDatesOfWeek(date);
+        return await _repository.GetAvailableSlotsAsync(barberShopId, date, firstDateThisWeek, serviceIds);
     }
 
     public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? take)
     {
-        var (firstDateOfWeek, lastDateOfWeek) = GetFirstAndLastDatesOfWeek(randomDate);
-        return await _repository.GetTopBarbersWithAvailabilityAsync(firstDateOfWeek, lastDateOfWeek, GetCorrectTakeNumber(take));
+        var (firstDateThisWeek, lastDateThisWeek) = GetFirstAndLastDatesOfWeek(randomDate);
+        return await _repository.GetTopBarbersWithAvailabilityAsync(firstDateThisWeek, lastDateThisWeek, GetCorrectTakeNumber(take));
     }
 
     public async Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly randomDate)
     {
-        var (firstDateOfWeek, _) = GetFirstAndLastDatesOfWeek(randomDate);
-        return await _repository.GetAvailableDatesForBarberAsync(barberShopId, firstDateOfWeek);
+        var (firstDateThisWeek, _) = GetFirstAndLastDatesOfWeek(randomDate);
+        return await _repository.GetAvailableDatesForBarberAsync(barberShopId, firstDateThisWeek);
     }
 }
