@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Repositories;
@@ -170,9 +169,15 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
     
     public async Task<Service[]> SearchServicesByName(string[] keywords)
     {
-        return await _context.Services
-            .AsNoTracking()
-            .Where(x => keywords.Any(keyword => EF.Functions.Like(x.Name, "%" + keyword + "%")))
-            .ToArrayAsync();
+        var query = _context.Services.AsNoTracking();
+
+        // SQL Server is case-insensitive by default in LIKE operations; Postgres, not.
+        // Then if db is Postgres it must be necessary to use ILike instead of Like func.
+        
+        query = _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase)
+            ? query.Where(x => keywords.Any(keyword => EF.Functions.ILike(x.Name, "%" + keyword + "%")))
+            : query.Where(x => keywords.Any(keyword => EF.Functions.Like(x.Name, "%" + keyword + "%")));
+            
+        return await query.ToArrayAsync();
     }
 }
