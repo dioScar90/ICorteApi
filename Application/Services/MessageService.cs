@@ -45,7 +45,7 @@ public sealed class MessageService(
         var response = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId, new(x => x.SentAt)));
         
         return new(
-            [..response.Data.Select(service => service.CreateDto())],
+            [..response.Items.Select(service => service.CreateDto())],
             response.TotalItems,
             response.TotalPages,
             response.Page,

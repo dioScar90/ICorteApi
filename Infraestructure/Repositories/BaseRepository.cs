@@ -74,7 +74,7 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 }
 
 public record PaginationResponse<TEntity>(
-    TEntity[] Data,
+    TEntity[] Items,
     int TotalItems,
     int TotalPages,
     int Page,

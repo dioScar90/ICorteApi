@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ICorteApi.Domain.Base;
 
 namespace ICorteApi.Application.Services;
 
@@ -39,17 +40,29 @@ public class BarberScheduleService(IBarberScheduleRepository repository) : IBarb
     
     private static HashSet<string> SplitByWhitespace(string value) => [..Regex.Split(value, @"\s+").Where(val => !string.IsNullOrEmpty(val))];
     
-    public async Task<ServiceDtoResponse[]> SearchServicesByName(string name)
+    private static PaginationResponse<ServiceByNameDtoResponse> GetEmptyPagination() => new([], 0, 0, 1, 0);
+    
+    public async Task<PaginationResponse<ServiceByNameDtoResponse>> SearchServicesByName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return [];
+            return GetEmptyPagination();
 
         var values = SplitByWhitespace(name);
 
         if (values.Count == 0)
-            return [];
+            return GetEmptyPagination();
         
         var services = await _repository.SearchServicesByName([..values]);
-        return services is null ? [] : [..services.Select(service => service.CreateDto())];
+
+        if (services is null)
+            return GetEmptyPagination();
+            
+        return new PaginationResponse<ServiceByNameDtoResponse>(
+            services,
+            services.Length,
+            1,
+            1,
+            services.Length
+        );
     }
 }

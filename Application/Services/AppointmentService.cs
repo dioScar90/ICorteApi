@@ -58,7 +58,7 @@ public sealed class AppointmentService(
         var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId, new(x => x.Date)));
         
         return new(
-            [..response.Data.Select(service => service.CreateDto())],
+            [..response.Items.Select(service => service.CreateDto())],
             response.TotalItems,
             response.TotalPages,
             response.Page,

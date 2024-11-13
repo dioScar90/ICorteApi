@@ -36,7 +36,7 @@ public sealed class SpecialScheduleService(
         var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.Date)));
         
         return new(
-            [..response.Data.Select(schedule => schedule.CreateDto())],
+            [..response.Items.Select(schedule => schedule.CreateDto())],
             response.TotalItems,
             response.TotalPages,
             response.Page,

@@ -5,5 +5,5 @@ public interface IBarberScheduleRepository : IRepository
     Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly dateToSearchForSlots, DateOnly firstDateThisWeek, int[] serviceIds);
     Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly firstDateThisWeek, DateOnly lastDateThisWeek, int take);
     Task<DateOnly[]> GetAvailableDatesForBarberAsync(int barberShopId, DateOnly firstDateThisWeek);
-    Task<Service[]> SearchServicesByName(string[] values);
+    Task<ServiceByNameDtoResponse[]> SearchServicesByName(string[] values);
 }

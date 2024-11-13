@@ -43,7 +43,7 @@ public sealed class ReportService(
         var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.Id)));
         
         return new(
-            [..response.Data.Select(service => service.CreateDto())],
+            [..response.Items.Select(service => service.CreateDto())],
             response.TotalItems,
             response.TotalPages,
             response.Page,

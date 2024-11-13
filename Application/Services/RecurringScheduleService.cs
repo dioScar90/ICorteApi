@@ -36,7 +36,7 @@ public sealed class RecurringScheduleService(
         var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.DayOfWeek)));
         
         return new(
-            [..response.Data.Select(service => service.CreateDto())],
+            [..response.Items.Select(service => service.CreateDto())],
             response.TotalItems,
             response.TotalPages,
             response.Page,
