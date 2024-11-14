@@ -21,7 +21,8 @@ public sealed class Profile : BaseEntity<Profile>
         FirstName = dto.FirstName;
         LastName = dto.LastName;
         Gender = dto.Gender;
-        ImageUrl = userId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder, dto.Gender) : default;
+        // ImageUrl = userId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder, dto.Gender) : default;
+        ImageUrl = default;
 
         _phoneNumber = dto.PhoneNumber;
     }
@@ -48,7 +49,7 @@ public sealed class Profile : BaseEntity<Profile>
         LastName = dto.LastName;
         Gender = dto.Gender;
 
-        UpdateImageUrlIfFirstTime();
+        // UpdateImageUrlIfFirstTime();
 
         UpdatedAt = utcNow;
     }

@@ -81,7 +81,7 @@ public static class DataSeeder
             await userManager.AddToRolesAsync(user, [..GetUserRolesToBeSetted(user)]);
         }
 
-        await UpdateImageUrlsForFirstTime(serviceProvider);
+        // await UpdateImageUrlsForFirstTime(serviceProvider);
     }
     
     private static async Task UpdateImageUrlsForFirstTime(IServiceProvider serviceProvider)
@@ -104,7 +104,7 @@ public static class DataSeeder
 
     private static HashSet<string> GetAdminRoles() => [nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.Admin)];
     
-    private static HashSet<string> GetUserRolesToBeSetted(User user)
+    public static HashSet<string> GetUserRolesToBeSetted(User user)
     {
         if (user.Email == "diogols@live.com" || user.Email!.StartsWith("admin"))
             return GetAdminRoles();
@@ -306,7 +306,7 @@ public static class DataSeeder
                             false
                         ),
                         new(
-                            new(2024, 01, 01),
+                            new(2025, 01, 01),
                             "Ano Novo",
                             null,
                             null,
@@ -425,6 +425,12 @@ public static class DataSeeder
                             40M,
                             new(00, 25, 00)
                         ),
+                        new(
+                            "Drible no PES 2024",
+                            "Neymar te ensina como fazer os melhores dribles no PES 2024 para você humilhar todos seus amigos",
+                            12.49M,
+                            new(00, 15, 00)
+                        ),
                     ]
                 )
             )
@@ -516,6 +522,12 @@ public static class DataSeeder
                             "Escova modeladora",
                             45M,
                             new(00, 25, 00)
+                        ),
+                        new(
+                            "Conversa com a Rosa",
+                            "Para quem deseja passar momentos muito especiais com a Rosa, para conversar, jogar, desabafar, ver um filme...",
+                            96.9M,
+                            new(01, 02, 00)
                         ),
                     ]
                 )

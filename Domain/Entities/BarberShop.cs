@@ -42,7 +42,8 @@ public sealed class BarberShop : BaseEntity<BarberShop>
         if (dto.Services is not null)
             Services = dto.Services.Select(s => new Service(s)).ToArray();
 
-        ImageUrl = ownerId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder) : default;
+        // ImageUrl = ownerId is int idToPlaceholder ? GetImageUrlPlaceholder(idToPlaceholder) : default;
+        ImageUrl = default;
         OwnerId = ownerId ?? default;
     }
 
@@ -71,7 +72,7 @@ public sealed class BarberShop : BaseEntity<BarberShop>
         if (dto.Address is not null)
             Address?.UpdateEntityByDto(dto.Address, utcNow);
 
-        UpdateImageUrlIfFirstTime();
+        // UpdateImageUrlIfFirstTime();
 
         UpdatedAt = utcNow;
     }
