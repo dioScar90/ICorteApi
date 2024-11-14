@@ -5,10 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class AdminService(AppDbContext context, UserManager<User> userManager, IAdminErrors errors, IConfiguration configuration) : IAdminService
+public sealed class AdminService(
+    AppDbContext context,
+    UserManager<User> userManager,
+    IBarberScheduleRepository repository,
+    IAdminErrors errors,
+    IConfiguration configuration) : IAdminService
 {
     private readonly AppDbContext _context = context;
     private readonly UserManager<User> _userManager = userManager;
+    private readonly IBarberScheduleRepository _barberScheduleRep = repository;
     private readonly IAdminErrors _errors = errors;
     private readonly IConfiguration _configuration = configuration;
     
@@ -169,30 +175,70 @@ public sealed class AdminService(AppDbContext context, UserManager<User> userMan
     {
         return await _context.Users
 			.AsNoTracking()
-			.Where(x => x.BarberShop == null)
+			.Where(x => x.Email != "diogols@live.com" && x.BarberShop == null)
 			.Select(x => x.Id)
 			.ToArrayAsync();
     }
     
-    public async Task PopulateWithAppointments(string passphrase, string userEmail)
+    public async Task PopulateWithAppointments(string passphrase, string userEmail, DateOnly? firstDate, DateOnly? limitDate)
     {
         CheckPassphraseAndEmail(passphrase, userEmail);
+
+        DateOnly dayToPopulate = firstDate ?? DateOnly.FromDateTime(DateTime.Now);
+        DateOnly VERY_LIMIT_DATE = limitDate ?? DateOnly.FromDateTime(DateTime.Now).AddDays(30);
+
+        if (dayToPopulate > VERY_LIMIT_DATE)
+            _errors.ThrowLimitDateIsLessThanStartDateException();
 
         if (!await IsThereAnyUserHere())
             _errors.ThrowThereIsNobodyHereToSetAppointmentsException();
         
-        if (!await IsThereAnyAppointmentHere())
+        if (await IsThereAnyAppointmentHere())
             _errors.ThrowThereAreTooManyAppointmentsHereException();
         
         var barberIds = await GetAllBarberIds();
         var clientIds = await GetAllClientIds();
         
+        var random = new Random();
+        
         using var transaction = await _context.Database.BeginTransactionAsync();
         
         try
         {
-            // ...
+            while (dayToPopulate <= VERY_LIMIT_DATE)
+            {
+                var lastOneAdded = new Dictionary<int, TimeOnly>();
+                var dayOfWeek = (int)dayToPopulate.DayOfWeek;
+                var firstDateThisWeek = dayToPopulate.AddDays(dayOfWeek * -1);
+
+                foreach (int clientIdToAdd in clientIds)
+                {
+                    int barberIdToAdd = barberIds[random.Next(barberIds.Length)];
+
+                    var services = await _context.Services.Where(x => x.BarberShopId == barberIdToAdd).ToArrayAsync();
+                    var serviceIds = services.Select(x => x.Id).ToArray();
+                    
+                    var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dayToPopulate, firstDateThisWeek, serviceIds);
+
+                    if (slots.Length < 3)
+                        continue;
+                        
+                    var startTime = lastOneAdded.TryGetValue(barberIdToAdd, out TimeOnly last)
+                        ? slots[1..^1].First(s => s > last.AddMinutes(47))
+                        : slots[0];
+                    var payment = clientIdToAdd % 3 == 0 ? PaymentType.Card : clientIdToAdd % 2 == 0 ? PaymentType.Transfer : PaymentType.Cash;
+                    
+                    var newAppoint = new Appointment(new(dayToPopulate, startTime, null, payment, []), services, clientIdToAdd);
+
+                    await _context.Appointments.AddAsync(newAppoint);
+                    await _context.SaveChangesAsync();
+                    
+                    lastOneAdded[barberIdToAdd] = startTime;
+                }
                 
+                dayToPopulate = dayToPopulate.AddDays(1);
+            }
+            
             await transaction.CommitAsync();
         }
         catch (Exception ex)

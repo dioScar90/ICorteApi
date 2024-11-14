@@ -61,13 +61,15 @@ public static class AdminEndpoint
     }
     
     public static async Task<IResult> PopulateWithAppointmentsAsync(
+        [FromQuery] DateOnly? firstDate,
+        [FromQuery] DateOnly? limitDate,
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
         IAdminService service,
         IUserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
-        await service.PopulateWithAppointments(passphrase, userEmail);
+        await service.PopulateWithAppointments(passphrase, userEmail, firstDate, limitDate);
 
         return Results.NoContent();
     }
@@ -84,7 +86,7 @@ public static class AdminEndpoint
 
         return Results.NoContent();
     }
-
+    
     public record ResetPasswordDto(
         string Email
     );

@@ -10,6 +10,7 @@ public interface IAdminErrors : IBaseErrors
     void ThrowNullEmailException();
     void ThrowThereIsNobodyToBeDeletedException();
     void ThrowThereAreTooManyPeopleHereException();
+    void ThrowLimitDateIsLessThanStartDateException();
     void ThrowThereIsNobodyHereToSetAppointmentsException();
     void ThrowThereAreTooManyAppointmentsHereException();
     void ThrowUserDoesNotExistException(string email);

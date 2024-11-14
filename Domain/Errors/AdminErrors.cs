@@ -38,6 +38,11 @@ public sealed class AdminErrors : IAdminErrors
         throw new BadRequestException("Já tem gente demais aqui");
     }
 
+    public void ThrowLimitDateIsLessThanStartDateException()
+    {
+        throw new BadRequestException("Data limite é menor que a data de início");
+    }
+
     public void ThrowThereIsNobodyHereToSetAppointmentsException()
     {
         throw new BadRequestException("Quer marcar horários para quem se nem mesmo possui algum cliente cadastrado?");
@@ -45,7 +50,7 @@ public sealed class AdminErrors : IAdminErrors
 
     public void ThrowThereAreTooManyAppointmentsHereException()
     {
-        throw new BadRequestException("Já tem horários demais marcados nesse app");
+        throw new BadRequestException("Já tem horários demais marcados nesse aqui");
     }
     
     public void ThrowUserDoesNotExistException(string email)
