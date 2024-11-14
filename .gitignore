@@ -12,6 +12,10 @@ ICorteApi/*.db
 .env
 .env*
 
+# migrations
+Migrations
+Migrations/*
+
 # files directory
 images
 
