@@ -193,69 +193,83 @@ public static class ServiceCollectionExtensions
     {
         // Configuração de autenticação por cookies
         services.ConfigureApplicationCookie(options =>
+        {
+            options.Events.OnSigningIn = context =>
             {
-                options.Events.OnSigningIn = context =>
-                {
-                    var currentToken = SessionTokenManager.GetCurrentToken();
-                    context.Properties.Items["SessionToken"] = currentToken;
-                    return Task.CompletedTask;
-                };
+                var currentToken = SessionTokenManager.GetCurrentToken();
+                context.Properties.Items["SessionToken"] = currentToken;
+                return Task.CompletedTask;
+            };
 
-                options.Events.OnValidatePrincipal = context =>
+            options.Events.OnValidatePrincipal = context =>
+            {
+                if (context.Properties.Items.TryGetValue("SessionToken", out var sessionToken))
                 {
-                    if (context.Properties.Items.TryGetValue("SessionToken", out var sessionToken))
+                    if (sessionToken != SessionTokenManager.GetCurrentToken())
                     {
-                        if (sessionToken != SessionTokenManager.GetCurrentToken())
-                        {
-                            context.RejectPrincipal(); // Rejeitar o principal se o token não corresponder
-                        }
+                        context.RejectPrincipal(); // Rejeitar o principal se o token não corresponder
                     }
-                    return Task.CompletedTask;
-                };
+                }
+                return Task.CompletedTask;
+            };
 
-                options.Cookie.HttpOnly = true;
+            options.Cookie.HttpOnly = true;
 
-                // Garante que os cookies sejam enviados apenas em conexões HTTPS, o que é ótimo para segurança.
-                // Porém aqui foi deixado como 'None' pois isso atrapalha em conexões com localhost.
-                // options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 
-                // // Necessário para cross-origin
-                options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            // Útil para prolongar a sessão ativa se o usuário estiver ativo.
+            options.SlidingExpiration = true;
 
-                // options.Cookie.SameSite = isDevelopment
-                //     ? SameSiteMode.Lax
-                //     : SameSiteMode.None;
-                // options.Cookie.SecurePolicy = isDevelopment
-                //     ? CookieSecurePolicy.None
-                //     : CookieSecurePolicy.Always;
+            // Define o tempo de vida do cookie de autenticação, ou seja, quanto tempo o cookie permanece válido antes de expirar.
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 
-                // Útil para prolongar a sessão ativa se o usuário estiver ativo.
-                options.SlidingExpiration = true;
+            options.LoginPath = "/auth/login";
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            };
 
-                // Define o tempo de vida do cookie de autenticação, ou seja, quanto tempo o cookie permanece válido antes de expirar.
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+            options.LogoutPath = "/auth/logout";
 
-                options.LoginPath = "/auth/login";
-                options.Events.OnRedirectToLogin = context =>
+            options.AccessDeniedPath = "/auth/access-denied";
+            options.Events.OnRedirectToAccessDenied = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            };
+        });
+
+        // Configuração de CORS
+        services.AddCors(options =>
+        {
+            if (isDevelopment)
+            {
+                // Permitir tudo em desenvolvimento
+                options.AddPolicy("DevelopmentPolicy", policy =>
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
-                };
-
-                options.LogoutPath = "/auth/logout";
-
-                options.AccessDeniedPath = "/auth/access-denied";
-                options.Events.OnRedirectToAccessDenied = context =>
+                    policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            }
+            else
+            {
+                // Configuração mais restritiva em produção
+                options.AddPolicy("ProductionPolicy", policy =>
                 {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return Task.CompletedTask;
-                };
-            });
+                    policy.WithOrigins("https://dioscar90.github.io") // Domínio do GitHub Pages
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials(); // Permitir envio de cookies
+                });
+            }
+        });
 
         return services;
     }
-
+    
     public static IServiceCollection AddCustomDataProtection(this IServiceCollection services)
     {
         _ = services.AddDataProtection()

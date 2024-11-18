@@ -49,14 +49,17 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRouting();
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    Console.WriteLine("\n\n\nDEVELOPMENT\n\n\n");
+    app.UseCors("ProductionPolicy");
+}
+else
 {
     Console.WriteLine("\n\n\nPRODUCTIOOOOOOOOOOOOON!\n\n\n");
     app.UseHttpsRedirection();
+    app.UseCors("DevelopmentPolicy");
 }
-
-app.UseCors("AllowSpecificOrigin");
-// app.UseCors("AllowAll");
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
 // when `AddAuthorization` or `UseAuthorization` is also present.
