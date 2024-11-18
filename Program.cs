@@ -52,13 +52,13 @@ app.UseRouting();
 if (app.Environment.IsDevelopment())
 {
     Console.WriteLine("\n\n\nDEVELOPMENT\n\n\n");
-    app.UseCors("ProductionPolicy");
+    app.UseCors("DevelopmentPolicy");
 }
 else
 {
     Console.WriteLine("\n\n\nPRODUCTIOOOOOOOOOOOOON!\n\n\n");
     app.UseHttpsRedirection();
-    app.UseCors("DevelopmentPolicy");
+    app.UseCors("ProductionPolicy");
 }
 
 // After .NET 8 it isn't necessary to use `AddAuthentication` or `UseAuthentication`
