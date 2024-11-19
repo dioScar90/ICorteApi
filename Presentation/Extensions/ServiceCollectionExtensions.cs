@@ -259,7 +259,7 @@ public static class ServiceCollectionExtensions
                 // Configuração mais restritiva em produção
                 options.AddPolicy("ProductionPolicy", policy =>
                 {
-                    policy.WithOrigins("https://dioscar90.github.io") // Domínio do GitHub Pages
+                    policy.WithOrigins("https://dioscar90.github.io", "https://icorte.netlify.app") // Domínios
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials(); // Permitir envio de cookies
