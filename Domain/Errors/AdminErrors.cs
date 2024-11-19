@@ -50,7 +50,7 @@ public sealed class AdminErrors : IAdminErrors
 
     public void ThrowThereAreTooManyAppointmentsHereException()
     {
-        throw new BadRequestException("Já tem horários demais marcados nesse aqui");
+        throw new BadRequestException("Já tem horários demais marcados aqui nesse sistema");
     }
     
     public void ThrowUserDoesNotExistException(string email)

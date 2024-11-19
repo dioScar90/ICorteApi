@@ -115,8 +115,8 @@ public sealed class AdminService(
     private async Task<bool> IsThereAnyUserHere(bool? evenMasterAdmin = null) =>
         await _context.Users.AnyAsync(x => evenMasterAdmin == true || x.Email != "diogols@live.com");
     
-    private async Task<bool> IsThereAnyAppointmentHere(bool? evenMasterAdmin = null) =>
-        await _context.Appointments.AnyAsync(x => evenMasterAdmin == true || x.Client.Email != "diogols@live.com");
+    private async Task<bool> IsThereAnyAppointmentHere(DateOnly startDate, DateOnly limitDate) =>
+        await _context.Appointments.AnyAsync(x => x.Date >= startDate && x.Date <= limitDate);
     
     public async Task PopulateAllInitialTables(string passphrase, string userEmail)
     {
@@ -185,7 +185,7 @@ public sealed class AdminService(
         CheckPassphraseAndEmail(passphrase, userEmail);
 
         DateOnly dayToPopulate = firstDate ?? DateOnly.FromDateTime(DateTime.Now);
-        DateOnly VERY_LIMIT_DATE = limitDate ?? DateOnly.FromDateTime(DateTime.Now).AddDays(30);
+        DateOnly VERY_LIMIT_DATE = limitDate ?? dayToPopulate.AddDays(30);
 
         if (dayToPopulate > VERY_LIMIT_DATE)
             _errors.ThrowLimitDateIsLessThanStartDateException();
@@ -193,7 +193,7 @@ public sealed class AdminService(
         if (!await IsThereAnyUserHere())
             _errors.ThrowThereIsNobodyHereToSetAppointmentsException();
         
-        if (await IsThereAnyAppointmentHere())
+        if (await IsThereAnyAppointmentHere(dayToPopulate, VERY_LIMIT_DATE))
             _errors.ThrowThereAreTooManyAppointmentsHereException();
         
         var barberIds = await GetAllBarberIds();
