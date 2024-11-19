@@ -215,8 +215,18 @@ public static class ServiceCollectionExtensions
 
             options.Cookie.HttpOnly = true;
 
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            if (isDevelopment)
+            {
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            }
+            else
+            {
+                options.Cookie.SameSite = SameSiteMode.None; // Permite cookies em requisições de diferentes origens
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Requer HTTPS
+
+            }
+
 
             // Útil para prolongar a sessão ativa se o usuário estiver ativo.
             options.SlidingExpiration = true;
