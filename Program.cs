@@ -13,7 +13,7 @@ builder.Services
     .AddServices()
     .AddErrors()
     .AddValidators()
-    .AddCorsConfiguration()
+    .AddCorsConfiguration(builder.Environment.IsDevelopment())
     .AddAuthorizationRules()
     .AddCookieConfiguration(builder.Environment.IsDevelopment())
     .AddExceptionHandlers()
@@ -52,7 +52,7 @@ app.UseRouting();
 if (app.Environment.IsDevelopment())
 {
     Console.WriteLine("\n\n\nDEVELOPMENT\n\n\n");
-    app.UseCors("DevelopmentPolicy");
+    app.UseCors("AllowSpecificOrigin");
 }
 else
 {

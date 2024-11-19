@@ -1,3 +1,4 @@
+using System.Net;
 using FluentValidation;
 using ICorteApi.Application.Services;
 using ICorteApi.Application.Validators;
@@ -226,8 +227,7 @@ public static class ServiceCollectionExtensions
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Requer HTTPS
 
             }
-
-
+            
             // Útil para prolongar a sessão ativa se o usuário estiver ativo.
             options.SlidingExpiration = true;
 
@@ -251,17 +251,34 @@ public static class ServiceCollectionExtensions
             };
         });
 
-        // Configuração de CORS
+        return services;
+    }
+    
+    public static IServiceCollection AddCorsConfiguration(this IServiceCollection services, bool isDevelopment)
+    {
         services.AddCors(options =>
         {
             if (isDevelopment)
             {
-                // Permitir tudo em desenvolvimento
-                options.AddPolicy("DevelopmentPolicy", policy =>
+                var hostAddresses = Dns.GetHostAddresses(Dns.GetHostName());
+                var ipv4 = hostAddresses.FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+
+                string[] ipOrigin = ipv4 is null ? [] : [$"http://{ipv4}:5173"];
+                string[] localhostOrigin = ["http://localhost:5173"];
+                
+                HashSet<string> origins = [..ipOrigin, ..localhostOrigin];
+                
+                foreach (var suamae in origins)
                 {
-                    policy.AllowAnyOrigin()
+                    Console.WriteLine($"\n\n\nToma aqui seu IP => {suamae}");
+                }
+                
+                options.AddPolicy("AllowSpecificOrigin", policy =>
+                {
+                    policy.WithOrigins([..origins])
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials(); // Permite o uso de cookies ou cabeçalhos de autenticação
                 });
             }
             else
@@ -275,33 +292,6 @@ public static class ServiceCollectionExtensions
                         .AllowCredentials(); // Permitir envio de cookies
                 });
             }
-        });
-
-        return services;
-    }
-    
-    public static IServiceCollection AddCustomDataProtection(this IServiceCollection services)
-    {
-        _ = services.AddDataProtection()
-            .SetApplicationName("ICorteApi")
-            .PersistKeysToFileSystem(new DirectoryInfo(@"./keys")) // Local onde as chaves são armazenadas
-            .ProtectKeysWithDpapi(); // Proteção adicional para as chaves
-
-        return services;
-    }
-
-    public static IServiceCollection AddCorsConfiguration(this IServiceCollection services)
-    {
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowSpecificOrigin",
-            // options.AddPolicy("AllowAll",
-                builder => builder
-                    // .WithOrigins() // This way any origin is allowed. Beware in production.
-                    .WithOrigins("http://localhost:5173") // This must be preferable overrided by env variable
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()); // Permite o uso de cookies ou cabeçalhos de autenticação
         });
 
         return services;
