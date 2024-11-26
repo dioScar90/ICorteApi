@@ -54,3 +54,12 @@ public record UserDtoConfirmEmailRequest(
     string Email,
     string Token
 ) : IDtoRequest<User>;
+
+public record FoundUserByAdmin(
+    int Id,
+    string FirstName,
+    string LastName,
+    string Email,
+    string PhoneNumber,
+    bool IsBarberShop
+) : IDtoRequest<User>;

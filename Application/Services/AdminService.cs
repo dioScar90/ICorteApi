@@ -247,4 +247,38 @@ public sealed class AdminService(
             throw;
         }
     }
+    
+    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string passphrase, string userEmail, string? name)
+    {
+        CheckPassphraseAndEmail(passphrase, userEmail);
+
+        if (name is null)
+            return [];
+        
+        bool isPostgre = _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
+        
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => isPostgre
+            ? (
+                EF.Functions.ILike(u.Profile.FirstName, "%" + name + "%")
+                || EF.Functions.ILike(u.Profile.LastName, "%" + name + "%")
+                || EF.Functions.ILike(u.Email!, "%" + name + "%")
+            )
+            : (
+                EF.Functions.Like(u.Profile.FirstName, "%" + name + "%")
+                || EF.Functions.Like(u.Profile.LastName, "%" + name + "%")
+                || EF.Functions.Like(u.Email!, "%" + name + "%")
+            ))
+            .OrderBy(u => u.Profile.FirstName)
+            .Select(u => new FoundUserByAdmin(
+                u.Id,
+                u.Profile.FirstName,
+                u.Profile.LastName,
+                u.Email!,
+                u.PhoneNumber!,
+                u.BarberShop != null
+            ))
+            .ToArrayAsync();
+    }
 }

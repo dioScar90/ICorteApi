@@ -30,6 +30,11 @@ public static class AdminEndpoint
             .WithDescription("Reset the user's password to a known default password and then this user will be able to login again.")
             .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
 
+        group.MapGet("search-users", SearchForUsersByNameAsync)
+            .WithSummary("Search For Users By Name")
+            .WithDescription("Search for existing users in database and by some given name to be compared.")
+            .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
+
         return app;
     }
     
@@ -90,4 +95,17 @@ public static class AdminEndpoint
     public record ResetPasswordDto(
         string Email
     );
+    
+    public static async Task<IResult> SearchForUsersByNameAsync(
+        [FromQuery] string? name,
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+        IAdminService service,
+        IUserService userService)
+    {
+        var userEmail = await userService.GetCurrentUserEmail();
+        
+        var result = await service.SearchForUsersByName(passphrase, userEmail, name);
+        
+        return Results.Ok(result);
+    }
 }
