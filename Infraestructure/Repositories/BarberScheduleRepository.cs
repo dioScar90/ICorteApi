@@ -173,10 +173,9 @@ public sealed class BarberScheduleRepository(AppDbContext context) : IBarberSche
         
         return await _context.Services
             .AsNoTracking()
-            .AsSplitQuery()
-            .Where(x => isPostgre
-                ? keywords.Any(keyword => EF.Functions.ILike(x.Name, "%" + keyword + "%"))
-                : keywords.Any(keyword => EF.Functions.Like(x.Name, "%" + keyword + "%")))
+            .Where(x => keywords.All(keyword => isPostgre
+                ? EF.Functions.ILike(x.Name, "%" + keyword + "%")
+                : EF.Functions.Like(x.Name, "%" + keyword + "%")))
             .Select(x => new ServiceByNameDtoResponse(
                 x.Id,
                 x.BarberShop.Id,
