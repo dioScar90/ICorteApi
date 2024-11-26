@@ -43,7 +43,7 @@ public static class DataSeeder
                 
     //         await transaction.CommitAsync();
     //     }
-    //     catch (Exception ex)
+    //     catch (Exception)
     //     {
     //         // Rollback em caso de falha
     //         await transaction.RollbackAsync();
