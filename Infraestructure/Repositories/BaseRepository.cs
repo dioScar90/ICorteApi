@@ -49,14 +49,17 @@ public abstract class BaseRepository<TEntity>(AppDbContext context) : IBaseRepos
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
-
-        int page = Math.Clamp(props.Page, 1, totalPages);
-
+        
+        int page = props.Page > 0 && totalPages > 0 ? Math.Clamp(props.Page, 1, totalPages) : 0;
+        
+        if (totalItems == 0)
+            return new([], totalItems, totalPages, page, props.PageSize);
+        
         var entities = await query
             .Skip((page - 1) * props.PageSize)
             .Take(props.PageSize)
             .ToArrayAsync();
-
+        
         return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }
 
