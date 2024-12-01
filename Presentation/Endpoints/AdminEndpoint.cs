@@ -98,13 +98,12 @@ public static class AdminEndpoint
     
     public static async Task<IResult> SearchForUsersByNameAsync(
         [FromQuery] string? name,
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
         IAdminService service,
         IUserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
         
-        var result = await service.SearchForUsersByName(passphrase, userEmail, name);
+        var result = await service.SearchForUsersByName(userEmail, name);
         
         return Results.Ok(result);
     }

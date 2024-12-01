@@ -20,29 +20,39 @@ public sealed class AdminService(
     
     private string? GetEnvironmentValue(string key) => Environment.GetEnvironmentVariable(key) ?? _configuration[key];
 
-    private void CheckPassphraseAndEmail(string passphrase, string userEmail)
+    private void CheckEmail(string userEmail)
     {
-        var passphraseHardDelete = GetEnvironmentValue("PASSPHRASE_TO_HARD_DELETE");
         var emailHardDelete = GetEnvironmentValue("EMAIL_TO_HARD_DELETE");
-        
-        if (string.IsNullOrEmpty(passphraseHardDelete))
-            _errors.ThrowNullPassphaseException();
 
         if (string.IsNullOrEmpty(emailHardDelete))
             _errors.ThrowNullEmailException();
 
-        if (passphrase != passphraseHardDelete)
-            _errors.ThrowNotEqualPassphaseException();
-
         if (userEmail != emailHardDelete)
             _errors.ThrowNotEqualEmailException();
+    }
+
+    private void CheckPassphrase(string passphrase)
+    {
+        var passphraseHardDelete = GetEnvironmentValue("PASSPHRASE_TO_HARD_DELETE");
+        
+        if (string.IsNullOrEmpty(passphraseHardDelete))
+            _errors.ThrowNullPassphaseException();
+
+        if (passphrase != passphraseHardDelete)
+            _errors.ThrowNotEqualPassphaseException();
+    }
+    
+    private void CheckPassphraseAndEmail(string userEmail, string passphrase)
+    {
+        CheckEmail(userEmail);
+        CheckPassphrase(passphrase);
     }
 
     private async Task<User?> GetUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
     public async Task ResetPasswordForSomeUser(string passphrase, string userEmail, string emailToBeReseted)
     {
-        CheckPassphraseAndEmail(passphrase, userEmail);
+        CheckPassphraseAndEmail(userEmail, passphrase);
         
         var user = await GetUserByEmail(emailToBeReseted);
         
@@ -70,7 +80,7 @@ public sealed class AdminService(
 
     public async Task RemoveAllRows(string passphrase, string userEmail, bool? evenMasterAdmin = null)
     {
-        CheckPassphraseAndEmail(passphrase, userEmail);
+        CheckPassphraseAndEmail(userEmail, passphrase);
 
         if (!await IsThereAnyUserHere(evenMasterAdmin))
             _errors.ThrowThereIsNobodyToBeDeletedException();
@@ -120,7 +130,7 @@ public sealed class AdminService(
     
     public async Task PopulateAllInitialTables(string passphrase, string userEmail)
     {
-        CheckPassphraseAndEmail(passphrase, userEmail);
+        CheckPassphraseAndEmail(userEmail, passphrase);
         
         if (await IsThereAnyUserHere())
             _errors.ThrowThereAreTooManyPeopleHereException();
@@ -182,7 +192,7 @@ public sealed class AdminService(
     
     public async Task PopulateWithAppointments(string passphrase, string userEmail, DateOnly? firstDate, DateOnly? limitDate)
     {
-        CheckPassphraseAndEmail(passphrase, userEmail);
+        CheckPassphraseAndEmail(userEmail, passphrase);
 
         DateOnly dayToPopulate = firstDate ?? DateOnly.FromDateTime(DateTime.Now);
         DateOnly VERY_LIMIT_DATE = limitDate ?? dayToPopulate.AddDays(30);
@@ -248,9 +258,9 @@ public sealed class AdminService(
         }
     }
     
-    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string passphrase, string userEmail, string? name)
+    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string userEmail, string? name)
     {
-        CheckPassphraseAndEmail(passphrase, userEmail);
+        CheckEmail(userEmail);
 
         if (name is null)
             return [];

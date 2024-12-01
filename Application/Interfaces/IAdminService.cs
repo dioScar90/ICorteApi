@@ -8,5 +8,5 @@ public interface IAdminService : IService
     Task PopulateAllInitialTables(string passphrase, string userEmail);
     Task ResetPasswordForSomeUser(string passphrase, string userEmail, string emailToBeReseted);
     Task PopulateWithAppointments(string passphrase, string userEmail, DateOnly? firstDate, DateOnly? limitDate);
-    Task<FoundUserByAdmin[]> SearchForUsersByName(string passphrase, string userEmail, string? name);
+    Task<FoundUserByAdmin[]> SearchForUsersByName(string userEmail, string? name);
 }

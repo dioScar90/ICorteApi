@@ -54,12 +54,12 @@ public static class AppointmentEndpoint
     }
 
     public static async Task<IResult> GetAllAppointmentsAsync(
-        int clientId,
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         IAppointmentService service,
-        IAppointmentErrors errors)
+        IUserService userService)
     {
+        int clientId = await userService.GetMyUserIdAsync();
         var appointments = await service.GetAllAsync(page, pageSize, clientId);
         return Results.Ok(appointments);
     }
