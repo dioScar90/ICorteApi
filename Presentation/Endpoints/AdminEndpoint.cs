@@ -35,6 +35,11 @@ public static class AdminEndpoint
             .WithDescription("Search for existing users in database and by some given name to be compared.")
             .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
 
+        group.MapGet("last-users", GetLastUsersAsync)
+            .WithSummary("Get Last Users")
+            .WithDescription("Get the last users created in the system.")
+            .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
+
         return app;
     }
     
@@ -104,6 +109,18 @@ public static class AdminEndpoint
         var userEmail = await userService.GetCurrentUserEmail();
         
         var result = await service.SearchForUsersByName(userEmail, q);
+        
+        return Results.Ok(result);
+    }
+    
+    public static async Task<IResult> GetLastUsersAsync(
+        [FromQuery] int? take,
+        IAdminService service,
+        IUserService userService)
+    {
+        var userEmail = await userService.GetCurrentUserEmail();
+        
+        var result = await service.GetLastUsers(userEmail, take);
         
         return Results.Ok(result);
     }

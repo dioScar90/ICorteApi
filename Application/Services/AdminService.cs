@@ -48,6 +48,8 @@ public sealed class AdminService(
         CheckPassphrase(passphrase);
     }
 
+    private bool IsPostgres() => _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
+
     private async Task<User?> GetUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
     public async Task ResetPasswordForSomeUser(string passphrase, string userEmail, string emailToBeReseted)
@@ -265,7 +267,7 @@ public sealed class AdminService(
         if (name is null)
             return [];
         
-        bool isPostgre = _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
+        bool isPostgre = IsPostgres();
         
         return await _context.Users
             .AsNoTracking()
@@ -281,6 +283,28 @@ public sealed class AdminService(
                 || EF.Functions.Like(u.Email!, "%" + name + "%")
             ))
             .OrderBy(u => u.Profile.FirstName)
+            .Select(u => new FoundUserByAdmin(
+                u.Id,
+                u.Profile.FirstName,
+                u.Profile.LastName,
+                u.Email!,
+                u.PhoneNumber!,
+                u.BarberShop != null
+            ))
+            .ToArrayAsync();
+    }
+    
+    public async Task<FoundUserByAdmin[]> GetLastUsers(string userEmail, int? take = null)
+    {
+        CheckEmail(userEmail);
+        
+        take ??= 15;
+        int count = Math.Clamp((int)take!, 1, 50);
+        
+        return await _context.Users
+            .AsNoTracking()
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(count)
             .Select(u => new FoundUserByAdmin(
                 u.Id,
                 u.Profile.FirstName,
