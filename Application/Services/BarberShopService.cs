@@ -1,4 +1,5 @@
 using FluentValidation;
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Services;
@@ -32,9 +33,11 @@ public sealed class BarberShopService(
         return barberShop!.CreateDto();
     }
     
-    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId)
+    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId, int? page, int? pageSize)
     {
-        return await _repository.GetAppointmentsByBarberShopAsync(barberShopId, ownerId);
+        return await _repository.GetAppointmentsByBarberShopAsync(
+            barberShopId, ownerId,
+            new(page, pageSize, x => 1 == 1, new(x => x.Id)));
     }
     
     public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)

@@ -1,3 +1,4 @@
+using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,11 +40,15 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
             .FirstOrDefaultAsync();
     }
     
-    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId)
+    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
+        int barberShopId, int ownerId,
+        PaginationProperties<AppointmentsByBarberShopDtoResponse> props)
     {
-        var appointments = await _context.Appointments
+        Console.WriteLine("\n\n\n\n\n\n\n");
+        var query = _context.Appointments
             .AsNoTracking()
             .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
+            .OrderByDescending(a => a.CreatedAt)
             .Select(a => new AppointmentsByBarberShopDtoResponse(
                 a.Id,
                 new(
@@ -70,13 +75,22 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
                     )
                 ).ToArray(),
                 a.Status
-            ))
-            .ToArrayAsync();
+            ));
 
-        if (appointments?.Length == 0)
-            return new([], 0, 0, 1, 0);
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
         
-        return new(appointments!, appointments!.Length, 1, 1, appointments.Length);
+        int page = props.Page > 0 && totalPages > 0 ? Math.Clamp(props.Page, 1, totalPages) : 0;
+        
+        if (totalItems == 0)
+            return new([], totalItems, totalPages, page, props.PageSize);
+        
+        var entities = await query
+            .Skip((page - 1) * props.PageSize)
+            .Take(props.PageSize)
+            .ToArrayAsync();
+        
+        return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }
     
     public override async Task<bool> DeleteAsync(BarberShop barberShop)

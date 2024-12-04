@@ -41,7 +41,7 @@ public static class BarberShopEndpoint
         var barberShop = await service.CreateAsync(dto, ownerId);
         return GetCreatedResult(barberShop);
     }
-
+    
     public static async Task<IResult> GetBarberShopAsync(
         int id,
         IBarberShopService service)
@@ -49,14 +49,16 @@ public static class BarberShopEndpoint
         var barberShop = await service.GetByIdAsync(id);
         return Results.Ok(barberShop);
     }
-
+    
     public static async Task<IResult> GetAppointmentsByBarberShopAsync(
         int barberShopId,
+        int? page,
+        int? pageSize,
         IBarberShopService service,
         IUserService userService)
     {
         int ownerId = await userService.GetMyUserIdAsync();
-        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, ownerId);
+        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, ownerId, page, pageSize);
         return Results.Ok(barberShop);
     }
 
