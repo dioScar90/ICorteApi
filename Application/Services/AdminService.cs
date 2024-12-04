@@ -260,6 +260,26 @@ public sealed class AdminService(
         }
     }
     
+    public async Task DeleteServiceAndRemoveFromAllAppointments(string passphrase, string userEmail, int serviceId)
+    {
+        CheckPassphraseAndEmail(userEmail, passphrase);
+        
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        
+        try
+        {
+            await _context.Database.ExecuteSqlAsync($"DELETE FROM service_appointment WHERE service_id = {serviceId}");
+            await _context.Database.ExecuteSqlAsync($"DELETE FROM services WHERE id = {serviceId}");
+            
+            await transaction.CommitAsync();
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+    
     public async Task<FoundUserByAdmin[]> SearchForUsersByName(string userEmail, string? name)
     {
         CheckEmail(userEmail);

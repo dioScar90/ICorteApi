@@ -14,6 +14,11 @@ public static class AdminEndpoint
             .WithSummary("Remove All Rows")
             .WithDescription("*** BEWARE *** - Remove all rows in all tables.")
             .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
+        
+        group.MapDelete("remove-service", DeleteServiceAndRemoveFromAllAppointmentsAsync)
+            .WithSummary("Delete Service And Remove From All Appointments")
+            .WithDescription("*** BEWARE *** - Delete Service And Remove From All Appointments.")
+            .RequireAuthorization(nameof(PolicyUserRole.AdminOnly));
 
         group.MapPost("populate-all", PopulateAllInitialTablesAsync)
             .WithSummary("Populate All Initial Tables")
@@ -54,6 +59,19 @@ public static class AdminEndpoint
         var userEmail = await userService.GetCurrentUserEmail();
 
         await service.RemoveAllRows(passphrase, userEmail, evenMasterAdmin);
+
+        return Results.NoContent();
+    }
+    
+    public static async Task<IResult> DeleteServiceAndRemoveFromAllAppointmentsAsync(
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+        [FromQuery] int serviceId,
+        IAdminService service,
+        IUserService userService)
+    {
+        var userEmail = await userService.GetCurrentUserEmail();
+
+        await service.DeleteServiceAndRemoveFromAllAppointments(passphrase, userEmail, serviceId);
 
         return Results.NoContent();
     }
