@@ -32,6 +32,11 @@ public sealed class BarberShopService(
         return barberShop!.CreateDto();
     }
     
+    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId)
+    {
+        return await _repository.GetAppointmentsByBarberShopAsync(barberShopId, ownerId);
+    }
+    
     public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);

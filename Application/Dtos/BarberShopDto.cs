@@ -33,6 +33,27 @@ public record BarberShopDtoResponse(
     ReportDtoResponse[] Reports
 ) : IDtoResponse<BarberShop>;
 
+public record ClientForAppointmentByBarberShop(
+    int Id,
+    string FirstName,
+    string LastName,
+    string FullName
+);
+
+public record AppointmentsByBarberShopDtoResponse(
+    int Id,
+    ClientForAppointmentByBarberShop Client,
+    int BarberShopId,
+    DateOnly Date,
+    TimeOnly StartTime,
+    TimeSpan TotalDuration,
+    string? Notes,
+    PaymentType PaymentType,
+    decimal TotalPrice,
+    ServiceDtoResponse[] Services,
+    AppointmentStatus Status
+) : IDtoResponse<BarberShop>;
+
 public record TopBarberShopDtoResponse(
     int Id,
     string Name,

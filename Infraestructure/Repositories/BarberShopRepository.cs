@@ -39,6 +39,46 @@ public sealed class BarberShopRepository(AppDbContext context, IUserRepository u
             .FirstOrDefaultAsync();
     }
     
+    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId)
+    {
+        var appointments = await _context.Appointments
+            .AsNoTracking()
+            .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
+            .Select(a => new AppointmentsByBarberShopDtoResponse(
+                a.Id,
+                new(
+                    a.ClientId,
+                    a.Client.Profile.FirstName,
+                    a.Client.Profile.LastName,
+                    a.Client.Profile.FirstName + ' ' + a.Client.Profile.LastName
+                ),
+                a.BarberShopId,
+                a.Date,
+                a.StartTime,
+                a.TotalDuration,
+                a.Notes,
+                a.PaymentType,
+                a.TotalPrice,
+                a.Services.Select(s =>
+                    new ServiceDtoResponse(
+                        s.Id,
+                        s.BarberShopId,
+                        s.Name,
+                        s.Description,
+                        s.Price,
+                        s.Duration
+                    )
+                ).ToArray(),
+                a.Status
+            ))
+            .ToArrayAsync();
+
+        if (appointments?.Length == 0)
+            return new([], 0, 0, 1, 0);
+        
+        return new(appointments!, appointments!.Length, 1, 1, appointments.Length);
+    }
+    
     public override async Task<bool> DeleteAsync(BarberShop barberShop)
     {
         using var transaction = await BeginTransactionAsync();

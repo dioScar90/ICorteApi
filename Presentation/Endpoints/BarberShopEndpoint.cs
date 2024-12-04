@@ -13,6 +13,10 @@ public static class BarberShopEndpoint
         group.MapGet("{id}", GetBarberShopAsync)
             .WithSummary("Get BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
+        group.MapGet("{barberShopId}/appointments", GetAppointmentsByBarberShopAsync)
+            .WithSummary("Get Appointments By BarberShop")
+            .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
         
         group.MapPut("{id}", UpdateBarberShopAsync)
             .WithSummary("Update BarberShop")
@@ -46,6 +50,16 @@ public static class BarberShopEndpoint
         return Results.Ok(barberShop);
     }
 
+    public static async Task<IResult> GetAppointmentsByBarberShopAsync(
+        int barberShopId,
+        IBarberShopService service,
+        IUserService userService)
+    {
+        int ownerId = await userService.GetMyUserIdAsync();
+        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, ownerId);
+        return Results.Ok(barberShop);
+    }
+
     public static async Task<IResult> UpdateBarberShopAsync(
         int id,
         BarberShopDtoUpdate dto,
@@ -53,8 +67,8 @@ public static class BarberShopEndpoint
         IUserService userService)
     {
         int ownerId = await userService.GetMyUserIdAsync();
-        await service.UpdateAsync(dto, id, ownerId);
-        return Results.NoContent();
+        var appointments = await service.UpdateAsync(dto, id, ownerId);
+        return Results.Ok(appointments);
     }
 
     public static async Task<IResult> DeleteBarberShopAsync(
