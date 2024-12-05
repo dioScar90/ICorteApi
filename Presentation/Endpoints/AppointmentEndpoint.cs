@@ -44,15 +44,16 @@ public static class AppointmentEndpoint
         var appointment = await service.CreateAsync(dto, clientId);
         return GetCreatedResult(appointment);
     }
-
+    
     public static async Task<IResult> GetAppointmentAsync(
         int id,
+        bool? services,
         IAppointmentService service)
     {
-        var appointment = await service.GetByIdAsync(id);
+        var appointment = services is true ? await service.GetByIdWithServicesAsync(id) : await service.GetByIdAsync(id);
         return Results.Ok(appointment);
     }
-
+    
     public static async Task<IResult> GetAllAppointmentsAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,

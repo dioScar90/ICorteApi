@@ -37,6 +37,16 @@ public sealed class AppointmentService(
         var appointment = new Appointment(dto, services, clientId);
         return (await CreateAsync(appointment))!.CreateDto();
     }
+    
+    public async Task<AppointmentDtoResponse> GetByIdWithServicesAsync(int id)
+    {
+        var appointment = await _repository.GetByIdWithServicesAsync(id);
+
+        if (appointment is null)
+            _errors.ThrowNotFoundException();
+        
+        return appointment!.CreateDto();
+    }
 
     private async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
     {
