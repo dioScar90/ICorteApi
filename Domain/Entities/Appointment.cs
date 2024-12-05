@@ -63,6 +63,15 @@ public sealed class Appointment : BaseEntity<Appointment>
         UpdateTotalPrice();
     }
     
+    private void UpdateByPaymentTypeAppointmentDto(AppointmentPaymentTypeDtoUpdate dto, DateTime? utcNow)
+    {
+        utcNow ??= DateTime.UtcNow;
+        
+        PaymentType = dto.PaymentType;
+        
+        UpdatedAt = utcNow;
+    }
+    
     private void UpdateByAppointmentDto(AppointmentDtoUpdate dto, DateTime? utcNow)
     {
         utcNow ??= DateTime.UtcNow;
@@ -76,11 +85,14 @@ public sealed class Appointment : BaseEntity<Appointment>
         
         UpdatedAt = utcNow;
     }
-
+    
     public override void UpdateEntityByDto(IDtoRequest<Appointment> requestDto, DateTime? utcNow = null)
     {
         switch (requestDto)
         {
+            case AppointmentPaymentTypeDtoUpdate paymentTypeDto:
+                UpdateByPaymentTypeAppointmentDto(paymentTypeDto, utcNow);
+                break;
             case AppointmentDtoUpdate dto:
                 UpdateByAppointmentDto(dto, utcNow);
                 break;

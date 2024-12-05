@@ -110,6 +110,22 @@ public sealed class AppointmentService(
         return await UpdateAsync(appointment);
     }
 
+    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdate dto, int id, int clientId)
+    {
+        var appointment = await _repository.GetByIdAsync(id);
+
+        if (appointment is null)
+            _errors.ThrowNotFoundException();
+        
+        if (appointment!.ClientId != clientId)
+            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
+
+        appointment.UpdateEntityByDto(dto);
+        
+        appointment.UpdateEntityByDto(dto);
+        return await UpdateAsync(appointment);
+    }
+    
     public async Task<bool> DeleteAsync(int id, int clientId)
     {
         var appointment = await _repository.GetByIdAsync(id);

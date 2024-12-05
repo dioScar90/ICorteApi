@@ -25,6 +25,10 @@ public static class AppointmentEndpoint
             .WithSummary("Update Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
+        group.MapPatch("{id}", UpdatePaymentTypeAsync)
+            .WithSummary("Update Payment Type")
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+
         group.MapDelete("{id}", DeleteAppointmentAsync)
             .WithSummary("Delete Appointment")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
@@ -73,6 +77,17 @@ public static class AppointmentEndpoint
     {
         int clientId = await userService.GetMyUserIdAsync();
         await service.UpdateAsync(dto, id, clientId);
+        return Results.NoContent();
+    }
+    
+    public static async Task<IResult> UpdatePaymentTypeAsync(
+        int id,
+        AppointmentPaymentTypeDtoUpdate dto,
+        IAppointmentService service,
+        IUserService userService)
+    {
+        int clientId = await userService.GetMyUserIdAsync();
+        await service.UpdatePaymentTypeAsync(dto, id, clientId);
         return Results.NoContent();
     }
 

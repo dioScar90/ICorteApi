@@ -7,5 +7,6 @@ public interface IAppointmentService : IService<Appointment>
     Task<AppointmentDtoResponse> GetByIdWithServicesAsync(int id);
     Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(int? page, int? pageSize, int clientId);
     Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId);
+    Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdate dto, int id, int clientId);
     Task<bool> DeleteAsync(int id, int clientId);
 }

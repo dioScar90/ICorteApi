@@ -16,6 +16,10 @@ public record AppointmentDtoUpdate(
     int[] ServiceIds
 ) : IDtoRequest<Appointment>;
 
+public record AppointmentPaymentTypeDtoUpdate(
+    PaymentType PaymentType
+) : IDtoRequest<Appointment>;
+
 public record AppointmentDtoResponse(
     int Id,
     int ClientId,
