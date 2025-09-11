@@ -4,6 +4,7 @@ namespace ICorteApi.Domain.Interfaces;
 
 public interface IBaseErrors<TEntity> : IBaseErrors where TEntity : class, IBaseTableEntity
 {
+    void ThrowDeuRuimException();
     void ThrowCreateException(params Error[] errors);
     void ThrowUpdateException(params Error[] errors);
     void ThrowDeleteException(params Error[] errors);

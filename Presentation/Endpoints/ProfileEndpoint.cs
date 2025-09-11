@@ -22,7 +22,7 @@ public static class ProfileEndpoint
 
         return app;
     }
-
+    
     public static IResult GetCreatedResult(ProfileDtoResponse dto) =>
         Results.Created("user/me", new { Message = "Pessoa criada com sucesso", Item = dto });
 

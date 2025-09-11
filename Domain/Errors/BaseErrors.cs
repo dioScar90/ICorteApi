@@ -39,6 +39,8 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             .Select(a => a.Length > 2 ? char.ToUpper(a[0]) + a[1..].ToLower() : a.ToLower())
         );
         
+    public void ThrowDeuRuimException() => throw new BadRequestException("Deu ruim");
+        
     public void ThrowCreateException(params Error[] errors)
     {
         string message = $"Não foi possível criar {_the} {_entity}";

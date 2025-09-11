@@ -30,7 +30,7 @@ public static class ReportEndpoint
 
         return app;
     }
-
+    
     public static IResult GetCreatedResult(ReportDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/report/{dto.Id}", new { Message = "Pagamento criado com sucesso", Item = dto });
 

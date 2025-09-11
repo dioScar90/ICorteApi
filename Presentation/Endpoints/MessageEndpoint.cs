@@ -31,7 +31,7 @@ public static class ChatEndpoint
             
         return app;
     }
-
+    
     public static IResult GetCreatedResult(MessageDtoResponse dto) =>
         Results.Created($"appointment/{dto.AppointmentId}/chat/{dto.Id}", new { Message = "Mensagem enviada com sucesso", Item = dto });
 

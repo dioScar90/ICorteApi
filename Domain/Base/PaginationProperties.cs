@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace ICorteApi.Domain.Base;
 
-public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
+public record PaginationProperties<TEntity>
 {
     public int Page { get; init; }
     public int PageSize { get; init; }
@@ -10,7 +10,7 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
     public bool IsDescending { get; init; }
     public Expression<Func<TEntity, object>> OrderBy { get; init; }
     public Expression<Func<TEntity, object>>[] Includes { get; init; }
-    
+
     public PaginationProperties(
         int? page, int? pageSize,
         Expression<Func<TEntity, bool>> filter,
@@ -41,14 +41,3 @@ public record PaginationProperties<TEntity> : IPaginationProperties<TEntity>
         bool? IsDescending = null
     );
 }
-
-public interface IPaginationProperties<TEntity>
-{
-    int Page { get; }
-    int PageSize { get; }
-    Expression<Func<TEntity, bool>> Filter { get; }
-    Expression<Func<TEntity, object>>[] Includes { get; }
-    Expression<Func<TEntity, object>> OrderBy { get; }
-    bool IsDescending { get; }
-}
-

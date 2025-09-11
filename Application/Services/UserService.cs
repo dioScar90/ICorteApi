@@ -39,18 +39,26 @@ public sealed class UserService : IUserService
     
     private async Task RegenerateUserCookieAsync(User? user = null) =>
         await _signInManager.RefreshSignInAsync(user ?? await GetMyUserEntityAsync());
+        
+    public async Task<int> GetMyUserIdAsync()
+    {
+        var user = await GetMyUserEntityAsync();
 
-    public async Task<int?> GetMyUserIdAsync() => (await GetMyUserEntityAsync())?.Id;
+        if (user is null)
+            _errors.ThrowDeuRuimException();
+
+        return user!.Id;
+    }
 
     public async Task<UserRole[]> GetUserRolesAsync()
     {
         if (await GetMyUserEntityAsync() is not User user)
             return [];
-            
+
         var userRoles = (await _userManager.GetRolesAsync(user))
             .Aggregate(
                 new HashSet<UserRole>(),
-                (roles, role) => !Enum.TryParse<UserRole>(role, out var userRole) ? [..roles] : [..roles, userRole],
+                (roles, role) => !Enum.TryParse<UserRole>(role, out var userRole) ? [.. roles] : [.. roles, userRole],
                 item => item.ToArray()
             );
 
@@ -105,8 +113,7 @@ public sealed class UserService : IUserService
         if (dispatchIncludes == true)
             return await GetMyUserEntityAsync();
 
-        if (await GetMyUserIdAsync() is not int userId)
-            return null;
+        int userId = await GetMyUserIdAsync();
 
         var user = await _dbSet
             .AsNoTracking()

@@ -5,7 +5,7 @@ public interface IUserService : IService<User>
     Task<User?> CreateAsync(UserDtoRegisterCreate dtoRequest);
     Task<User?> GetMeAsync(bool? dispatchIncludes = null);
     Task<User> GetMyUserAsync();
-    Task<int?> GetMyUserIdAsync();
+    Task<int> GetMyUserIdAsync();
     Task<UserRole[]> GetUserRolesAsync();
     Task<bool> AddUserRoleAsync(UserRole role);
     Task<bool> RemoveFromRoleAsync(UserRole role);

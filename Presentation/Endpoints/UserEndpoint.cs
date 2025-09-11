@@ -33,7 +33,7 @@ public static class UserEndpoint
 
         return app;
     }
-
+    
     public static async Task<Ok<UserDtoResponse>> GetMeAsync(IUserService service, IUserErrors errors)
     {
         var user = await service.GetMeAsync();
