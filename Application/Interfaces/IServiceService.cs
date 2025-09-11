@@ -7,4 +7,5 @@ public interface IServiceService : IService<Service>
     Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId);
     Task<bool> UpdateAsync(ServiceDtoUpdate dto, int id, int barberShopId);
     Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete);
+    Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids);
 }

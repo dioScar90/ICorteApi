@@ -1,17 +1,18 @@
 using FluentValidation;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
 namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
-    IAppointmentRepository repository,
+    AppDbContext context,
     IValidator<AppointmentDtoCreate> createValidator,
     IValidator<AppointmentDtoUpdate> updateValidator,
-    IServiceRepository serviceRepository,
+    IServiceService serviceService,
     IAppointmentErrors errors)
-    : BaseService<Appointment>(repository), IAppointmentService
+    : BaseService<Appointment>(context), IAppointmentService
 {
-    private readonly IServiceRepository _serviceRepository = serviceRepository;
-    new private readonly IAppointmentRepository _repository = repository;
+    private readonly IServiceService _serviceService = serviceService;
     private readonly IValidator<AppointmentDtoCreate> _createValidator = createValidator;
     private readonly IValidator<AppointmentDtoUpdate> _updateValidator = updateValidator;
     private readonly IAppointmentErrors _errors = errors;
@@ -38,19 +39,34 @@ public sealed class AppointmentService(
         return (await CreateAsync(appointment))!.CreateDto();
     }
     
+    public async Task<Appointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
+    {
+        return await _dbSet.AsNoTracking()
+            .Where(x => x.BarberShopId == barberShopId && x.Date == date)
+            .OrderBy(x => x.Date)
+            .ToArrayAsync() ?? [];
+    }
+
+    private async Task<Appointment?> GetAppointmentWithServicesAsync(int id)
+    {
+        return await _dbSet
+            .Include(x => x.Services)
+            .SingleOrDefaultAsync(x => x.Id == id);
+    }
+    
     public async Task<AppointmentDtoResponse> GetByIdWithServicesAsync(int id)
     {
-        var appointment = await _repository.GetByIdWithServicesAsync(id);
+        var appointment = await GetAppointmentWithServicesAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
-        
+
         return appointment!.CreateDto();
     }
 
     private async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
     {
-        return await _serviceRepository.GetSpecificServicesByIdsAsync(ids);
+        return await _serviceService.GetSpecificServicesByIdsAsync(ids);
     }
 
     public async Task<AppointmentDtoResponse> GetByIdAsync(int id)
@@ -80,7 +96,7 @@ public sealed class AppointmentService(
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
 
-        var appointment = await _repository.GetByIdWithServicesAsync(id);
+        var appointment = await GetAppointmentWithServicesAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
@@ -97,14 +113,14 @@ public sealed class AppointmentService(
             appointment.RemoveServicesByIds(serviceIdsToRemove);
 
         if (serviceIdsToAdd.Length > 0)
-        {
-            var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
+            {
+                var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
 
-            if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
-                _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
+                if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
+                    _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
 
-            appointment.AddServices(servicesToAdd);
-        }
+                appointment!.AddServices(servicesToAdd);
+            }
 
         appointment.UpdateEntityByDto(dto);
         return await UpdateAsync(appointment);
@@ -112,7 +128,7 @@ public sealed class AppointmentService(
 
     public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdate dto, int id, int clientId)
     {
-        var appointment = await _repository.GetByIdAsync(id);
+        var appointment = await _dbSet.FindAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
@@ -128,7 +144,7 @@ public sealed class AppointmentService(
     
     public async Task<bool> DeleteAsync(int id, int clientId)
     {
-        var appointment = await _repository.GetByIdAsync(id);
+        var appointment = await _dbSet.FindAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
@@ -138,4 +154,9 @@ public sealed class AppointmentService(
 
         return await DeleteAsync(appointment);
     }
+
+    // Task<Infraestructure.Repositories.PaginationResponse<AppointmentDtoResponse>> IAppointmentService.GetAllAsync(int? page, int? pageSize, int clientId)
+    // {
+    //     throw new NotImplementedException();
+    // }
 }

@@ -4,11 +4,11 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class RecurringScheduleService(
-    IRecurringScheduleRepository repository,
+    AppDbContext context,
     IValidator<RecurringScheduleDtoCreate> createValidator,
     IValidator<RecurringScheduleDtoUpdate> updateValidator,
     IRecurringScheduleErrors errors)
-    : BaseService<RecurringSchedule>(repository), IRecurringScheduleService
+    : BaseService<RecurringSchedule>(context), IRecurringScheduleService
 {
     private readonly IValidator<RecurringScheduleDtoCreate> _createValidator = createValidator;
     private readonly IValidator<RecurringScheduleDtoUpdate> _updateValidator = updateValidator;

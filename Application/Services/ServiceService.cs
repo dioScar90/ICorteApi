@@ -1,20 +1,19 @@
 using FluentValidation;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
-    IServiceRepository repository,
+    AppDbContext context,
     IValidator<ServiceDtoCreate> createValidator,
     IValidator<ServiceDtoUpdate> updateValidator,
     IServiceErrors errors)
-    : BaseService<Service>(repository), IServiceService
+    : BaseService<Service>(context), IServiceService
 {
     private readonly IValidator<ServiceDtoCreate> _createValidator = createValidator;
     private readonly IValidator<ServiceDtoUpdate> _updateValidator = updateValidator;
     private readonly IServiceErrors _errors = errors;
-
-    new private readonly IServiceRepository _repository = repository;
     
     public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoCreate dto, int barberShopId)
     {
@@ -64,7 +63,21 @@ public sealed class ServiceService(
         service.UpdateEntityByDto(dto);
         return await UpdateAsync(service);
     }
-    
+    public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
+    {
+        var hashIds = ids.ToHashSet();
+        return await _dbSet.Where(x => hashIds.Contains(x.Id)).ToArrayAsync();
+    }
+
+    private async Task<bool> CheckCorrelatedAppointmentsAsync(int id) =>
+        await _dbSet.AnyAsync(s => s.Id == id && s.Appointments.Any());
+
+    private async Task<Appointment[]> GetCorrelatedAppointmentsAsync(int id) =>
+        await _dbSet
+            .Where(s => s.Id == id)
+            .SelectMany(s => s.Appointments)
+            .ToArrayAsync();
+            
     public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
         var service = await GetByIdAsync(id);
@@ -74,17 +87,17 @@ public sealed class ServiceService(
 
         if (service!.BarberShopId != barberShopId)
             _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
-            
-        var thereAreAppointments = !forceDelete && await _repository.CheckCorrelatedAppointmentsAsync(service.Id);
+
+        var thereAreAppointments = !forceDelete && await CheckCorrelatedAppointmentsAsync(service.Id);
 
         if (thereAreAppointments)
         {
-            var appointments = await _repository.GetCorrelatedAppointmentsAsync(service.Id);
+            var appointments = await GetCorrelatedAppointmentsAsync(service.Id);
             var dates = appointments.Select(a => a.Date);
 
-            _errors.ThrowThereAreStillAppointmentsException([..dates]);
+            _errors.ThrowThereAreStillAppointmentsException([.. dates]);
         }
-        
+
         return await DeleteAsync(service);
     }
 }

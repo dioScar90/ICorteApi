@@ -5,7 +5,6 @@ using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using ICorteApi.Settings;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Presentation.Extensions;

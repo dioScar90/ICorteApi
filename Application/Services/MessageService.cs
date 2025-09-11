@@ -1,23 +1,30 @@
 using FluentValidation;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
-    IMessageRepository repository,
+    AppDbContext context,
     IValidator<MessageDtoCreate> createValidator,
     IValidator<MessageDtoIsReadUpdate> updateValidator,
     IMessageErrors errors)
-    : BaseService<Message>(repository), IMessageService
+    : BaseService<Message>(context), IMessageService
 {
-    new private readonly IMessageRepository _repository = repository;
     private readonly IValidator<MessageDtoCreate> _createValidator = createValidator;
     private readonly IValidator<MessageDtoIsReadUpdate> _updateValidator = updateValidator;
     private readonly IMessageErrors _errors = errors;
 
     public async Task<bool> CanSendMessageAsync(int appointmentId, int userId)
     {
-        return await _repository.CanSendMessageAsync(appointmentId, userId);
+        return await _context.Appointments.AnyAsync(
+            a => a.Id == appointmentId && (
+                a.ClientId == userId || (
+                    a.BarberShop.OwnerId == userId
+                    && a.Messages.Any(m => m.AppointmentId == a.Id && m.SenderId == a.ClientId)
+                )
+            )
+        );
     }
 
     public async Task<MessageDtoResponse> CreateAsync(MessageDtoCreate dto, int appointmentId, int senderId)
@@ -55,7 +62,7 @@ public sealed class MessageService(
 
     public async Task<Message?> SendMessageAsync(MessageDtoCreate dtoRequest, int appointmentId, int senderId)
     {
-        if (!await _repository.CanSendMessageAsync(appointmentId, senderId))
+        if (!await CanSendMessageAsync(appointmentId, senderId))
             _errors.ThrowNotAllowedToSendMessageException(senderId);
 
         var entity = new Message(dtoRequest, appointmentId, senderId);
@@ -67,8 +74,13 @@ public sealed class MessageService(
         foreach (var dto in dtos)
             dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
         
-        var ids = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
-        return await _repository.MarkMessageAsReadAsync(ids, senderId);
+        var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
+
+        var changesCount = await _dbSet
+            .Where(x => !x.IsRead && messageIds.Contains(x.Id) && x.SenderId == senderId)
+            .ExecuteUpdateAsync(x => x.SetProperty(p => p.IsRead, true));
+
+        return changesCount > 0;
     }
     
     public async Task<bool> DeleteAsync(int id, int appointmentId, int senderId)
@@ -89,12 +101,108 @@ public sealed class MessageService(
 
     public async Task<MessageDtoResponse[]> GetLastMessagesAsync(int appointmentId, int senderId, int? lastMessageId)
     {
-        return await _repository.GetLastMessagesAsync(appointmentId, senderId, lastMessageId);
+        int take = lastMessageId is int ? 10 : 5;
+
+        return await _context.Database
+            .SqlQuery<MessageDtoResponse>(@$"
+                SELECT TOP ({take}) M.id AS Id
+                    ,M.content AS Content
+                    ,M.sent_at AS SentAt
+                    ,M.is_read AS IsRead
+                    ,M.sender_id AS SenderId
+                    ,P.first_name AS FirstName
+                    ,P.last_name AS LastName
+                FROM appointments A
+                    INNER JOIN messages M ON A.id = M.appointment_id
+                    INNER JOIN profiles P ON P.id = M.sender_id
+                WHERE A.is_deleted = CAST(0 AS BIT)
+                    AND A.id = {appointmentId}
+                    AND M.is_deleted = CAST(0 AS BIT)
+                    AND (
+                        A.client_id = {senderId}
+                        OR A.barber_shop_id = (
+                            SELECT BS.id
+                            FROM barber_shops BS
+                            WHERE BS.is_deleted = CAST(0 AS bit)
+                                AND BS.owner_id = {senderId}
+                        )
+                    )
+                    AND ({lastMessageId} IS NULL OR M.id > {lastMessageId})
+                ORDER BY M.sent_at DESC
+            ")
+            .AsNoTracking()
+            .ToArrayAsync();
+    }
+
+    private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
+    {
+        return await _context.Database
+            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
+                SELECT A.id AS AppointmentId
+                    ,IIF(M.sender_id = {clientId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
+                    ,M.content AS Content
+                    ,M.sent_at AS SentAt
+                    ,P.first_name AS FirstName
+                    ,M.is_read AS IsRead
+                FROM appointments A
+                    INNER JOIN messages M ON A.id == M.appointment_id
+                    INNER JOIN profiles P ON P.id = M.sender_id
+                WHERE A.is_deleted = CAST(0 AS BIT)
+                    AND M.is_deleted = CAST(0 AS BIT)
+                    AND A.client_id = {clientId}
+                    AND M.id = (
+                        SELECT TOP 1 id
+                        FROM messages MT
+                        WHERE MT.appointment_id = A.id
+                        ORDER BY M.sent_at DESC
+                    )
+                ORDER BY M.sent_at DESC
+            ")
+            .AsNoTracking()
+            .ToArrayAsync();
+    }
+
+    private async Task<ChatWithMessagesDtoResponse[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
+    {
+        return await _context.Database
+            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
+                SELECT A.id AS AppointmentId
+                    ,IIF(M.sender_id = {ownerBarberShopId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
+                    ,M.content AS Content
+                    ,M.sent_at AS SentAt
+                    ,P.first_name AS FirstName
+                    ,M.is_read AS IsRead
+                FROM appointments A
+                    INNER JOIN messages M ON A.id == M.appointment_id
+                    INNER JOIN profiles P ON P.id = M.sender_id
+                WHERE A.is_deleted = CAST(0 AS BIT)
+                    AND M.is_deleted = CAST(0 AS BIT)
+                    AND A.barber_shop_id = (
+                        SELECT BS.id
+                        FROM barber_shops BS
+                        WHERE BS.is_deleted = CAST(0 AS bit)
+                            AND BS.owner_id = {ownerBarberShopId}
+                    )
+                    AND M.id = (
+                        SELECT TOP 1 id
+                        FROM messages MT
+                        WHERE MT.appointment_id = A.id
+                            AND EXISTS (
+                                SELECT 1
+                                FROM messages MT2
+                                WHERE MT2.sender_id == A.client_id
+                            )
+                        ORDER BY M.sent_at DESC
+                    )
+                ORDER BY M.sent_at DESC
+            ")
+            .AsNoTracking()
+            .ToArrayAsync();
     }
     
     public async Task<ChatWithMessagesDtoResponse[]> GetChatHistoryAsync(int senderId, bool isBarber)
     {
-        return await _repository.GetChatHistoryAsync(senderId, isBarber);
+        return isBarber ? await GetBarberChatHistoryAsync(senderId) : await GetClientChatHistoryAsync(senderId);
     }
 
     // public async Task<List<Message>> GetConversationAsync(int barberId, int clientId);

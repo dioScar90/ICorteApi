@@ -4,13 +4,12 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class ReportService(
-    IReportRepository repository,
+    AppDbContext context,
     IValidator<ReportDtoCreate> createValidator,
     IValidator<ReportDtoUpdate> updateValidator,
     IReportErrors errors)
-    : BaseService<Report>(repository), IReportService
+    : BaseService<Report>(context), IReportService
 {
-    new private readonly IReportRepository _repository = repository;
     private readonly IValidator<ReportDtoCreate> _createValidator = createValidator;
     private readonly IValidator<ReportDtoUpdate> _updateValidator = updateValidator;
     private readonly IReportErrors _errors = errors;
@@ -50,12 +49,17 @@ public sealed class ReportService(
             response.PageSize
         );
     }
+
+    private async Task<Report?> GetReportWithBarberShopByIdAsync(int id)
+    {
+        return await GetByIdAsync(x => x.Id == id, x => x.BarberShop);
+    }
     
     public async Task<bool> UpdateAsync(ReportDtoUpdate dto, int id, int clientId, int barberShopId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
 
-        var report = await _repository.GetReportWithBarberShopByIdAsync(id);
+        var report = await GetReportWithBarberShopByIdAsync(id);
         
         if (report is null)
             _errors.ThrowNotFoundException();
@@ -72,7 +76,7 @@ public sealed class ReportService(
 
     public async Task<bool> DeleteAsync(int id, int clientId, int barberShopId)
     {
-        var report = await _repository.GetReportWithBarberShopByIdAsync(id);
+        var report = await GetReportWithBarberShopByIdAsync(id);
         
         if (report is null)
             _errors.ThrowNotFoundException();

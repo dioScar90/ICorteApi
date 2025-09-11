@@ -4,22 +4,43 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class ProfileService(
-    IProfileRepository repository,
+    AppDbContext context,
     IValidator<ProfileDtoCreate> createValidator,
     IValidator<ProfileDtoUpdate> updateValidator,
+    UserService userService,
     IProfileErrors errors)
-    : BaseService<Profile>(repository), IProfileService
+    : BaseService<Profile>(context), IProfileService
 {
-    new private readonly IProfileRepository _repository = repository;
     private readonly IValidator<ProfileDtoCreate> _createValidator = createValidator;
     private readonly IValidator<ProfileDtoUpdate> _updateValidator = updateValidator;
+    private readonly UserService _userService = userService;
     private readonly IProfileErrors _errors = errors;
 
     public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoCreate dto, int userId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var profile = new Profile(dto, userId);
-        return (await _repository.CreateAsync(profile, profile.GetPhoneNumberToUserEntity()))!.CreateDto();
+        
+        using var transaction = await BeginTransactionAsync();
+
+        try
+        {
+            var newProfile = await CreateAsync(profile);
+
+            if (newProfile is null)
+                _errors.ThrowCreateException();
+
+            await _userService.AddUserRoleAsync(UserRole.Client);
+            await _userService.UpdatePhoneNumberAsync(new(dto.PhoneNumber));
+
+            await CommitAsync(transaction);
+            return newProfile!.CreateDto();
+        }
+        catch (Exception)
+        {
+            await RollbackAsync(transaction);
+            throw;
+        }
     }
 
     public async Task<ProfileDtoResponse> GetByIdAsync(int id, int userId)
@@ -34,7 +55,7 @@ public sealed class ProfileService(
 
         return profile.CreateDto();
     }
-
+    
     public async Task<bool> UpdateAsync(ProfileDtoUpdate dto, int id, int userId)
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
@@ -48,6 +69,21 @@ public sealed class ProfileService(
             _errors.ThrowProfileNotBelongsToUserException(userId);
 
         profile.UpdateEntityByDto(dto);
-        return await _repository.UpdateAsync(profile, dto.PhoneNumber);
+
+        using var transaction = await BeginTransactionAsync();
+
+        try
+        {
+            _dbSet.Update(profile);
+            await _userService.UpdatePhoneNumberAsync(new(dto.PhoneNumber));
+
+            await CommitAsync(transaction);
+            return true;
+        }
+        catch (Exception)
+        {
+            await RollbackAsync(transaction);
+            throw;
+        }
     }
 }

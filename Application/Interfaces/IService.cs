@@ -9,3 +9,11 @@ public interface IService<TEntity> : IService where TEntity : class, IBaseTableE
 public interface IService
 {
 }
+
+public record PaginationResponse<TEntity>(
+    TEntity[] Items,
+    int TotalItems,
+    int TotalPages,
+    int Page,
+    int PageSize
+);

@@ -4,11 +4,11 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class AddressService(
-    IAddressRepository repository,
+    AppDbContext context,
     IValidator<AddressDtoCreate> createValidator,
     IValidator<AddressDtoUpdate> updateValidator,
     IAddressErrors errors)
-    : BaseService<Address>(repository), IAddressService
+    : BaseService<Address>(context), IAddressService
 {
     private readonly IValidator<AddressDtoCreate> _createValidator = createValidator;
     private readonly IValidator<AddressDtoUpdate> _updateValidator = updateValidator;
@@ -38,7 +38,7 @@ public sealed class AddressService(
     {
         dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
 
-        var address = await _repository.GetByIdAsync(id);
+        var address = await _dbSet.FindAsync(id);
 
         if (address is null)
             _errors.ThrowNotFoundException();
@@ -52,7 +52,7 @@ public sealed class AddressService(
 
     public async Task<bool> DeleteAsync(int id, int barberShopId)
     {
-        var address = await _repository.GetByIdAsync(id);
+        var address = await _dbSet.FindAsync(id);
 
         if (address is null)
             _errors.ThrowNotFoundException();

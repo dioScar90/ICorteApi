@@ -4,11 +4,11 @@ using ICorteApi.Domain.Interfaces;
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
-    ISpecialScheduleRepository repository,
+    AppDbContext context,
     IValidator<SpecialScheduleDtoCreate> createValidator,
     IValidator<SpecialScheduleDtoUpdate> updateValidator,
     ISpecialScheduleErrors errors)
-    : BaseService<SpecialSchedule>(repository), ISpecialScheduleService
+    : BaseService<SpecialSchedule>(context), ISpecialScheduleService
 {
     private readonly IValidator<SpecialScheduleDtoCreate> _createValidator = createValidator;
     private readonly IValidator<SpecialScheduleDtoUpdate> _updateValidator = updateValidator;

@@ -1,17 +1,17 @@
 using FluentValidation;
 using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
-    IBarberShopRepository repository,
+    AppDbContext context,
     IValidator<BarberShopDtoCreate> createValidator,
     IValidator<BarberShopDtoUpdate> updateValidator,
     IBarberShopErrors errors)
-    : BaseService<BarberShop>(repository), IBarberShopService
+    : BaseService<BarberShop>(context), IBarberShopService
 {
-    private new readonly IBarberShopRepository _repository = repository;
     private readonly IValidator<BarberShopDtoCreate> _createValidator = createValidator;
     private readonly IValidator<BarberShopDtoUpdate> _updateValidator = updateValidator;
     private readonly IBarberShopErrors _errors = errors;
@@ -25,7 +25,7 @@ public sealed class BarberShopService(
     
     public async Task<BarberShopDtoResponse> GetByIdAsync(int id)
     {
-        var barberShop = await _repository.GetByIdAsync(id);
+        var barberShop = await base.GetByIdAsync(id);
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();
@@ -33,9 +33,61 @@ public sealed class BarberShopService(
         return barberShop!.CreateDto();
     }
     
+    private async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
+        int barberShopId, int ownerId,
+        PaginationProperties<AppointmentsByBarberShopDtoResponse> props)
+    {
+        var query = _context.Appointments
+            .AsNoTracking()
+            .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new AppointmentsByBarberShopDtoResponse(
+                a.Id,
+                new(
+                    a.ClientId,
+                    a.Client.Profile.FirstName,
+                    a.Client.Profile.LastName,
+                    a.Client.Profile.FirstName + ' ' + a.Client.Profile.LastName
+                ),
+                a.BarberShopId,
+                a.Date,
+                a.StartTime,
+                a.TotalDuration,
+                a.Notes,
+                a.PaymentType,
+                a.TotalPrice,
+                a.Services.Select(s =>
+                    new ServiceDtoResponse(
+                        s.Id,
+                        s.BarberShopId,
+                        s.Name,
+                        s.Description,
+                        s.Price,
+                        s.Duration
+                    )
+                ).ToArray(),
+                a.Status
+            ));
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
+        
+        int page = props.Page > 0 && totalPages > 0 ? Math.Clamp(props.Page, 1, totalPages) : 0;
+        
+        if (totalItems == 0)
+            return new([], totalItems, totalPages, page, props.PageSize);
+        
+        var entities = await query
+            .Skip((page - 1) * props.PageSize)
+            .Take(props.PageSize)
+            .ToArrayAsync();
+        
+        return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
+    }
+    
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId, int? page, int? pageSize)
     {
-        return await _repository.GetAppointmentsByBarberShopAsync(
+        return await GetAppointmentsByBarberShopAsync(
             barberShopId, ownerId,
             new(page, pageSize, x => 1 == 1, new(x => x.Id)));
     }
