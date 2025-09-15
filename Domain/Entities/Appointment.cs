@@ -85,17 +85,23 @@ public sealed class Appointment : BaseEntity<Appointment>
         
         UpdatedAt = utcNow;
     }
-
-    public override void UpdateEntityByDto(IDtoRequest<Appointment> requestDto, DateTime? utcNow = null)
+    
+    public void UpdateEntityByDto(AppointmentDtoUpdate dto, DateTime? utcNow = null)
     {
-        Action action = requestDto switch
-        {
-            AppointmentPaymentTypeDtoUpdate dto => () => UpdateByPaymentTypeAppointmentDto(dto, utcNow),
-            AppointmentDtoUpdate dto => () => UpdateByAppointmentDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
+        UpdateByAppointmentDto(dto, utcNow);
+        // Action action = requestDto switch
+        // {
+        //     AppointmentPaymentTypeDtoUpdate dto => () => UpdateByPaymentTypeAppointmentDto(dto, utcNow),
+        //     AppointmentDtoUpdate dto => () => UpdateByAppointmentDto(dto, utcNow),
+        //     _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
+        // };
 
-        action();
+        // action();
+    }
+    
+    public override void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null)
+    {
+        throw new NotImplementedException();
     }
 
     private ServiceDtoResponse[] GetServicesIntoDto() => [..Services.Select(s => s.CreateDto())];

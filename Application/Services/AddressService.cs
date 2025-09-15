@@ -10,13 +10,11 @@ public sealed class AddressService(
     IAddressErrors errors)
     : BaseService<Address>(context), IAddressService
 {
-    private readonly IValidator<AddressDtoCreate> _createValidator = createValidator;
     private readonly IValidator<AddressDtoUpdate> _updateValidator = updateValidator;
     private readonly IAddressErrors _errors = errors;
 
     public async Task<AddressDtoResponse> CreateAsync(AddressDtoCreate dto, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
         var address = new Address(dto, barberShopId);
         return (await CreateAsync(address))!.CreateDto();
     }
@@ -36,7 +34,7 @@ public sealed class AddressService(
 
     public async Task<bool> UpdateAsync(AddressDtoUpdate dto, int id, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var address = await _dbSet.FindAsync(id);
 

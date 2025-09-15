@@ -132,11 +132,14 @@ public sealed class AppointmentService(
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
-        
+            
         if (appointment!.ClientId != clientId)
             _errors.ThrowAppointmentNotBelongsToClientException(clientId);
-
-        appointment.UpdateEntityByDto(dto);
+            
+        var dtoo = appointment.CreateDto() with { PaymentType = dto.PaymentType };
+        appointment.UpdateEntityByDto(new(
+            
+        ));
         
         appointment.UpdateEntityByDto(dto);
         return await UpdateAsync(appointment);

@@ -31,7 +31,7 @@ public interface ICompositeKeyEntity<TEntity> : IBaseTableEntity<TEntity>
 public interface IBaseTableEntity<TEntity> : IBaseTableEntity
     where TEntity : class, IBaseTableEntity
 {
-    void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+    void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<TEntity>;
     IDtoResponse<TEntity> CreateDto();
 }
 

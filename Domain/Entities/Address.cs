@@ -1,4 +1,6 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
@@ -20,6 +22,8 @@ public sealed class Address : BaseEntity<Address>
 
     public Address(AddressDtoCreate dto, int? barberShopId = null)
     {
+        dto.ThrowExceptionIfInvalid(new AddressDtoCreateValidator(), new AddressErrors());
+        
         Street = dto.Street;
         Number = dto.Number;
         Complement = dto.Complement;

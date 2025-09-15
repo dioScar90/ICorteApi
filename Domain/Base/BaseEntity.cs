@@ -8,8 +8,7 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsDeleted { get; protected set; } = false;
-
-    public void UpdateEntityByDto(IDtoRequest<User> requestDto, DateTime? utcNow = null) => throw new NotImplementedException();
+    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<User>;
     public abstract IDtoResponse<User> CreateDto();
 
     public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
@@ -31,7 +30,7 @@ public abstract class BaseEntity<TEntity> : IBaseEntity<TEntity>
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsDeleted { get; protected set; } = false;
-    public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<TEntity>;
     public abstract IDtoResponse<TEntity> CreateDto();
 
     public void DeleteEntity()
@@ -56,6 +55,6 @@ public abstract class CompositeKeyEntity<TEntity> : ICompositeKeyEntity<TEntity>
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsActive { get; protected set; } = true;
-    public abstract void UpdateEntityByDto(IDtoRequest<TEntity> requestDto, DateTime? utcNow = null);
+    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<TEntity>;
     public abstract IDtoResponse<TEntity> CreateDto();
 }
