@@ -40,7 +40,7 @@ public static class AuthEndpoint
         SignInManager<User> signInManager,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        dto.ThrowExceptionIfInvalid(validator, errors);
         var user = await service.CreateAsync(dto);
 
         if (user is null)
@@ -60,7 +60,7 @@ public static class AuthEndpoint
         SignInManager<User> signInManager,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await LoginHowItMustBe(dto.Email, dto.Password, signInManager);
         
         if (!result.Succeeded)

@@ -53,17 +53,16 @@ public sealed class Profile : BaseEntity<Profile>
 
         UpdatedAt = utcNow;
     }
-    
+
     public override void UpdateEntityByDto(IDtoRequest<Profile> requestDto, DateTime? utcNow = null)
     {
-        switch (requestDto)
+        Action action = requestDto switch
         {
-            case ProfileDtoUpdate dto:
-                UpdateByUserDto(dto, utcNow);
-                break;
-            default:
-                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
-        }
+            ProfileDtoUpdate dto => () => UpdateByUserDto(dto, utcNow),
+            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
+        };
+
+        action();
     }
 
     public override ProfileDtoResponse CreateDto() =>

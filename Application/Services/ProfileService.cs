@@ -18,7 +18,7 @@ public sealed class ProfileService(
 
     public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoCreate dto, int userId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var profile = new Profile(dto, userId);
         
         using var transaction = await BeginTransactionAsync();
@@ -58,7 +58,7 @@ public sealed class ProfileService(
     
     public async Task<bool> UpdateAsync(ProfileDtoUpdate dto, int id, int userId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var profile = await GetByIdAsync(id);
 

@@ -74,8 +74,7 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
 
     public void ThrowValidationException(params Error[] errors)
     {
-        string da = _isFemale ? "da" : "do";
-        string message = $"Um ou mais itens {da} {_entity} inválidos";
+        string message = $"Um ou mais itens de {_entity} inválidos";
         throw new UnprocessableEntity(message, errors);
     }
 }

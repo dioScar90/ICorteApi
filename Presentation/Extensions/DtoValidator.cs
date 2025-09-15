@@ -6,7 +6,7 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class DtoValidator
 {
-    public static void CheckAndThrowExceptionIfInvalid<TDto, TEntity>(
+    public static void ThrowExceptionIfInvalid<TDto, TEntity>(
         this TDto dto, IValidator<TDto> validator, IBaseErrors<TEntity> entityErrors)
             where TEntity : class, IBaseTableEntity
             where TDto : IDtoRequest<TEntity>

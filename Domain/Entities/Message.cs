@@ -45,17 +45,14 @@ public sealed class Message : BaseEntity<Message>
 
     public override void UpdateEntityByDto(IDtoRequest<Message> requestDto, DateTime? utcNow = null)
     {
-        switch (requestDto)
+        Action action = requestDto switch
         {
-            case MessageDtoCreate dto:
-                UpdateByMessageDto(dto, utcNow);
-                break;
-            case MessageDtoIsReadUpdate isReadDto:
-                UpdateIsReadProp(isReadDto, utcNow);
-                break;
-            default:
-                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
-        }
+            MessageDtoCreate dto => () => UpdateByMessageDto(dto, utcNow),
+            MessageDtoIsReadUpdate dto => () => UpdateIsReadProp(dto, utcNow),
+            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
+        };
+
+        action();
     }
 
     public override MessageDtoResponse CreateDto() =>

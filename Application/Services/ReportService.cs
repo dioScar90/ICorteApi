@@ -16,7 +16,7 @@ public sealed class ReportService(
 
     public async Task<ReportDtoResponse> CreateAsync(ReportDtoCreate dto, int clientId, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var report = new Report(dto, clientId, barberShopId);
         return (await CreateAsync(report))!.CreateDto();
     }
@@ -57,7 +57,7 @@ public sealed class ReportService(
     
     public async Task<bool> UpdateAsync(ReportDtoUpdate dto, int id, int clientId, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var report = await GetReportWithBarberShopByIdAsync(id);
         

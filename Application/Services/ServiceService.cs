@@ -17,7 +17,7 @@ public sealed class ServiceService(
     
     public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoCreate dto, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var service = new Service(dto, barberShopId);
         return (await CreateAsync(service))!.CreateDto();
     }
@@ -50,7 +50,7 @@ public sealed class ServiceService(
     
     public async Task<bool> UpdateAsync(ServiceDtoUpdate dto, int id, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var service = await GetByIdAsync(id);
 

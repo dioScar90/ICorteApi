@@ -29,7 +29,7 @@ public sealed class MessageService(
 
     public async Task<MessageDtoResponse> CreateAsync(MessageDtoCreate dto, int appointmentId, int senderId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var message = new Message(dto, appointmentId, senderId);
         return (await CreateAsync(message))!.CreateDto();
     }
@@ -72,7 +72,7 @@ public sealed class MessageService(
     public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdate[] dtos, int senderId)
     {
         foreach (var dto in dtos)
-            dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+            dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
         
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 

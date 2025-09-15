@@ -50,7 +50,7 @@ public static class UserEndpoint
         IUserService service,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdateEmailAsync(dto);
 
         if (!result)
@@ -65,7 +65,7 @@ public static class UserEndpoint
         IUserService service,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdatePasswordAsync(dto);
 
         if (!result)
@@ -80,7 +80,7 @@ public static class UserEndpoint
         IUserService service,
         IUserErrors errors)
     {
-        dto.CheckAndThrowExceptionIfInvalid(validator, errors);
+        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdatePhoneNumberAsync(dto);
 
         if (!result)

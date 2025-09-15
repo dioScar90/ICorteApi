@@ -9,7 +9,6 @@ builder.StartDatabaseWithAppropriateConnectionStrings();
 // This order was suggested by Chat GPT
 builder.Services
     .AddIdentityConfigurations()
-    .AddRepositories()
     .AddServices()
     .AddErrors()
     .AddValidators()

@@ -16,7 +16,7 @@ public sealed class RecurringScheduleService(
 
     public async Task<RecurringScheduleDtoResponse> CreateAsync(RecurringScheduleDtoCreate dto, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var schedule = new RecurringSchedule(dto, barberShopId);
         return (await CreateAsync(schedule))!.CreateDto();
     }
@@ -46,7 +46,7 @@ public sealed class RecurringScheduleService(
     
     public async Task<bool> UpdateAsync(RecurringScheduleDtoUpdate dto, DayOfWeek dayOfWeek, int barberShopId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var schedule = await base.GetByIdAsync(dayOfWeek, barberShopId);
 

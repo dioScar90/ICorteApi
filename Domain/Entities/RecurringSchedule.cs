@@ -33,17 +33,16 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 
         UpdatedAt = utcNow;
     }
-    
+
     public override void UpdateEntityByDto(IDtoRequest<RecurringSchedule> requestDto, DateTime? utcNow = null)
     {
-        switch (requestDto)
+        Action action = requestDto switch
         {
-            case RecurringScheduleDtoUpdate dto:
-                UpdateByRecurringScheduleDto(dto, utcNow);
-                break;
-            default:
-                throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto));
-        }
+            RecurringScheduleDtoUpdate dto => () => UpdateByRecurringScheduleDto(dto, utcNow),
+            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
+        };
+
+        action();
     }
     
     public override RecurringScheduleDtoResponse CreateDto() =>

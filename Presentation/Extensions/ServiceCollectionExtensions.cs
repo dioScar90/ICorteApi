@@ -11,23 +11,6 @@ namespace ICorteApi.Presentation.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<IAddressRepository, AddressRepository>();
-        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-        services.AddScoped<IBarberScheduleRepository, BarberScheduleRepository>();
-        services.AddScoped<IBarberShopRepository, BarberShopRepository>();
-        services.AddScoped<IMessageRepository, MessageRepository>();
-        services.AddScoped<IProfileRepository, ProfileRepository>();
-        services.AddScoped<IRecurringScheduleRepository, RecurringScheduleRepository>();
-        services.AddScoped<IReportRepository, ReportRepository>();
-        services.AddScoped<IServiceRepository, ServiceRepository>();
-        services.AddScoped<ISpecialScheduleRepository, SpecialScheduleRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-
-        return services;
-    }
-
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IAdminService, AdminService>();

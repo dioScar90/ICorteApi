@@ -25,7 +25,7 @@ public sealed class AppointmentService(
 
     public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoCreate dto, int clientId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
 
         if (dto.ServiceIds.Length == 0)
             _errors.ThrowEmptyServicesException();
@@ -94,7 +94,7 @@ public sealed class AppointmentService(
 
     public async Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId)
     {
-        dto.CheckAndThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
 
         var appointment = await GetAppointmentWithServicesAsync(id);
 
