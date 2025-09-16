@@ -25,12 +25,12 @@ public static class AddressEndpoint
         return app;
     }
 
-    public static IResult GetCreatedResult(AddressDtoResponse dto) =>
+    public static IResult GetCreatedResult(AddressDto dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/address/{dto.Id}", new { Message = "Endereço criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateAddressAsync(
         int barberShopId,
-        AddressDtoCreate dto,
+        AddressDto dto,
         IAddressService service)
     {
         var address = await service.CreateAsync(dto, barberShopId);
@@ -49,7 +49,7 @@ public static class AddressEndpoint
     public static async Task<IResult> UpdateAddressAsync(
         int barberShopId,
         int id,
-        AddressDtoUpdate dto,
+        AddressDto dto,
         IAddressService service)
     {
         await service.UpdateAsync(dto, id, barberShopId);

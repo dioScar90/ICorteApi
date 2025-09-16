@@ -5,21 +5,20 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AddressService(
     AppDbContext context,
-    IValidator<AddressDtoCreate> createValidator,
-    IValidator<AddressDtoUpdate> updateValidator,
+    IValidator<AddressDto> validator,
     IAddressErrors errors)
     : BaseService<Address>(context), IAddressService
 {
-    private readonly IValidator<AddressDtoUpdate> _updateValidator = updateValidator;
+    private readonly IValidator<AddressDto> _validator = validator;
     private readonly IAddressErrors _errors = errors;
 
-    public async Task<AddressDtoResponse> CreateAsync(AddressDtoCreate dto, int barberShopId)
+    public async Task<AddressDto> CreateAsync(AddressDto dto, int barberShopId)
     {
         var address = new Address(dto, barberShopId);
         return (await CreateAsync(address))!.CreateDto();
     }
 
-    public async Task<AddressDtoResponse> GetByIdAsync(int id, int barberShopId)
+    public async Task<AddressDto> GetByIdAsync(int id, int barberShopId)
     {
         var address = await GetByIdAsync(id);
 
@@ -32,10 +31,8 @@ public sealed class AddressService(
         return address.CreateDto();
     }
 
-    public async Task<bool> UpdateAsync(AddressDtoUpdate dto, int id, int barberShopId)
+    public async Task<bool> UpdateAsync(AddressDto dto, int id, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
-
         var address = await _dbSet.FindAsync(id);
 
         if (address is null)
@@ -45,7 +42,7 @@ public sealed class AddressService(
             _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
         
         address!.UpdateEntityByDto(dto);
-        return await UpdateAsync(address);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id, int barberShopId)

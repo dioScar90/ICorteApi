@@ -1,5 +1,4 @@
-﻿using ICorteApi.Domain.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -36,11 +35,11 @@ public static class AppointmentEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(AppointmentDtoResponse dto) =>
+    public static IResult GetCreatedResult(AppointmentDto dto) =>
         Results.Created($"appointment/{dto.Id}", new { Message = "Agendamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateAppointmentAsync(
-        AppointmentDtoCreate dto,
+        AppointmentDto dto,
         IAppointmentService service,
         IUserService userService)
     {
@@ -71,7 +70,7 @@ public static class AppointmentEndpoint
 
     public static async Task<IResult> UpdateAppointmentAsync(
         int id,
-        AppointmentDtoUpdate dto,
+        AppointmentDto dto,
         IAppointmentService service,
         IUserService userService)
     {

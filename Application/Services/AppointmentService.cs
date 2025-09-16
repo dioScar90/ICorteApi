@@ -6,15 +6,13 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
     AppDbContext context,
-    IValidator<AppointmentDtoCreate> createValidator,
-    IValidator<AppointmentDtoUpdate> updateValidator,
+    IValidator<AppointmentDto> validator,
     IServiceService serviceService,
     IAppointmentErrors errors)
     : BaseService<Appointment>(context), IAppointmentService
 {
     private readonly IServiceService _serviceService = serviceService;
-    private readonly IValidator<AppointmentDtoCreate> _createValidator = createValidator;
-    private readonly IValidator<AppointmentDtoUpdate> _updateValidator = updateValidator;
+    private readonly IValidator<AppointmentDto> _validator = validator;
     private readonly IAppointmentErrors _errors = errors;
 
     private static bool IsServicesFromUniqueBarberShopId(Service[] services)
@@ -23,14 +21,14 @@ public sealed class AppointmentService(
         return ids.Count == 1;
     }
 
-    public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoCreate dto, int clientId)
+    public async Task<AppointmentDto> CreateAsync(AppointmentDto dto, int clientId)
     {
-        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
 
-        if (dto.ServiceIds.Length == 0)
+        if (dto.Services.Length == 0)
             _errors.ThrowEmptyServicesException();
-
-        var services = await GetSpecificServicesByIdsAsync(dto.ServiceIds);
+            
+        var services = await GetSpecificServicesByIdsAsync([..dto.Services.Select(s => s.Id)]);
 
         if (!IsServicesFromUniqueBarberShopId(services))
             _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
@@ -54,7 +52,7 @@ public sealed class AppointmentService(
             .SingleOrDefaultAsync(x => x.Id == id);
     }
     
-    public async Task<AppointmentDtoResponse> GetByIdWithServicesAsync(int id)
+    public async Task<AppointmentDto> GetByIdWithServicesAsync(int id)
     {
         var appointment = await GetAppointmentWithServicesAsync(id);
 
@@ -69,7 +67,7 @@ public sealed class AppointmentService(
         return await _serviceService.GetSpecificServicesByIdsAsync(ids);
     }
 
-    public async Task<AppointmentDtoResponse> GetByIdAsync(int id)
+    public async Task<AppointmentDto> GetByIdAsync(int id)
     {
         var appointment = await base.GetByIdAsync(id);
 
@@ -79,7 +77,7 @@ public sealed class AppointmentService(
         return appointment!.CreateDto();
     }
 
-    public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(int? page, int? pageSize, int clientId)
+    public async Task<PaginationResponse<AppointmentDto>> GetAllAsync(int? page, int? pageSize, int clientId)
     {
         var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId, new(x => x.Date)));
         
@@ -92,9 +90,9 @@ public sealed class AppointmentService(
         );
     }
 
-    public async Task<bool> UpdateAsync(AppointmentDtoUpdate dto, int id, int clientId)
+    public async Task<bool> UpdateAsync(AppointmentDto dto, int id, int clientId)
     {
-        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
 
         var appointment = await GetAppointmentWithServicesAsync(id);
 
@@ -105,9 +103,10 @@ public sealed class AppointmentService(
             _errors.ThrowAppointmentNotBelongsToClientException(clientId);
 
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
-
-        var serviceIdsToRemove = currentServiceIds.Except(dto.ServiceIds).ToArray();
-        var serviceIdsToAdd = dto.ServiceIds.Except(currentServiceIds).ToArray();
+        int[] serviceIds = [.. dto.Services.Select(s => s.Id)];
+        
+        var serviceIdsToRemove = currentServiceIds.Except(serviceIds).ToArray();
+        var serviceIdsToAdd = serviceIds.Except(currentServiceIds).ToArray();
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
@@ -123,7 +122,7 @@ public sealed class AppointmentService(
             }
 
         appointment.UpdateEntityByDto(dto);
-        return await UpdateAsync(appointment);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdate dto, int id, int clientId)
@@ -136,13 +135,8 @@ public sealed class AppointmentService(
         if (appointment!.ClientId != clientId)
             _errors.ThrowAppointmentNotBelongsToClientException(clientId);
             
-        var dtoo = appointment.CreateDto() with { PaymentType = dto.PaymentType };
-        appointment.UpdateEntityByDto(new(
-            
-        ));
-        
-        appointment.UpdateEntityByDto(dto);
-        return await UpdateAsync(appointment);
+        appointment.UpdateEntityByDto(appointment.CreateDto() with { PaymentType = dto.PaymentType });
+        return await SaveChangesAsync();
     }
     
     public async Task<bool> DeleteAsync(int id, int clientId)
@@ -157,9 +151,4 @@ public sealed class AppointmentService(
 
         return await DeleteAsync(appointment);
     }
-
-    // Task<Infraestructure.Repositories.PaginationResponse<AppointmentDtoResponse>> IAppointmentService.GetAllAsync(int? page, int? pageSize, int clientId)
-    // {
-    //     throw new NotImplementedException();
-    // }
 }

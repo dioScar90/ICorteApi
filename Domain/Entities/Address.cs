@@ -38,6 +38,8 @@ public sealed class Address : BaseEntity<Address, AddressDto>
     
     public override void UpdateEntityByDto(AddressDto dto, DateTime? utcNow = null)
     {
+        dto.ThrowExceptionIfInvalid(new AddressDtoValidator(), new AddressErrors());
+        
         utcNow ??= DateTime.UtcNow;
 
         Street = dto.Street;

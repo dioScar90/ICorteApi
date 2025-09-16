@@ -7,23 +7,18 @@ namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
-    IValidator<BarberShopDtoCreate> createValidator,
-    IValidator<BarberShopDtoUpdate> updateValidator,
     IBarberShopErrors errors)
     : BaseService<BarberShop>(context), IBarberShopService
 {
-    private readonly IValidator<BarberShopDtoCreate> _createValidator = createValidator;
-    private readonly IValidator<BarberShopDtoUpdate> _updateValidator = updateValidator;
     private readonly IBarberShopErrors _errors = errors;
 
-    public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoCreate dto, int ownerId)
+    public async Task<BarberShopDto> CreateAsync(BarberShopDto dto, int ownerId)
     {
-        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
         var barberShop = new BarberShop(dto, ownerId);
         return (await CreateAsync(barberShop))!.CreateDto();
     }
     
-    public async Task<BarberShopDtoResponse> GetByIdAsync(int id)
+    public async Task<BarberShopDto> GetByIdAsync(int id)
     {
         var barberShop = await base.GetByIdAsync(id);
 
@@ -57,9 +52,10 @@ public sealed class BarberShopService(
                 a.PaymentType,
                 a.TotalPrice,
                 a.Services.Select(s =>
-                    new ServiceDtoResponse(
+                    new ServiceDto(
                         s.Id,
                         s.BarberShopId,
+                        a.BarberShop.Name,
                         s.Name,
                         s.Description,
                         s.Price,
@@ -92,10 +88,8 @@ public sealed class BarberShopService(
             new(page, pageSize, x => 1 == 1, new(x => x.Id)));
     }
     
-    public async Task<bool> UpdateAsync(BarberShopDtoUpdate dto, int id, int ownerId)
+    public async Task<bool> UpdateAsync(BarberShopDto dto, int id, int ownerId)
     {
-        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
-
         var barberShop = await GetByIdAsync(x => x.Id == id, x => x.Address);
 
         if (barberShop is null)
@@ -105,7 +99,7 @@ public sealed class BarberShopService(
             _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
             
         barberShop!.UpdateEntityByDto(dto);
-        return await UpdateAsync(barberShop);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id, int ownerId)

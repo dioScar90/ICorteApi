@@ -13,3 +13,7 @@ public record AppointmentDto(
     ServiceDto[] Services,
     AppointmentStatus Status
 ) : IDto<Appointment>;
+
+public record AppointmentPaymentTypeDtoUpdate(
+    PaymentType PaymentType
+) : IDto<Appointment>;

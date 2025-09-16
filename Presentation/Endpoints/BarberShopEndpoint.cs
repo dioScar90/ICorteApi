@@ -29,11 +29,11 @@ public static class BarberShopEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(BarberShopDtoResponse dto) =>
+    public static IResult GetCreatedResult(BarberShopDto dto) =>
         Results.Created($"barber-shop/{dto.Id}", new { Message = "Barbearia criada com sucesso", Item = dto });
     
     public static async Task<IResult> CreateBarberShopAsync(
-        BarberShopDtoCreate dto,
+        BarberShopDto dto,
         IBarberShopService service,
         IUserService userService)
     {
@@ -64,7 +64,7 @@ public static class BarberShopEndpoint
 
     public static async Task<IResult> UpdateBarberShopAsync(
         int id,
-        BarberShopDtoUpdate dto,
+        BarberShopDto dto,
         IBarberShopService service,
         IUserService userService)
     {
