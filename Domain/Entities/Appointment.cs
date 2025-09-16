@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Appointment : BaseEntity<Appointment>
+public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly StartTime { get; private set; }
@@ -23,8 +25,10 @@ public sealed class Appointment : BaseEntity<Appointment>
 
     private Appointment() { }
 
-    public Appointment(AppointmentDtoCreate dto, Service[] services, int clientId)
+    public Appointment(AppointmentDto dto, Service[] services, int clientId)
     {
+        dto.ThrowExceptionIfInvalid(new AppointmentDtoValidator(), new AppointmentErrors());
+
         Date = dto.Date;
         StartTime = dto.StartTime;
         Notes = dto.Notes;
@@ -63,16 +67,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         UpdateTotalPrice();
     }
     
-    private void UpdateByPaymentTypeAppointmentDto(AppointmentPaymentTypeDtoUpdate dto, DateTime? utcNow)
-    {
-        utcNow ??= DateTime.UtcNow;
-        
-        PaymentType = dto.PaymentType;
-        
-        UpdatedAt = utcNow;
-    }
-    
-    private void UpdateByAppointmentDto(AppointmentDtoUpdate dto, DateTime? utcNow)
+    public override void UpdateEntityByDto(AppointmentDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -82,44 +77,25 @@ public sealed class Appointment : BaseEntity<Appointment>
         PaymentType = dto.PaymentType;
 
         UpdatePriceAndDuration();
-        
+
         UpdatedAt = utcNow;
     }
     
-    public void UpdateEntityByDto(AppointmentDtoUpdate dto, DateTime? utcNow = null)
-    {
-        UpdateByAppointmentDto(dto, utcNow);
-        // Action action = requestDto switch
-        // {
-        //     AppointmentPaymentTypeDtoUpdate dto => () => UpdateByPaymentTypeAppointmentDto(dto, utcNow),
-        //     AppointmentDtoUpdate dto => () => UpdateByAppointmentDto(dto, utcNow),
-        //     _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        // };
+    private ServiceDto[] GetServicesIntoDto() => [.. Services.Select(s => s.CreateDto())];
 
-        // action();
-    }
-    
-    public override void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    private ServiceDtoResponse[] GetServicesIntoDto() => [..Services.Select(s => s.CreateDto())];
-
-    public override AppointmentDtoResponse CreateDto() =>
-        new(
-            Id,
-            ClientId,
-            BarberShopId,
-            Date,
-            StartTime,
-            TotalDuration,
-            Notes,
-            PaymentType,
-            TotalPrice,
-            GetServicesIntoDto(),
-            Status
-        );
+    public override AppointmentDto CreateDto() => new(
+        Id,
+        ClientId,
+        BarberShopId,
+        Date,
+        StartTime,
+        TotalDuration,
+        Notes,
+        PaymentType,
+        TotalPrice,
+        GetServicesIntoDto(),
+        Status
+    );
 }
 
 public enum PaymentType

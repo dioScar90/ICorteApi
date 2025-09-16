@@ -9,7 +9,7 @@ public static class DtoValidator
     public static void ThrowExceptionIfInvalid<TDto, TEntity>(
         this TDto dto, IValidator<TDto> validator, IBaseErrors<TEntity> entityErrors)
             where TEntity : class, IBaseTableEntity
-            where TDto : IDtoRequest<TEntity>
+            where TDto : IDto<TEntity>
     {
         var results = validator.Validate(dto);
         

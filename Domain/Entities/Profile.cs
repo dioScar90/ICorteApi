@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Profile : BaseEntity<Profile>
+public sealed class Profile : BaseEntity<Profile, ProfileDto>
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
@@ -15,8 +17,10 @@ public sealed class Profile : BaseEntity<Profile>
 
     private Profile() { }
 
-    public Profile(ProfileDtoCreate dto, int? userId = null)
+    public Profile(ProfileDto dto, int? userId = null)
     {
+        dto.ThrowExceptionIfInvalid(new ProfileDtoValidator(), new ProfileErrors());
+
         Id = userId ?? default;
         FirstName = dto.FirstName;
         LastName = dto.LastName;
@@ -40,8 +44,8 @@ public sealed class Profile : BaseEntity<Profile>
     private void UpdateImageUrlIfFirstTime() => ImageUrl ??= GetImageUrlPlaceholder(Id, Gender);
 
     public string GetPhoneNumberToUserEntity() => _phoneNumber;
-
-    private void UpdateByUserDto(ProfileDtoUpdate dto, DateTime? utcNow)
+    
+    public override void UpdateEntityByDto(ProfileDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -54,26 +58,14 @@ public sealed class Profile : BaseEntity<Profile>
         UpdatedAt = utcNow;
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<Profile> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            ProfileDtoUpdate dto => () => UpdateByUserDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
-
-    public override ProfileDtoResponse CreateDto() =>
-        new(
-            Id,
-            FirstName,
-            LastName,
-            FirstName + ' ' + LastName,
-            Gender,
-            ImageUrl
-        );
+    public override ProfileDto CreateDto() => new(
+        Id,
+        FirstName,
+        LastName,
+        FirstName + ' ' + LastName,
+        Gender,
+        ImageUrl
+    );
 }
 
 public enum Gender

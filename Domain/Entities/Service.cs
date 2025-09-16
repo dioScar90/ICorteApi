@@ -1,10 +1,12 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Service : BaseEntity<Service>
+public sealed class Service : BaseEntity<Service, ServiceDto>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -21,8 +23,10 @@ public sealed class Service : BaseEntity<Service>
 
     private Service() { }
     
-    public Service(ServiceDtoCreate dto, int? barberShopId = null)
+    public Service(ServiceDto dto, int? barberShopId = null)
     {
+        dto.ThrowExceptionIfInvalid(new ServiceDtoValidator(), new ServiceErrors());
+
         Name = dto.Name;
         Description = GetValidStringOrNull(dto.Description);
         Price = dto.Price;
@@ -31,7 +35,7 @@ public sealed class Service : BaseEntity<Service>
         BarberShopId = barberShopId ?? default;
     }
     
-    private void UpdateByServiceDto(ServiceDtoUpdate dto, DateTime? utcNow)
+    public override void UpdateEntityByDto(ServiceDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -43,24 +47,13 @@ public sealed class Service : BaseEntity<Service>
         UpdatedAt = utcNow;
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<Service> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            ServiceDtoUpdate dto => () => UpdateByServiceDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
-
-    public override ServiceDtoResponse CreateDto() =>
-        new(
-            Id,
-            BarberShopId,
-            Name,
-            Description,
-            Price,
-            Duration
-        );
+    public override ServiceDto CreateDto() => new(
+        Id,
+        BarberShopId,
+        default,
+        Name,
+        Description,
+        Price,
+        Duration
+    );
 }

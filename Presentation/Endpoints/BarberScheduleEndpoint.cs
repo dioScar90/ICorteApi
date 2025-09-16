@@ -55,15 +55,15 @@ public static class BarberScheduleEndpoint
         [FromQuery] int? take,
         IBarberScheduleService service)
     {
-        var TopBarberShopDtoResponses = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
-        return Results.Ok(TopBarberShopDtoResponses);
+        var TopBarberShopDtos = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
+        return Results.Ok(TopBarberShopDtos);
     }
     
     public static async Task<IResult> SearchServicesByNameAsync(
         [FromQuery] string q,
         IBarberScheduleService service)
     {
-        var TopBarberShopDtoResponses = await service.SearchServicesByName(q);
-        return Results.Ok(TopBarberShopDtoResponses);
+        var TopBarberShopDtos = await service.SearchServicesByName(q);
+        return Results.Ok(TopBarberShopDtos);
     }
 }

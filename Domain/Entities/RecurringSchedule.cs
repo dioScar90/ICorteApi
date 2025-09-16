@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
+public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDto>
 {
     public DayOfWeek DayOfWeek { get; init; }
 
@@ -14,8 +16,10 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 
     private RecurringSchedule() {}
 
-    public RecurringSchedule(RecurringScheduleDtoCreate dto, int? barberShopId = null)
+    public RecurringSchedule(RecurringScheduleDto dto, int? barberShopId = null)
     {
+        dto.ThrowExceptionIfInvalid(new RecurringScheduleDtoValidator(), new RecurringScheduleErrors());
+
         DayOfWeek = dto.DayOfWeek;
         BarberShopId = barberShopId ?? default;
         
@@ -23,7 +27,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
         CloseTime = dto.CloseTime;
     }
     
-    private void UpdateByRecurringScheduleDto(RecurringScheduleDtoUpdate dto, DateTime? utcNow)
+    public override void UpdateEntityByDto(RecurringScheduleDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -33,24 +37,12 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 
         UpdatedAt = utcNow;
     }
-
-    public override void UpdateEntityByDto(IDtoRequest<RecurringSchedule> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            RecurringScheduleDtoUpdate dto => () => UpdateByRecurringScheduleDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
     
-    public override RecurringScheduleDtoResponse CreateDto() =>
-        new(
-            DayOfWeek,
-            BarberShopId,
-            OpenTime,
-            CloseTime,
-            IsActive
-        );
+    public override RecurringScheduleDto CreateDto() => new(
+        DayOfWeek,
+        BarberShopId,
+        OpenTime,
+        CloseTime,
+        IsActive
+    );
 }

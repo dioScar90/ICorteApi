@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Message : BaseEntity<Message>
+public sealed class Message : BaseEntity<Message, MessageDto>
 {
     public string Content { get; private set; }
     public DateTime SentAt { get; private set; }
@@ -16,54 +18,35 @@ public sealed class Message : BaseEntity<Message>
 
     private Message() { }
 
-    public Message(MessageDtoCreate dto, int? appointmentId = null, int? senderId = null)
+    public Message(MessageDto dto, int? appointmentId = null, int? senderId = null)
     {
+        dto.ThrowExceptionIfInvalid(new MessageDtoValidator(), new MessageErrors());
+
         Content = dto.Content;
         SentAt = dto.SentAt;
 
         AppointmentId = appointmentId ?? default;
         SenderId = senderId ?? default;
     }
-
-    private void UpdateByMessageDto(MessageDtoCreate dto, DateTime? utcNow)
+    
+    public override void UpdateEntityByDto(MessageDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
         Content = dto.Content;
+        IsRead |= dto.IsRead;
 
         UpdatedAt = utcNow;
     }
 
-    private void UpdateIsReadProp(MessageDtoIsReadUpdate dto, DateTime? utcNow)
-    {
-        utcNow ??= DateTime.UtcNow;
-
-        IsRead = IsRead || dto.IsRead;
-
-        UpdatedAt = utcNow;
-    }
-
-    public override void UpdateEntityByDto(IDtoRequest<Message> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            MessageDtoCreate dto => () => UpdateByMessageDto(dto, utcNow),
-            MessageDtoIsReadUpdate dto => () => UpdateIsReadProp(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
-
-    public override MessageDtoResponse CreateDto() =>
-        new(
-            Id,
-            AppointmentId,
-            SenderId,
-            Content,
-            SentAt,
-            IsRead,
-            Sender.Profile.FirstName,
-            Sender.Profile.LastName
-        );
+    public override MessageDto CreateDto() => new(
+        Id,
+        AppointmentId,
+        SenderId,
+        Content,
+        SentAt,
+        IsRead,
+        Sender.Profile.FirstName,
+        Sender.Profile.LastName
+    );
 }

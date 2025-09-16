@@ -4,7 +4,7 @@ using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Address : BaseEntity<Address>
+public sealed class Address : BaseEntity<Address, AddressDto>
 {
     public string Street { get; private set; }
     public string Number { get; private set; }
@@ -20,9 +20,9 @@ public sealed class Address : BaseEntity<Address>
 
     private Address() { }
 
-    public Address(AddressDtoCreate dto, int? barberShopId = null)
+    public Address(AddressDto dto, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new AddressDtoCreateValidator(), new AddressErrors());
+        dto.ThrowExceptionIfInvalid(new AddressDtoValidator(), new AddressErrors());
         
         Street = dto.Street;
         Number = dto.Number;
@@ -35,8 +35,8 @@ public sealed class Address : BaseEntity<Address>
 
         BarberShopId = barberShopId ?? default;
     }
-
-    private void UpdateByAddressDto(AddressDtoUpdate dto, DateTime? utcNow)
+    
+    public override void UpdateEntityByDto(AddressDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -52,30 +52,18 @@ public sealed class Address : BaseEntity<Address>
         UpdatedAt = utcNow;
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<Address> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            AddressDtoUpdate dto => () => UpdateByAddressDto(dto, utcNow),
-            _ => () => throw new Exception("Dados enviados inválidos")
-        };
-
-        action();
-    }
-
-    public override AddressDtoResponse CreateDto() =>
-        new(
-            Id,
-            BarberShopId,
-            Street,
-            Number,
-            Complement,
-            Neighborhood,
-            City,
-            State,
-            PostalCode,
-            Country
-        );
+    public override AddressDto CreateDto() => new(
+        Id,
+        BarberShopId,
+        Street,
+        Number,
+        Complement,
+        Neighborhood,
+        City,
+        State,
+        PostalCode,
+        Country
+    );
 }
 
 public enum State

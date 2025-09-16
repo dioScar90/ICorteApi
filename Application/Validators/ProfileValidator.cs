@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class ProfileDtoCreateValidator : AbstractValidator<ProfileDtoCreate>
+public sealed class ProfileDtoValidator : AbstractValidator<ProfileDto>
 {
-    public ProfileDtoCreateValidator()
+    public ProfileDtoValidator()
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("Nome obrigatório")
@@ -17,16 +17,7 @@ public sealed class ProfileDtoCreateValidator : AbstractValidator<ProfileDtoCrea
         RuleFor(x => x.Gender)
             .NotNull().WithMessage("Gênero não pode estar vazio")
             .IsInEnum().WithMessage("Gênero inválido");
-            
-        RuleFor(x => x.PhoneNumber).ApplyPhoneNumberValidation();
-    }
-}
 
-public sealed class ProfileDtoUpdateValidator : AbstractValidator<ProfileDtoUpdate>
-{
-    public ProfileDtoUpdateValidator()
-    {
-        RuleFor(x => new ProfileDtoCreate(x.FirstName, x.LastName, x.Gender, x.PhoneNumber))
-            .SetValidator(new ProfileDtoCreateValidator());
+        RuleFor(x => x.PhoneNumber).ApplyPhoneNumberValidation();
     }
 }

@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
+public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, SpecialScheduleDto>
 {
     public DateOnly Date { get; init; }
     public DayOfWeek DayOfWeek { get; set; }
@@ -16,8 +18,10 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 
     private SpecialSchedule() {}
 
-    public SpecialSchedule(SpecialScheduleDtoCreate dto, int? barberShopId = null)
+    public SpecialSchedule(SpecialScheduleDto dto, int? barberShopId = null)
     {
+        dto.ThrowExceptionIfInvalid(new SpecialScheduleDtoValidator(), new SpecialScheduleErrors());
+
         Date = dto.Date;
         BarberShopId = barberShopId ?? default;
         
@@ -28,10 +32,10 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
         IsClosed = dto is { OpenTime: null, CloseTime: null };
     }
     
-    private void UpdateBySpecialScheduleDto(SpecialScheduleDtoUpdate dto, DateTime? utcNow)
+    public override void UpdateEntityByDto(SpecialScheduleDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
-        
+
         DayOfWeek = dto.Date.DayOfWeek;
         Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes;
         OpenTime = dto.OpenTime;
@@ -40,26 +44,14 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 
         UpdatedAt = utcNow;
     }
-
-    public override void UpdateEntityByDto(IDtoRequest<SpecialSchedule> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            SpecialScheduleDtoUpdate dto => () => UpdateBySpecialScheduleDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto)),
-        };
-
-        action();
-    }
     
-    public override SpecialScheduleDtoResponse CreateDto() =>
-        new(
-            Date,
-            BarberShopId,
-            DayOfWeek,
-            Notes,
-            OpenTime,
-            CloseTime,
-            IsClosed
-        );
+    public override SpecialScheduleDto CreateDto() => new(
+        Date,
+        BarberShopId,
+        DayOfWeek,
+        Notes,
+        OpenTime,
+        CloseTime,
+        IsClosed
+    );
 }

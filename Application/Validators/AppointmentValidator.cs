@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public class AppointmentDtoCreateValidator : AbstractValidator<AppointmentDtoCreate>
+public class AppointmentDtoValidator : AbstractValidator<AppointmentDto>
 {
-    public AppointmentDtoCreateValidator()
+    public AppointmentDtoValidator()
     {
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Data do agendamento obrigatória")
@@ -13,14 +13,5 @@ public class AppointmentDtoCreateValidator : AbstractValidator<AppointmentDtoCre
 
         RuleFor(x => x.StartTime)
             .NotEmpty().WithMessage("Horário de início obrigatório");
-    }
-}
-
-public class AppointmentDtoUpdateValidator : AbstractValidator<AppointmentDtoUpdate>
-{
-    public AppointmentDtoUpdateValidator()
-    {
-        RuleFor(x => new AppointmentDtoCreate(x.Date, x.StartTime, x.Notes, x.PaymentType, x.ServiceIds))
-            .SetValidator(new AppointmentDtoCreateValidator());
     }
 }

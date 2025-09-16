@@ -33,15 +33,15 @@ public sealed class BarberShopService(
         return barberShop!.CreateDto();
     }
     
-    private async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
+    private async Task<PaginationResponse<AppointmentsByBarberShopDto>> GetAppointmentsByBarberShopAsync(
         int barberShopId, int ownerId,
-        PaginationProperties<AppointmentsByBarberShopDtoResponse> props)
+        PaginationProperties<AppointmentsByBarberShopDto> props)
     {
         var query = _context.Appointments
             .AsNoTracking()
             .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new AppointmentsByBarberShopDtoResponse(
+            .Select(a => new AppointmentsByBarberShopDto(
                 a.Id,
                 new(
                     a.ClientId,
@@ -85,7 +85,7 @@ public sealed class BarberShopService(
         return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }
     
-    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId, int? page, int? pageSize)
+    public async Task<PaginationResponse<AppointmentsByBarberShopDto>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId, int? page, int? pageSize)
     {
         return await GetAppointmentsByBarberShopAsync(
             barberShopId, ownerId,

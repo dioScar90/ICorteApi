@@ -8,8 +8,8 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsDeleted { get; protected set; } = false;
-    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<User>;
-    public abstract IDtoResponse<User> CreateDto();
+    public abstract void UpdateEntityByDto(UserDto dto, DateTime? utcNow = null);
+    public abstract UserDto CreateDto();
 
     public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
 
@@ -23,15 +23,16 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
     }
 }
 
-public abstract class BaseEntity<TEntity> : IBaseEntity<TEntity>
+public abstract class BaseEntity<TEntity, TDto> : IBaseEntity<TEntity, TDto>
     where TEntity : class, IBaseTableEntity
+    where TDto : IDto<TEntity>
 {
     public int Id { get; init; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsDeleted { get; protected set; } = false;
-    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<TEntity>;
-    public abstract IDtoResponse<TEntity> CreateDto();
+    public abstract void UpdateEntityByDto(TDto requestDto, DateTime? utcNow = null);
+    public abstract TDto CreateDto();
 
     public void DeleteEntity()
     {
@@ -49,12 +50,13 @@ public abstract class BaseEntity<TEntity> : IBaseEntity<TEntity>
     protected static int GetValidRatingOrNull(int value) => value is >= MIN_RATING and <= MAX_RATING ? value : Math.Clamp(value, MIN_RATING, MAX_RATING);
 }
 
-public abstract class CompositeKeyEntity<TEntity> : ICompositeKeyEntity<TEntity>
+public abstract class CompositeKeyEntity<TEntity, TDto> : ICompositeKeyEntity<TEntity, TDto>
     where TEntity : class, IBaseTableEntity
+    where TDto : IDto<TEntity>
 {
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsActive { get; protected set; } = true;
-    public abstract void UpdateEntityByDto<TDto>(TDto requestDto, DateTime? utcNow = null) where TDto : IDtoRequest<TEntity>;
-    public abstract IDtoResponse<TEntity> CreateDto();
+    public abstract void UpdateEntityByDto(TDto requestDto, DateTime? utcNow = null);
+    public abstract TDto CreateDto();
 }

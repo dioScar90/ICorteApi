@@ -1,13 +1,13 @@
 namespace ICorteApi.Application.Dtos;
 
-public record UserDtoResponse(
+public record UserDto(
     int Id,
     string Email,
     string PhoneNumber,
     string[] Roles,
-    ProfileDtoResponse? Profile,
-    BarberShopDtoResponse? BarberShop
-) : IDtoResponse<User>;
+    ProfileDto? Profile,
+    BarberShopDto? BarberShop
+) : IDto<User>;
 
 public record UserDtoEmailUpdate(
     string Email

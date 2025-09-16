@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class AddressDtoCreateValidator : AbstractValidator<AddressDtoCreate>
+public sealed class AddressDtoValidator : AbstractValidator<AddressDto>
 {
-    public AddressDtoCreateValidator()
+    public AddressDtoValidator()
     {
         RuleFor(x => x.Street)
             .NotEmpty().WithMessage("Logradouro obrigatório")
@@ -34,14 +34,5 @@ public sealed class AddressDtoCreateValidator : AbstractValidator<AddressDtoCrea
         RuleFor(x => x.Country)
             .NotEmpty().WithMessage("País obrigatório")
             .MinimumLength(3).WithMessage("País precisa ter pelo menos 3 caracteres");
-    }
-}
-
-public sealed class AddressDtoUpdateValidator : AbstractValidator<AddressDtoUpdate>
-{
-    public AddressDtoUpdateValidator()
-    {
-        RuleFor(x => new AddressDtoCreate(x.Street, x.Number, x.Complement, x.Neighborhood, x.City, x.State, x.PostalCode, x.Country))
-            .SetValidator(new AddressDtoCreateValidator());
     }
 }

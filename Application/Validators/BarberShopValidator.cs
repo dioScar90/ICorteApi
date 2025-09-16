@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class BarberShopDtoCreateValidator : AbstractValidator<BarberShopDtoCreate>
+public sealed class BarberShopDtoValidator : AbstractValidator<BarberShopDto>
 {
-    public BarberShopDtoCreateValidator()
+    public BarberShopDtoValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome obrigatório")
@@ -21,18 +21,9 @@ public sealed class BarberShopDtoCreateValidator : AbstractValidator<BarberShopD
             .EmailAddress().WithMessage("Email com formato inválido");
 
         RuleFor(x => x.Address)
-            .SetValidator(new AddressDtoCreateValidator())
+            .SetValidator(new AddressDtoValidator())
             .When(x => x.Address is not null);
     }
 
     private bool LastCharIsNotADot(string? email) => email is not null && !email.EndsWith('.');
-}
-
-public sealed class BarberShopDtoUpdateValidator : AbstractValidator<BarberShopDtoUpdate>
-{
-    public BarberShopDtoUpdateValidator()
-    {
-        RuleFor(x => new BarberShopDtoCreate(x.Name, x.Description, x.ComercialNumber, x.ComercialEmail, null, null, null, null))
-            .SetValidator(new BarberShopDtoCreateValidator());
-    }
 }

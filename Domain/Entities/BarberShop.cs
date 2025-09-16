@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class BarberShop : BaseEntity<BarberShop>
+public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDto>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -23,8 +25,10 @@ public sealed class BarberShop : BaseEntity<BarberShop>
 
     private BarberShop() { }
 
-    public BarberShop(BarberShopDtoCreate dto, int? ownerId = null)
+    public BarberShop(BarberShopDto dto, int? ownerId = null)
     {
+        dto.ThrowExceptionIfInvalid(new BarberShopDtoValidator(), new BarberShopErrors());
+
         Name = dto.Name;
         Description = dto.Description ?? default;
         ComercialNumber = dto.ComercialNumber;
@@ -59,8 +63,8 @@ public sealed class BarberShop : BaseEntity<BarberShop>
     private void UpdateImageUrlIfFirstTime() => ImageUrl ??= GetImageUrlPlaceholder(OwnerId);
 
     public void UpdateRating(float rating) => Rating = rating;
-
-    private void UpdateByBarberShopDto(BarberShopDtoUpdate dto, DateTime? utcNow)
+    
+    public override void UpdateEntityByDto(BarberShopDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -76,30 +80,18 @@ public sealed class BarberShop : BaseEntity<BarberShop>
 
         UpdatedAt = utcNow;
     }
-
-    public override void UpdateEntityByDto(IDtoRequest<BarberShop> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            BarberShopDtoUpdate dto => () => UpdateByBarberShopDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
     
-    public override BarberShopDtoResponse CreateDto() =>
-        new(
-            Id,
-            OwnerId,
-            Name,
-            Description,
-            ComercialNumber,
-            ComercialEmail,
-            Address?.CreateDto(),
-            RecurringSchedules  is null ? [] : [..RecurringSchedules.Select(b => b.CreateDto())],
-            SpecialSchedules    is null ? [] : [..SpecialSchedules.Select(b => b.CreateDto())],
-            Services            is null ? [] : [..Services.Select(b => b.CreateDto())],
-            Reports             is null ? [] : [..Reports.Select(b => b.CreateDto())]
-        );
+    public override BarberShopDto CreateDto() => new(
+        Id,
+        OwnerId,
+        Name,
+        Description,
+        ComercialNumber,
+        ComercialEmail,
+        Address?.CreateDto(),
+        RecurringSchedules  is null ? [] : [..RecurringSchedules.Select(b => b.CreateDto())],
+        SpecialSchedules    is null ? [] : [..SpecialSchedules.Select(b => b.CreateDto())],
+        Services            is null ? [] : [..Services.Select(b => b.CreateDto())],
+        Reports             is null ? [] : [..Reports.Select(b => b.CreateDto())]
+    );
 }

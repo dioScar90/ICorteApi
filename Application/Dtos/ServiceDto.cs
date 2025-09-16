@@ -1,34 +1,11 @@
 namespace ICorteApi.Application.Dtos;
 
-public record ServiceDtoCreate(
-    string Name,
-    string Description,
-    decimal Price,
-    TimeSpan Duration
-) : IDtoRequest<Service>;
-
-public record ServiceDtoUpdate(
-    string Name,
-    string Description,
-    decimal Price,
-    TimeSpan Duration
-) : IDtoRequest<Service>;
-
-public record ServiceDtoResponse(
+public record ServiceDto(
     int Id,
     int BarberShopId,
+    string? BarberShopName,
     string Name,
     string? Description,
     decimal Price,
     TimeSpan Duration
-) : IDtoResponse<Service>;
-
-public record ServiceByNameDtoResponse(
-    int Id,
-    int BarberShopId,
-    string BarberShopName,
-    string Name,
-    string? Description,
-    decimal Price,
-    TimeSpan Duration
-) : IDtoResponse<Service>;
+) : IDto<Service>;

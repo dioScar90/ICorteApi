@@ -1,37 +1,18 @@
 namespace ICorteApi.Application.Dtos;
 
-public record BarberShopDtoCreate(
-    string Name,
-    string? Description,
-    string ComercialNumber,
-    string ComercialEmail,
-    AddressDtoCreate? Address = null,
-    RecurringScheduleDtoCreate[]? RecurringSchedules = null,
-    SpecialScheduleDtoCreate[]? SpecialSchedules = null,
-    ServiceDtoCreate[]? Services = null
-) : IDtoRequest<BarberShop>;
-
-public record BarberShopDtoUpdate(
-    string Name,
-    string? Description,
-    string ComercialNumber,
-    string ComercialEmail,
-    AddressDtoUpdate? Address = null
-) : IDtoRequest<BarberShop>;
-
-public record BarberShopDtoResponse(
+public record BarberShopDto(
     int Id,
     int OwnerId,
     string Name,
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    AddressDtoResponse? Address,
-    RecurringScheduleDtoResponse[] RecurringSchedules,
-    SpecialScheduleDtoResponse[] SpecialSchedules,
-    ServiceDtoResponse[] Services,
+    AddressDto? Address,
+    RecurringScheduleDto[] RecurringSchedules,
+    SpecialScheduleDto[] SpecialSchedules,
+    ServiceDto[] Services,
     ReportDtoResponse[] Reports
-) : IDtoResponse<BarberShop>;
+) : IDto<BarberShop>;
 
 public record ClientForAppointmentByBarberShop(
     int Id,
@@ -40,7 +21,7 @@ public record ClientForAppointmentByBarberShop(
     string FullName
 );
 
-public record AppointmentsByBarberShopDtoResponse(
+public record AppointmentsByBarberShopDto(
     int Id,
     ClientForAppointmentByBarberShop Client,
     int BarberShopId,
@@ -50,13 +31,13 @@ public record AppointmentsByBarberShopDtoResponse(
     string? Notes,
     PaymentType PaymentType,
     decimal TotalPrice,
-    ServiceDtoResponse[] Services,
+    ServiceDto[] Services,
     AppointmentStatus Status
-) : IDtoResponse<BarberShop>;
+) : IDto<BarberShop>;
 
-public record TopBarberShopDtoResponse(
+public record TopBarberShopDto(
     int Id,
     string Name,
     string? Description,
     float Rating
-) : IDtoResponse<BarberShop>;
+) : IDto<BarberShop>;

@@ -134,10 +134,10 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
 
-    private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
+    private async Task<ChatWithMessagesDto[]> GetClientChatHistoryAsync(int clientId)
     {
         return await _context.Database
-            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
+            .SqlQuery<ChatWithMessagesDto>(@$"
                 SELECT A.id AS AppointmentId
                     ,IIF(M.sender_id = {clientId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
                     ,M.content AS Content
@@ -162,10 +162,10 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
 
-    private async Task<ChatWithMessagesDtoResponse[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
+    private async Task<ChatWithMessagesDto[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
     {
         return await _context.Database
-            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
+            .SqlQuery<ChatWithMessagesDto>(@$"
                 SELECT A.id AS AppointmentId
                     ,IIF(M.sender_id = {ownerBarberShopId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
                     ,M.content AS Content
@@ -200,7 +200,7 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
     
-    public async Task<ChatWithMessagesDtoResponse[]> GetChatHistoryAsync(int senderId, bool isBarber)
+    public async Task<ChatWithMessagesDto[]> GetChatHistoryAsync(int senderId, bool isBarber)
     {
         return isBarber ? await GetBarberChatHistoryAsync(senderId) : await GetClientChatHistoryAsync(senderId);
     }

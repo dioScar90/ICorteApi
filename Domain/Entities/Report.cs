@@ -1,8 +1,10 @@
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Report : BaseEntity<Report>
+public sealed class Report : BaseEntity<Report, ReportDto>
 {
     public string? Title { get; private set; }
     public string? Content { get; private set; }
@@ -16,8 +18,10 @@ public sealed class Report : BaseEntity<Report>
 
     private Report() { }
 
-    public Report(ReportDtoCreate dto, int? clientId = null, int? barberShopId = null)
+    public Report(ReportDto dto, int? clientId = null, int? barberShopId = null)
     {
+        dto.ThrowExceptionIfInvalid(new ReportDtoValidator(), new ReportErrors());
+
         Title = GetValidStringOrNull(dto.Title);
         Content = GetValidStringOrNull(dto.Content);
         Rating = GetValidRatingOrNull(dto.Rating);
@@ -26,7 +30,7 @@ public sealed class Report : BaseEntity<Report>
         BarberShopId = barberShopId ?? default;
     }
     
-    private void UpdateByReportDto(ReportDtoUpdate dto, DateTime? utcNow)
+    public override void UpdateEntityByDto(ReportDto dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -37,23 +41,11 @@ public sealed class Report : BaseEntity<Report>
         UpdatedAt = utcNow;
     }
 
-    public override void UpdateEntityByDto(IDtoRequest<Report> requestDto, DateTime? utcNow = null)
-    {
-        Action action = requestDto switch
-        {
-            ReportDtoUpdate dto => () => UpdateByReportDto(dto, utcNow),
-            _ => () => throw new ArgumentException("Tipo de DTO inválido", nameof(requestDto))
-        };
-
-        action();
-    }
-
-    public override ReportDtoResponse CreateDto() =>
-        new(
-            Id,
-            BarberShopId,
-            Title,
-            Content,
-            Rating
-        );
+    public override ReportDto CreateDto() => new(
+        Id,
+        BarberShopId,
+        Title,
+        Content,
+        Rating
+    );
 }
