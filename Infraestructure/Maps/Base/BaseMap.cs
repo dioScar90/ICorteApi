@@ -45,7 +45,8 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
         typeof(IBaseEntity<TEntity>).IsAssignableFrom(typeof(TEntity));
 
-    private static string CamelCaseToSnakeCase(string name) => Regex.Replace(name, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
+    private static string CamelCaseToSnakeCase(string name) =>
+        System.Text.Json.JsonNamingPolicy.SnakeCaseLower.ConvertName(name);
 
     private static bool IsCompositeKeyName(string name) => name.StartsWith("Id") && name.Length > 2;
 

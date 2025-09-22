@@ -70,8 +70,14 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddExceptionHandlers(this IServiceCollection services)
     {
         // After .NET 8 we can use IExceptionHandler interface
+        services.AddProblemDetails(configure =>
+        {
+            configure.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+            };
+        });
         services.AddExceptionHandler<GlobalExceptionHandler>();
-        services.AddProblemDetails();
 
         // // Se estiver usando .NET 8 ou superior
         // services.AddExceptionHandler<GlobalExceptionHandler>();
