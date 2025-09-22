@@ -172,21 +172,18 @@ public class BarberScheduleService(AppDbContext context) : IBarberScheduleServic
             .ToArrayAsync();
     }
     
-    private static HashSet<string> SplitByWhitespace(string value) => [..Regex.Split(value, @"\s+").Where(val => !string.IsNullOrEmpty(val))];
-    
     private static PaginationResponse<ServiceByNameDtoResponse> GetEmptyPagination() => new([], 0, 0, 1, 0);
     
     public async Task<PaginationResponse<ServiceByNameDtoResponse>> SearchServicesByName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             return GetEmptyPagination();
+            
+        string[] keywords = [..new HashSet<string>(name.SplitByWhitespaces())];
 
-        var values = SplitByWhitespace(name);
-
-        if (values.Count == 0)
+        if (keywords.Length == 0)
             return GetEmptyPagination();
             
-        string[] keywords = [.. values];
         bool isPostgre = _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
         
         var services = await _context.Services

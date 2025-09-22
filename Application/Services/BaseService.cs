@@ -22,9 +22,38 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IBaseService<
         _dbSet.Add(entity);
         return await SaveChangesAsync() ? entity : null;
     }
+    
+    private void VerifyPrimaryKeys(params object[] primaryKeys)
+    {
+        // Obtém metadados do modelo do EF
+        var entityType = _context.Model.FindEntityType(typeof(TEntity))
+            ?? throw new InvalidOperationException($"Entidade {typeof(TEntity).Name} não encontrada no modelo.");
 
+        var pk = entityType.FindPrimaryKey()
+            ?? throw new InvalidOperationException($"Entidade {typeof(TEntity).Name} não possui chave primária.");
+
+        // Valida quantidade de chaves
+        if (pk.Properties.Count != primaryKeys.Length)
+            throw new ArgumentException(
+                $"Esperado {pk.Properties.Count} valores de chave, mas foram recebidos {primaryKeys.Length}.");
+
+        // Valida tipos em runtime
+        for (int i = 0; i < pk.Properties.Count; i++)
+        {
+            var expectedType = pk.Properties[i].ClrType;
+            var received = primaryKeys[i];
+
+            if (received == null || !expectedType.IsAssignableFrom(received.GetType()))
+            {
+                throw new ArgumentException(
+                    $"Tipo inválido para chave '{pk.Properties[i].Name}'. Esperado {expectedType.Name}.");
+            }
+        }
+    }
+    
     public virtual async Task<TEntity?> GetByIdAsync(params object[] primaryKeys)
     {
+        VerifyPrimaryKeys(primaryKeys);
         return await _dbSet.FindAsync(primaryKeys);
     }
     

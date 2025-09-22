@@ -17,11 +17,8 @@ public abstract class BaseException(string message, params Error[]? errors) : Ex
         return errors
             .GroupBy(e => e.Code)
             .ToDictionary(
-                e => GetCamelCaseFormat(e.Key),
+                e => e.Key.ToCamelCase(),
                 e => e.Select(e => e.Description).ToArray()
             );
     }
-    
-    private static string GetCamelCaseFormat(string value) =>
-        System.Text.Json.JsonNamingPolicy.CamelCase.ConvertName(value);
 }

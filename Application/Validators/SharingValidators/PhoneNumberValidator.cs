@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+// using System.Text.RegularExpressions;
 using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
@@ -21,5 +21,5 @@ internal static class PhoneNumberValidationExtensions
     }
 
     private static bool IsNull(string? value) => value is null;
-    private static bool IsValidPhoneNumber(string? value) => !IsNull(value) && Regex.IsMatch(value!, @"^\d{2}9\d{8}$");
+    private static bool IsValidPhoneNumber(string? value) => !IsNull(value) && System.Text.RegularExpressions.Regex.IsMatch(value!, @"^\d{2}9\d{8}$");
 }

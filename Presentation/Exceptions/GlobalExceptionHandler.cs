@@ -101,21 +101,18 @@ public sealed class GlobalExceptionHandler(
         // Fluent Validation Excceptions
         or ValidationException
     ;
-
-    private static string GetPascalCaseSeparatedByWhitespaces(string value) =>
-        string.Join(" ",
-            System.Text.Json.JsonNamingPolicy.SnakeCaseLower.ConvertName(value)
+    
+    private static string GetTitleForProblemDetails(Exception exception)
+    {
+        var nameWithoutException = IsMappedExceptionType(exception) ? exception.GetType().Name.Replace("Exception", "") : "Server";
+        
+        var name = nameWithoutException.ToSnakeCase()
             .Split("_")
             .Select(text => char.ToUpper(text[0]) + text[1..])
-            .Append("Error")
-        );
-    
-    private static string GetTitleForProblemDetails(Exception exception) =>
-        GetPascalCaseSeparatedByWhitespaces(
-            IsMappedExceptionType(exception)
-                ? exception.GetType().Name.Replace("Exception", "")
-                : "Server"
-        );
+            .Append("Error");
+            
+        return string.Join(" ", name);
+    }
         
     private static int GetStatusCodeForProblemDetails(Exception exception) => exception switch
     {

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,8 +12,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
 
         if (!string.IsNullOrEmpty(currentTableName))
         {
-            string newTableName = CamelCaseToSnakeCase(currentTableName);
-            builder.ToTable(newTableName);
+            builder.ToTable(currentTableName.ToSnakeCase());
         }
 
         foreach (var prop in typeof(TEntity).GetProperties())
@@ -28,8 +26,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
                 continue;
             }
 
-            string column_name = CamelCaseToSnakeCase(prop.Name);
-            builder.Property(prop.Name).HasColumnName(column_name);
+            builder.Property(prop.Name).HasColumnName(prop.Name.ToSnakeCase());
 
             if (prop.PropertyType == typeof(decimal))
                 builder.Property(prop.Name).HasPrecision(9, 4);
@@ -44,10 +41,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
         typeof(IBaseEntity<TEntity>).IsAssignableFrom(typeof(TEntity));
-
-    private static string CamelCaseToSnakeCase(string name) =>
-        System.Text.Json.JsonNamingPolicy.SnakeCaseLower.ConvertName(name);
-
+        
     private static bool IsCompositeKeyName(string name) => name.StartsWith("Id") && name.Length > 2;
 
     private static bool IsPrimitiveType(Type type)

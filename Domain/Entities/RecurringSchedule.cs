@@ -4,7 +4,7 @@ using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDto>
+public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDto, DayOfWeek, int>
 {
     public DayOfWeek DayOfWeek { get; init; }
 

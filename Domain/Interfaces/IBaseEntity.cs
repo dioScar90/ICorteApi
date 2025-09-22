@@ -21,18 +21,22 @@ public interface IBaseEntity
     void DeleteEntity();
 }
 
-public interface ICompositeKeyEntity<TEntity, TDto> : IBaseTableEntity<TEntity, TDto>
+public interface ICompositeKeyEntity<TEntity, TDto, TPK1, TPK2> : IBaseTableEntity<TEntity, TDto, TPK1, TPK2>
     where TEntity : class, IBaseTableEntity
     where TDto : IDto<TEntity>
+    where TPK1 : object
+    where TPK2 : object
 {
     DateTime CreatedAt { get; }
     DateTime? UpdatedAt { get; }
     bool IsActive { get; }
 }
 
-public interface IBaseTableEntity<TEntity, TDto> : IBaseTableEntity
+public interface IBaseTableEntity<TEntity, TDto, TPK1, TPK2> : IBaseTableEntity
     where TEntity : class, IBaseTableEntity
     where TDto : IDto<TEntity>
+    where TPK1 : object
+    where TPK2 : object
 {
     void UpdateEntityByDto(TDto requestDto, DateTime? utcNow = null);
     TDto CreateDto();

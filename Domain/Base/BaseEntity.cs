@@ -50,9 +50,11 @@ public abstract class BaseEntity<TEntity, TDto> : IBaseEntity<TEntity, TDto>
     protected static int GetValidRatingOrNull(int value) => value is >= MIN_RATING and <= MAX_RATING ? value : Math.Clamp(value, MIN_RATING, MAX_RATING);
 }
 
-public abstract class CompositeKeyEntity<TEntity, TDto> : ICompositeKeyEntity<TEntity, TDto>
+public abstract class CompositeKeyEntity<TEntity, TDto, TPK1, TPK2> : ICompositeKeyEntity<TEntity, TDto, TPK1, TPK2>
     where TEntity : class, IBaseTableEntity
     where TDto : IDto<TEntity>
+    where TPK1 : object
+    where TPK2 : object
 {
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
