@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Application.Services;
 
-public abstract class BaseService<TEntity>(AppDbContext context) : IBaseService<TEntity>
+public abstract class BaseService<TEntity, TDto>(AppDbContext context) : IBaseService<TEntity, TDto>
     where TEntity : class, IBaseTableEntity
+    where TDto : class, IDto<TEntity>
 {
     protected readonly AppDbContext _context = context;
     protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
@@ -57,15 +58,20 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IBaseService<
         return await _dbSet.FindAsync(primaryKeys);
     }
     
-    public virtual async Task<TEntity?> GetByIdAsync(
+    public virtual async Task<TDto?> GetByIdAsync(
         Expression<Func<TEntity, bool>> filterId,
+        Expression<Func<TEntity, TDto>> selector,
         params Expression<Func<TEntity, object>>[] includes)
     {
-        return await includes
-            .Aggregate(
-                (IQueryable<TEntity>)_dbSet,
-                (current, include) => current.Include(include))
-            .SingleOrDefaultAsync(filterId);
+        IQueryable<TEntity> suamae = _dbSet
+            .Where(filterId);
+
+        foreach (var include in includes)
+            suamae.Include(include);
+
+        return await suamae.Select(selector).FirstAsync();
+
+        // return await suamae.SingleOrDefaultAsync(filterId);
     }
     
     public virtual async Task<PaginationResponse<TEntity>> GetAllAsync(PaginationProperties<TEntity> props)

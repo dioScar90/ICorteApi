@@ -4,14 +4,18 @@ using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Application.Interfaces;
 
-public interface IBaseService<TEntity> : IService<TEntity>
+public interface IBaseService<TEntity, TDto> : IService<TEntity>
     where TEntity : class, IBaseTableEntity
+    where TDto : class, IDto<TEntity>
 {
     Task<TEntity?> CreateAsync(TEntity entity);
-
+    
     Task<TEntity?> GetByIdAsync(params object[] primaryKeys);
-
-    Task<TEntity?> GetByIdAsync(Expression<Func<TEntity, bool>> filterId, params Expression<Func<TEntity, object>>[] includes);
+    
+    Task<TDto?> GetByIdAsync(
+        Expression<Func<TEntity, bool>> filterId,
+        Expression<Func<TEntity, TDto>> selector,
+        params Expression<Func<TEntity, object>>[] includes);
 
     Task<PaginationResponse<TEntity>> GetAllAsync(PaginationProperties<TEntity> props);
 

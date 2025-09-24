@@ -25,7 +25,7 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
 
 public abstract class BaseEntity<TEntity, TDto> : IBaseEntity<TEntity, TDto>
     where TEntity : class, IBaseTableEntity
-    where TDto : IDto<TEntity>
+    where TDto : IDtoResponse<TEntity>
 {
     public int Id { get; init; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;

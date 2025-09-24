@@ -11,7 +11,7 @@ public record BarberShopDto(
     RecurringScheduleDto[] RecurringSchedules,
     SpecialScheduleDto[] SpecialSchedules,
     ServiceDto[] Services,
-    ReportDtoResponse[] Reports
+    ReportDto[] Reports
 ) : IDto<BarberShop>;
 
 public record ClientForAppointmentByBarberShop(
