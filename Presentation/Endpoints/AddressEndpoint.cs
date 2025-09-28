@@ -1,4 +1,6 @@
-﻿namespace ICorteApi.Presentation.Endpoints;
+﻿using ICorteApi.Application.Services;
+
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {
@@ -24,23 +26,24 @@ public static class AddressEndpoint
 
         return app;
     }
-
-    public static IResult GetCreatedResult(AddressDto dto) =>
+    
+    private static IResult GetCreatedResult(AddressDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/address/{dto.Id}", new { Message = "Endereço criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateAddressAsync(
         int barberShopId,
-        AddressDto dto,
-        IAddressService service)
+        AddressDtoRequest dto,
+        AddressService service)
     {
-        var address = await service.CreateAsync(dto, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        var address = await service.CreateAsync(dto);
         return GetCreatedResult(address);
     }
 
     public static async Task<IResult> GetAddressAsync(
         int barberShopId,
         int id,
-        IAddressService service)
+        AddressService service)
     {
         var address = await service.GetByIdAsync(id, barberShopId);
         return Results.Ok(address);
@@ -49,17 +52,18 @@ public static class AddressEndpoint
     public static async Task<IResult> UpdateAddressAsync(
         int barberShopId,
         int id,
-        AddressDto dto,
-        IAddressService service)
+        AddressDtoRequest dto,
+        AddressService service)
     {
-        await service.UpdateAsync(dto, id, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        await service.UpdateAsync(dto, id);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteAddressAsync(
         int barberShopId,
         int id,
-        IAddressService service)
+        AddressService service)
     {
         await service.DeleteAsync(id, barberShopId);
         return Results.NoContent();

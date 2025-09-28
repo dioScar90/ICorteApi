@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class ProfileDtoValidator : AbstractValidator<ProfileDto>
+public sealed class ProfileValidator : AbstractValidator<ProfileDtoRequest>
 {
-    public ProfileDtoValidator()
+    public ProfileValidator()
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("Nome obrigatório")

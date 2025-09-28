@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class ReportDtoValidator : AbstractValidator<ReportDto>
+public sealed class ReportValidator : AbstractValidator<ReportDtoRequest>
 {
-    public ReportDtoValidator()
+    public ReportValidator()
     {
         RuleFor(x => x.Title)
             .MinimumLength(3).WithMessage("Título precisa ter pelo menos 3 caracteres");

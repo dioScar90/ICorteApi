@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class MessageDtoValidator : AbstractValidator<MessageDto>
+public sealed class MessageValidator : AbstractValidator<MessageDtoRequest>
 {
-    public MessageDtoValidator()
+    public MessageValidator()
     {
         RuleFor(x => x.Content)
             .NotEmpty().WithMessage("Mensagem não pode estar vazia")

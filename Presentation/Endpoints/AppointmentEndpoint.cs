@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -35,33 +36,34 @@ public static class AppointmentEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(AppointmentDto dto) =>
+    private static IResult GetCreatedResult(AppointmentDtoResponse dto) =>
         Results.Created($"appointment/{dto.Id}", new { Message = "Agendamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateAppointmentAsync(
-        AppointmentDto dto,
-        IAppointmentService service,
-        IUserService userService)
+        AppointmentDtoRequest dto,
+        AppointmentService service,
+        UserService userService)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        var appointment = await service.CreateAsync(dto, clientId);
+        dto = dto with { ClientId = await userService.GetMyUserIdAsync() };
+        var appointment = await service.CreateAsync(dto);
         return GetCreatedResult(appointment);
     }
     
     public static async Task<IResult> GetAppointmentAsync(
         int id,
         bool? services,
-        IAppointmentService service)
+        AppointmentService service)
     {
-        var appointment = services is true ? await service.GetByIdWithServicesAsync(id) : await service.GetByIdAsync(id);
+        var appointment = await service.GetByIdAsync(id, new(services is true));
+        
         return Results.Ok(appointment);
     }
     
     public static async Task<IResult> GetAllAppointmentsAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
-        IAppointmentService service,
-        IUserService userService)
+        AppointmentService service,
+        UserService userService)
     {
         int clientId = await userService.GetMyUserIdAsync();
         var appointments = await service.GetAllAsync(page, pageSize, clientId);
@@ -70,30 +72,31 @@ public static class AppointmentEndpoint
 
     public static async Task<IResult> UpdateAppointmentAsync(
         int id,
-        AppointmentDto dto,
-        IAppointmentService service,
-        IUserService userService)
+        AppointmentDtoRequest dto,
+        AppointmentService service,
+        UserService userService)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        await service.UpdateAsync(dto, id, clientId);
+        dto = dto with { ClientId = await userService.GetMyUserIdAsync() };
+
+        await service.UpdateAsync(dto, id);
         return Results.NoContent();
     }
     
     public static async Task<IResult> UpdatePaymentTypeAsync(
         int id,
-        AppointmentPaymentTypeDtoUpdate dto,
-        IAppointmentService service,
-        IUserService userService)
+        AppointmentPaymentTypeDtoUpdateRequest dto,
+        AppointmentService service,
+        UserService userService)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        await service.UpdatePaymentTypeAsync(dto, id, clientId);
+        dto = dto with { ClientId = await userService.GetMyUserIdAsync() };
+        await service.UpdatePaymentTypeAsync(dto, id);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteAppointmentAsync(
         int id,
-        IAppointmentService service,
-        IUserService userService)
+        AppointmentService service,
+        UserService userService)
     {
         int clientId = await userService.GetMyUserIdAsync();
         await service.DeleteAsync(id, clientId);

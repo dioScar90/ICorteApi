@@ -2,7 +2,7 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class UserDtoPasswordUpdateValidator : AbstractValidator<UserDtoPasswordUpdate>
+public sealed class UserDtoPasswordUpdateValidator : AbstractValidator<UserDtoPasswordUpdateRequest>
 {
     public UserDtoPasswordUpdateValidator()
     {
@@ -30,16 +30,16 @@ public sealed class UserDtoPhoneNumberUpdateValidator : AbstractValidator<UserDt
     }
 }
 
-public sealed class UserDtoValidator : AbstractValidator<UserDto>
+public sealed class UserValidator : AbstractValidator<UserDto>
 {
-    public UserDtoValidator()
+    public UserValidator()
     {
         RuleFor(x => x.Email).ApplyEmailValidation();
         
         RuleFor(x => x.Password).ApplyPasswordValidation();
 
         RuleFor(x => x.Profile)
-            .SetValidator(new ProfileDtoValidator())
+            .SetValidator(new ProfileValidator())
             .When(x => x.Profile is not null);
     }
 }

@@ -1,30 +1,59 @@
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
     AppDbContext context,
-    IValidator<ServiceDtoCreate> createValidator,
-    IValidator<ServiceDtoUpdate> updateValidator,
-    IServiceErrors errors)
-    : BaseService<Service>(context), IServiceService
+    UserService userService,
+    ServiceValidator validator,
+    ServiceErrors errors)
+    : BaseService<Service, ServiceDtoResponse, ServiceDtoRequest>(context, userService)
 {
-    private readonly IValidator<ServiceDtoCreate> _createValidator = createValidator;
-    private readonly IValidator<ServiceDtoUpdate> _updateValidator = updateValidator;
-    private readonly IServiceErrors _errors = errors;
-    
-    public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoCreate dto, int barberShopId)
+    private readonly ServiceValidator _validator = validator;
+    private readonly ServiceErrors _errors = errors;
+
+    public override async Task<ServiceDtoResponse> CreateAsync(ServiceDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
-        var service = new Service(dto, barberShopId);
-        return (await CreateAsync(service))!.CreateDto();
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+
+        var service = new Service(dto, dto.BarberShopId);
+
+        _dbSet.Add(service);
+        await SaveChangesAsync();
+
+        return await GetByIdAsync(service.Id, service.BarberShopId);
     }
+
+    public record Includes(bool Collections = false);
     
-    public async Task<ServiceDtoResponse> GetByIdAsync(int id, int barberShopId)
+    public async Task<ServiceDtoResponse> GetByIdAsync(int id, int barberShopId, Includes? includes = null)
     {
-        var service = await GetByIdAsync(id);
+        includes ??= new();
+
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(s => s.Id == id);
+            
+        if (includes.Collections)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(s => s.Appointments);
+        }
+
+        var service = await query
+            .Select(s => new ServiceDtoResponse(
+                s.Id,
+                s.BarberShopId,
+                s.BarberShop.Name,
+                s.Name,
+                s.Description,
+                s.Price,
+                s.Duration
+            ))
+            .FirstOrDefaultAsync();
 
         if (service is null)
             _errors.ThrowNotFoundException();
@@ -32,37 +61,45 @@ public sealed class ServiceService(
         if (service!.BarberShopId != barberShopId)
             _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
 
-        return service.CreateDto();
+        return service;
     }
     
     public async Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.Name)));
-        
-        return new(
-            [..response.Items.Select(service => service.CreateDto())],
-            response.TotalItems,
-            response.TotalPages,
-            response.Page,
-            response.PageSize
+        return await GetAllAsync(
+            new(
+                page,
+                pageSize,
+                x => x.BarberShopId == barberShopId,
+                new(x => x.Name),
+                s => new ServiceDtoResponse(
+                    s.Id,
+                    s.BarberShopId,
+                    s.BarberShop.Name,
+                    s.Name,
+                    s.Description,
+                    s.Price,
+                    s.Duration
+                )
+            )
         );
     }
     
-    public async Task<bool> UpdateAsync(ServiceDtoUpdate dto, int id, int barberShopId)
+    public async Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
 
-        var service = await GetByIdAsync(id);
+        var service = await _dbSet.FindAsync(id);
 
         if (service is null)
             _errors.ThrowNotFoundException();
 
         if (service!.BarberShopId != barberShopId)
             _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
-        
-        service.UpdateEntityByDto(dto);
-        return await UpdateAsync(service);
+            
+        return await UpdateAsync(service, dto);
     }
+
     public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
     {
         var hashIds = ids.ToHashSet();
@@ -80,7 +117,7 @@ public sealed class ServiceService(
             
     public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
-        var service = await GetByIdAsync(id);
+        var service = await _dbSet.FindAsync(id);
 
         if (service is null)
             _errors.ThrowNotFoundException();

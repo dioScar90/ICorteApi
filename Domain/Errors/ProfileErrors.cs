@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class ProfileErrors : BaseErrors<Profile>, IProfileErrors
+public sealed class ProfileErrors : BaseErrors<Profile>
 {
     public void ThrowProfileNotBelongsToUserException(int userId)
     {

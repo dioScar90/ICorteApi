@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Address : BaseEntity<Address, AddressDto>
+public sealed class Address : BaseEntity<Address, AddressDtoResponse, AddressDtoRequest>
 {
     public string Street { get; private set; }
     public string Number { get; private set; }
@@ -20,10 +16,8 @@ public sealed class Address : BaseEntity<Address, AddressDto>
 
     private Address() { }
 
-    public Address(AddressDto dto, int? barberShopId = null)
+    public Address(AddressDtoRequest dto, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new AddressDtoValidator(), new AddressErrors());
-        
         Street = dto.Street;
         Number = dto.Number;
         Complement = dto.Complement;
@@ -36,10 +30,8 @@ public sealed class Address : BaseEntity<Address, AddressDto>
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntityByDto(AddressDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(AddressDtoRequest dto, DateTime? utcNow = null)
     {
-        dto.ThrowExceptionIfInvalid(new AddressDtoValidator(), new AddressErrors());
-        
         utcNow ??= DateTime.UtcNow;
 
         Street = dto.Street;
@@ -54,7 +46,7 @@ public sealed class Address : BaseEntity<Address, AddressDto>
         UpdatedAt = utcNow;
     }
 
-    public override AddressDto CreateDto() => new(
+    public override AddressDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         Street,

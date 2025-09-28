@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class ServiceErrors : BaseErrors<Service>, IServiceErrors
+public sealed class ServiceErrors : BaseErrors<Service>
 {
     public void ThrowServiceNotBelongsToBarberShopException(int barberShopId)
     {

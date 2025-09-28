@@ -1,6 +1,8 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record AppointmentDto(
+public record AppointmentDtoResponse(
     int Id,
     int ClientId,
     int BarberShopId,
@@ -10,10 +12,24 @@ public record AppointmentDto(
     string? Notes,
     PaymentType PaymentType,
     decimal TotalPrice,
-    ServiceDto[] Services,
+    ServiceDtoResponse[] Services,
     AppointmentStatus Status
-) : IDto<Appointment>;
+) : IDtoResponse<Appointment>;
 
-public record AppointmentPaymentTypeDtoUpdate(
+public record AppointmentDtoRequest(
+    int ClientId,
+    int BarberShopId,
+    DateOnly Date,
+    TimeOnly StartTime,
+    TimeSpan TotalDuration,
+    string? Notes,
+    PaymentType PaymentType,
+    decimal TotalPrice,
+    ServiceDtoRequest[] Services,
+    AppointmentStatus Status
+) : IDtoRequest<Appointment>;
+
+public record AppointmentPaymentTypeDtoUpdateRequest(
+    int ClientId,
     PaymentType PaymentType
-) : IDto<Appointment>;
+) : IDtoRequest<Appointment>;

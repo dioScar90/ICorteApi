@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class ImageErrors : IImageErrors
+public sealed class ImageErrors
 {
     public void ThrowFileIsNotImageException()
     {

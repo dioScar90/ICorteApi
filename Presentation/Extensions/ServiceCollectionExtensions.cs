@@ -13,52 +13,52 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddScoped<IAdminService, AdminService>();
-        services.AddScoped<IAddressService, AddressService>();
-        services.AddScoped<IAppointmentService, AppointmentService>();
-        services.AddScoped<IBarberScheduleService, BarberScheduleService>();
-        services.AddScoped<IBarberShopService, BarberShopService>();
-        services.AddScoped<IMessageService, MessageService>();
-        services.AddScoped<IProfileService, ProfileService>();
-        services.AddScoped<IRecurringScheduleService, RecurringScheduleService>();
-        services.AddScoped<IReportService, ReportService>();
-        services.AddScoped<IServiceService, ServiceService>();
-        services.AddScoped<ISpecialScheduleService, SpecialScheduleService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<AdminService>();
+        services.AddScoped<AddressService>();
+        services.AddScoped<AppointmentService>();
+        services.AddScoped<BarberScheduleService>();
+        services.AddScoped<BarberShopService>();
+        services.AddScoped<MessageService>();
+        services.AddScoped<ProfileService>();
+        services.AddScoped<RecurringScheduleService>();
+        services.AddScoped<ReportService>();
+        services.AddScoped<ServiceService>();
+        services.AddScoped<SpecialScheduleService>();
+        services.AddScoped<UserService>();
 
         return services;
     }
 
     public static IServiceCollection AddErrors(this IServiceCollection services)
     {
-        services.AddScoped<IAdminErrors, AdminErrors>();
-        services.AddScoped<IAddressErrors, AddressErrors>();
-        services.AddScoped<IAppointmentErrors, AppointmentErrors>();
-        services.AddScoped<IProfileErrors, ProfileErrors>();
-        services.AddScoped<IBarberShopErrors, BarberShopErrors>();
-        services.AddScoped<IImageErrors, ImageErrors>();
-        services.AddScoped<IMessageErrors, MessageErrors>();
-        services.AddScoped<IRecurringScheduleErrors, RecurringScheduleErrors>();
-        services.AddScoped<IReportErrors, ReportErrors>();
-        services.AddScoped<IServiceErrors, ServiceErrors>();
-        services.AddScoped<ISpecialScheduleErrors, SpecialScheduleErrors>();
-        services.AddScoped<IUserErrors, UserErrors>();
+        services.AddScoped<AdminErrors>();
+        services.AddScoped<AddressErrors>();
+        services.AddScoped<AppointmentErrors>();
+        services.AddScoped<ProfileErrors>();
+        services.AddScoped<BarberShopErrors>();
+        services.AddScoped<ImageErrors>();
+        services.AddScoped<MessageErrors>();
+        services.AddScoped<RecurringScheduleErrors>();
+        services.AddScoped<ReportErrors>();
+        services.AddScoped<ServiceErrors>();
+        services.AddScoped<SpecialScheduleErrors>();
+        services.AddScoped<UserErrors>();
 
         return services;
     }
 
     public static IServiceCollection AddValidators(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<AddressDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<AppointmentDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<BarberShopDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<MessageDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<ProfileDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<RecurringScheduleDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<ReportDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<ServiceDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<SpecialScheduleDtoValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<AddressValidator>();
+        services.AddValidatorsFromAssemblyContaining<AppointmentValidator>();
+        services.AddValidatorsFromAssemblyContaining<BarberShopValidator>();
+        services.AddValidatorsFromAssemblyContaining<MessageValidator>();
+        services.AddValidatorsFromAssemblyContaining<ProfileValidator>();
+        services.AddValidatorsFromAssemblyContaining<RecurringScheduleValidator>();
+        services.AddValidatorsFromAssemblyContaining<ReportValidator>();
+        services.AddValidatorsFromAssemblyContaining<ServiceValidator>();
+        services.AddValidatorsFromAssemblyContaining<SpecialScheduleValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoLoginRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoEmailUpdateValidator>();
         services.AddValidatorsFromAssemblyContaining<UserDtoPasswordUpdateValidator>();

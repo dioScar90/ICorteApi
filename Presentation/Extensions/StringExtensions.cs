@@ -21,6 +21,11 @@ public static partial class StringExtensions
 
     public static IEnumerable<string> SplitByWhitespaces(this string value, bool emptyToo = false) =>
         WhitespacesRegex().Split(value).Where(txt => emptyToo || !string.IsNullOrWhiteSpace(txt));
+
+    public static string RemoveExtraWhitespaces(this string value) => string.Join("", WhitespacesRegex()
+        .Split(value)
+        .Where(txt => !string.IsNullOrWhiteSpace(txt))
+    );
         
     [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
     private static partial System.Text.RegularExpressions.Regex WhitespacesRegex();

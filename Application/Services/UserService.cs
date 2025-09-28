@@ -1,4 +1,4 @@
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,8 +11,8 @@ public sealed class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly AppDbContext _context;
-    private readonly DbSet<User> _dbSet;
-    private readonly IUserErrors _errors;
+    private readonly DbSet<User> _userDbSet;
+    private readonly IUserErrors _userErrors;
     
     public UserService(
         IHttpContextAccessor httpContextAccessor,
@@ -25,9 +25,9 @@ public sealed class UserService : IUserService
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
-        _dbSet = _context.Set<User>();
+        _userDbSet = _context.Set<User>();
 
-        _errors = errors;
+        _userErrors = errors;
     }
     
     private async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
@@ -45,7 +45,7 @@ public sealed class UserService : IUserService
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
-            _errors.ThrowDeuRuimException();
+            _userErrors.ThrowDeuRuimException();
 
         return user!.Id;
     }
@@ -91,12 +91,12 @@ public sealed class UserService : IUserService
             var userIdentityResult = await _userManager.CreateAsync(newUser, newUser.GetPasswordToBeHashed());
 
             if (!userIdentityResult.Succeeded)
-                _errors.ThrowCreateException([..userIdentityResult.Errors]);
+                _userErrors.ThrowCreateException([..userIdentityResult.Errors]);
                 
             var roleIdentityResult = await _userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
 
             if (!roleIdentityResult.Succeeded)
-                _errors.ThrowBasicUserException([..roleIdentityResult.Errors]);
+                _userErrors.ThrowBasicUserException([..roleIdentityResult.Errors]);
             
             await CommitAsync(transaction);
             return newUser;
@@ -115,7 +115,7 @@ public sealed class UserService : IUserService
 
         int userId = await GetMyUserIdAsync();
 
-        var user = await _dbSet
+        var user = await _userDbSet
             .AsNoTracking()
             .Include(u => u.Profile)
             .Include(u => u.BarberShop)
@@ -143,7 +143,7 @@ public sealed class UserService : IUserService
         var identityResult = await _userManager.AddToRoleAsync(user, role.ToString());
 
         if (!identityResult.Succeeded)
-            _errors.ThrowAddUserRoleException([..identityResult.Errors]);
+            _userErrors.ThrowAddUserRoleException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
@@ -157,7 +157,7 @@ public sealed class UserService : IUserService
         var identityResult = await _userManager.RemoveFromRoleAsync(user, role.ToString());
 
         if (!identityResult.Succeeded)
-            _errors.ThrowRemoveUserRoleException([..identityResult.Errors]);
+            _userErrors.ThrowRemoveUserRoleException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
@@ -171,7 +171,7 @@ public sealed class UserService : IUserService
         var identityResult = await _userManager.SetEmailAsync(user, dtoRequest.Email);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdateEmailException([..identityResult.Errors]);
+            _userErrors.ThrowUpdateEmailException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
         return true;
@@ -183,7 +183,7 @@ public sealed class UserService : IUserService
         var identityResult = await _userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdatePasswordException([..identityResult.Errors]);
+            _userErrors.ThrowUpdatePasswordException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
         return true;
@@ -195,7 +195,7 @@ public sealed class UserService : IUserService
         var identityResult = await _userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
 
         if (!identityResult.Succeeded)
-            _errors.ThrowUpdatePhoneNumberException([..identityResult.Errors]);
+            _userErrors.ThrowUpdatePhoneNumberException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
         return true;
@@ -212,10 +212,10 @@ public sealed class UserService : IUserService
         var user = await GetMeAsync();
 
         if (user is null)
-            _errors.ThrowNotFoundException();
+            _userErrors.ThrowNotFoundException();
 
         if (user!.Id != id)
-            _errors.ThrowWrongUserIdException(id);
+            _userErrors.ThrowWrongUserIdException(id);
 
         using var transaction = await BeginTransactionAsync();
 
@@ -225,14 +225,14 @@ public sealed class UserService : IUserService
             var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
 
             if (!roleResult.Succeeded)
-                _errors.ThrowBasicUserException([..roleResult.Errors]);
+                _userErrors.ThrowBasicUserException([..roleResult.Errors]);
 
             await DeleteUserEntity(user);
 
             var identityResult = await _userManager.DeleteAsync(user);
 
             if (!identityResult.Succeeded)
-                _errors.ThrowBasicUserException([..identityResult.Errors]);
+                _userErrors.ThrowBasicUserException([..identityResult.Errors]);
 
             await CommitAsync(transaction);
             return true;

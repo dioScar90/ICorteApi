@@ -1,4 +1,6 @@
-﻿namespace ICorteApi.Presentation.Endpoints;
+﻿using ICorteApi.Application.Services;
+
+namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberShopEndpoint
 {
@@ -29,22 +31,20 @@ public static class BarberShopEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(BarberShopDto dto) =>
+    private static IResult GetCreatedResult(BarberShopDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.Id}", new { Message = "Barbearia criada com sucesso", Item = dto });
     
     public static async Task<IResult> CreateBarberShopAsync(
-        BarberShopDto dto,
-        IBarberShopService service,
-        IUserService userService)
+        BarberShopDtoRequest dto,
+        BarberShopService service)
     {
-        int ownerId = await userService.GetMyUserIdAsync();
-        var barberShop = await service.CreateAsync(dto, ownerId);
+        var barberShop = await service.CreateAsync(dto);
         return GetCreatedResult(barberShop);
     }
     
     public static async Task<IResult> GetBarberShopAsync(
         int id,
-        IBarberShopService service)
+        BarberShopService service)
     {
         var barberShop = await service.GetByIdAsync(id);
         return Results.Ok(barberShop);
@@ -54,32 +54,26 @@ public static class BarberShopEndpoint
         int barberShopId,
         int? page,
         int? pageSize,
-        IBarberShopService service,
-        IUserService userService)
+        BarberShopService service)
     {
-        int ownerId = await userService.GetMyUserIdAsync();
-        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, ownerId, page, pageSize);
+        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, page ?? 1, pageSize ?? 25);
         return Results.Ok(barberShop);
     }
 
     public static async Task<IResult> UpdateBarberShopAsync(
         int id,
-        BarberShopDto dto,
-        IBarberShopService service,
-        IUserService userService)
+        BarberShopDtoRequest dto,
+        BarberShopService service)
     {
-        int ownerId = await userService.GetMyUserIdAsync();
-        var appointments = await service.UpdateAsync(dto, id, ownerId);
+        var appointments = await service.UpdateAsync(dto, id);
         return Results.Ok(appointments);
     }
 
     public static async Task<IResult> DeleteBarberShopAsync(
         int id,
-        IBarberShopService service,
-        IUserService userService)
+        BarberShopService service)
     {
-        int ownerId = await userService.GetMyUserIdAsync();
-        await service.DeleteAsync(id, ownerId);
+        await service.DeleteAsync(id);
         return Results.NoContent();
     }
 }

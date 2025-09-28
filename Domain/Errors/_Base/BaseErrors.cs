@@ -1,5 +1,3 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
 public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>

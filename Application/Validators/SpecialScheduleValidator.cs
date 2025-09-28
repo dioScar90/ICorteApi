@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class SpecialScheduleDtoValidator : AbstractValidator<SpecialScheduleDto>
+public sealed class SpecialScheduleValidator : AbstractValidator<SpecialScheduleDtoRequest>
 {
-    public SpecialScheduleDtoValidator()
+    public SpecialScheduleValidator()
     {
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Dia obrigatório");

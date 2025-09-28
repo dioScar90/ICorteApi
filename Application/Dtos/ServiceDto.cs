@@ -1,6 +1,8 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record ServiceDto(
+public record ServiceDtoResponse(
     int Id,
     int BarberShopId,
     string? BarberShopName,
@@ -8,4 +10,13 @@ public record ServiceDto(
     string? Description,
     decimal Price,
     TimeSpan Duration
-) : IDto<Service>;
+) : IDtoResponse<Service>;
+
+public record ServiceDtoRequest(
+    int BarberShopId,
+    string? BarberShopName,
+    string Name,
+    string? Description,
+    decimal Price,
+    TimeSpan Duration
+) : IDtoRequest<Service>;

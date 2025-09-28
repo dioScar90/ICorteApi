@@ -1,42 +1,139 @@
-using FluentValidation;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
-    IBarberShopErrors errors)
-    : BaseService<BarberShop, BarberShopDto>(context), IBarberShopService
+    UserService userService,
+    BarberShopValidator validator,
+    BarberShopErrors errors)
+    : BaseService<BarberShop, BarberShopDtoResponse, BarberShopDtoRequest>(context, userService)
 {
-    private readonly IBarberShopErrors _errors = errors;
+    private readonly BarberShopValidator _validator = validator;
+    private readonly BarberShopErrors _errors = errors;
 
-    public async Task<BarberShopDto> CreateAsync(BarberShopDto dto, int ownerId)
+    public override async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
     {
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+
+        var ownerId = await _userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);
-        return (await CreateAsync(barberShop))!.CreateDto();
+
+        _dbSet.Add(barberShop);
+        await SaveChangesAsync();
+
+        return await GetByIdAsync(barberShop.Id);
     }
+
+    public record Includes(bool Address = false, bool Collections = false);
     
-    public async Task<BarberShopDto> GetByIdAsync(int id)
+    public async Task<BarberShopDtoResponse> GetByIdAsync(int id, Includes? includes = null)
     {
-        var barberShop = await base.GetByIdAsync(id);
+        includes ??= new();
+
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(b => b.Id == id);
+
+        if (includes.Address)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(b => b.Address);
+        }
+
+        if (includes.Collections)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(b => b.RecurringSchedules)
+                .Include(b => b.SpecialSchedules)
+                .Include(b => b.Services)
+                .Include(b => b.Reports);
+        }
+
+        var barberShop = await query
+            .Select(b => new BarberShopDtoResponse(
+                b.Id,
+                b.OwnerId,
+                b.Name,
+                b.Description,
+                b.ComercialNumber,
+                b.ComercialEmail,
+                !includes.Address ? null : new(
+                    b.Address.Id,
+                    b.Address.BarberShopId,
+                    b.Address.Street,
+                    b.Address.Number,
+                    b.Address.Complement,
+                    b.Address.Neighborhood,
+                    b.Address.City,
+                    b.Address.State,
+                    b.Address.PostalCode,
+                    b.Address.Country
+                ),
+                b.RecurringSchedules
+                    .Where(_ => includes.Collections)
+                    .Select(rs => new RecurringScheduleDtoResponse(
+                        rs.DayOfWeek,
+                        rs.BarberShopId,
+                        rs.OpenTime,
+                        rs.CloseTime,
+                        rs.IsActive
+                    )).ToArray(),
+                b.SpecialSchedules
+                    .Where(_ => includes.Collections)
+                    .Select(ss => new SpecialScheduleDtoResponse(
+                        ss.Date,
+                        ss.BarberShopId,
+                        ss.DayOfWeek,
+                        ss.Notes,
+                        ss.OpenTime,
+                        ss.CloseTime,
+                        ss.IsClosed
+                    )).ToArray(),
+                b.Services
+                    .Where(_ => includes.Collections)
+                    .Select(s => new ServiceDtoResponse(
+                        s.Id,
+                        s.BarberShopId,
+                        s.BarberShop.Name,
+                        s.Name,
+                        s.Description,
+                        s.Price,
+                        s.Duration
+                    )).ToArray(),
+                b.Reports
+                    .Where(_ => includes.Collections)
+                    .Select(r => new ReportDtoResponse(
+                        r.Id,
+                        r.BarberShopId,
+                        r.Title,
+                        r.Content,
+                        r.Rating
+                    )).ToArray()
+            ))
+            .FirstOrDefaultAsync();
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();
-            
-        return barberShop!.CreateDto();
+
+        return barberShop!;
     }
     
-    private async Task<PaginationResponse<AppointmentsByBarberShopDto>> GetAppointmentsByBarberShopAsync(
-        int barberShopId, int ownerId,
-        PaginationProperties<AppointmentsByBarberShopDto> props)
+    public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
+        int barberShopId, int page, int pageSize)
     {
+        var ownerId = await _userService.GetMyUserIdAsync()!;
+
         var query = _context.Appointments
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new AppointmentsByBarberShopDto(
+            .Select(a => new AppointmentsByBarberShopDtoResponse(
                 a.Id,
                 new(
                     a.ClientId,
@@ -51,120 +148,54 @@ public sealed class BarberShopService(
                 a.Notes,
                 a.PaymentType,
                 a.TotalPrice,
-                a.Services.Select(s =>
-                    new ServiceDto(
-                        s.Id,
-                        s.BarberShopId,
-                        a.BarberShop.Name,
-                        s.Name,
-                        s.Description,
-                        s.Price,
-                        s.Duration
-                    )
-                ).ToArray(),
-                a.Status
-            ));
-
-        var totalItems = await query.CountAsync();
-        var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
-        
-        int page = props.Page > 0 && totalPages > 0 ? Math.Clamp(props.Page, 1, totalPages) : 0;
-        
-        if (totalItems == 0)
-            return new([], totalItems, totalPages, page, props.PageSize);
-        
-        var entities = await query
-            .Skip((page - 1) * props.PageSize)
-            .Take(props.PageSize)
-            .ToArrayAsync();
-        
-        return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
-    }
-    
-    public async Task<PaginationResponse<AppointmentsByBarberShopDto>> GetAppointmentsByBarberShopAsync(int barberShopId, int ownerId, int? page, int? pageSize)
-    {
-        return await GetAppointmentsByBarberShopAsync(
-            barberShopId, ownerId,
-            new(page, pageSize, x => 1 == 1, new(x => x.Id)));
-    }
-    
-    public async Task<bool> UpdateAsync(BarberShopDto dto, int id, int ownerId)
-    {
-        var barberShop = await GetByIdAsync(x => x.Id == id, x => x.Address);
-
-        if (barberShop is null)
-            _errors.ThrowNotFoundException();
-
-        if (barberShop!.OwnerId != ownerId)
-            _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
-            
-        barberShop!.UpdateEntityByDto(dto);
-        return await SaveChangesAsync();
-    }
-
-    public async Task<bool> DeleteAsync(int id, int ownerId)
-    {
-        var barberShop = await GetByIdAsync(
-            x => x.Id == id,
-            x => new BarberShopDto(
-                x.Id,
-                x.OwnerId,
-                x.Name,
-                x.Description,
-                x.ComercialNumber,
-                x.ComercialEmail,
-                x.Address == null ? null : new AddressDto(
-                    x.Address.Id,
-                    x.Address.BarberShopId,
-                    x.Address.Street,
-                    x.Address.Number,
-                    x.Address.Complement,
-                    x.Address.Neighborhood,
-                    x.Address.City,
-                    x.Address.State,
-                    x.Address.PostalCode,
-                    x.Address.Country
-                ),
-                x.RecurringSchedules?.Select(rs => new RecurringScheduleDto(
-                    rs.DayOfWeek,
-                    rs.BarberShopId,
-                    rs.OpenTime,
-                    rs.CloseTime,
-                    rs.IsActive
-                )).ToArray(),
-                x.SpecialSchedules?.Select(ss => new SpecialScheduleDto(
-                    ss.Date,
-                    ss.BarberShopId,
-                    ss.DayOfWeek,
-                    ss.Notes,
-                    ss.OpenTime,
-                    ss.CloseTime,
-                    ss.IsClosed
-                )).ToArray(),
-                x.Services?.Select(s => new ServiceDto(
+                a.Services.Select(s => new ServiceDtoResponse(
                     s.Id,
                     s.BarberShopId,
-                    s.BarberShop.Name,
+                    a.BarberShop.Name,
                     s.Name,
                     s.Description,
                     s.Price,
                     s.Duration
                 )).ToArray(),
-                x.Reports?.Select(r => new ReportDto(
-                    r.Id,
-                    r.BarberShopId,
-                    r.Title,
-                    r.Content,
-                    r.Rating
-                )).ToArray()
-            ),
-            x => x.Address,
-            x => x.RecurringSchedules,
-            x => x.SpecialSchedules,
-            x => x.Services);
+                a.Status
+            ));
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        
+        page = page > 0 && totalPages > 0 ? Math.Clamp(page, 1, totalPages) : 1;
+        
+        var entities = totalItems == 0 ? [] : await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToArrayAsync();
+
+        return new(entities ?? [], totalItems, totalPages, page, pageSize);
+    }
+    
+    public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id)
+    {
+        var barberShop = await _dbSet.FindAsync(id);
 
         if (barberShop is null)
             _errors.ThrowNotFoundException();
+
+        var ownerId = await _userService.GetMyUserIdAsync()!;
+        
+        if (barberShop!.OwnerId != ownerId)
+            _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
+            
+        return await UpdateAsync(barberShop, dto);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var barberShop = await _dbSet.FindAsync(id);
+
+        if (barberShop is null)
+            _errors.ThrowNotFoundException();
+
+        var ownerId = await _userService.GetMyUserIdAsync()!;
 
         if (barberShop!.OwnerId != ownerId)
             _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);

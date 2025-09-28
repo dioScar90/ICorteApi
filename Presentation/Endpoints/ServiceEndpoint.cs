@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -31,22 +32,23 @@ public static class ServiceEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(ServiceDtoResponse dto) =>
+    private static IResult GetCreatedResult(ServiceDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/service/{dto.Id}", new { Message = "Serviço criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateServiceAsync(
         int barberShopId,
-        ServiceDtoCreate dto,
-        IServiceService service)
+        ServiceDtoRequest dto,
+        ServiceService service)
     {
-        var serviceEntity = await service.CreateAsync(dto, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        var serviceEntity = await service.CreateAsync(dto);
         return GetCreatedResult(serviceEntity);
     }
 
     public static async Task<IResult> GetServiceAsync(
         int serviceId,
         int barberShopId,
-        IServiceService service)
+        ServiceService service)
     {
         var serviceDto = await service.GetByIdAsync(serviceId, barberShopId);
         return Results.Ok(serviceDto);
@@ -56,7 +58,7 @@ public static class ServiceEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        IServiceService service)
+        ServiceService service)
     {
         var services = await service.GetAllAsync(page, pageSize, barberShopId);
         return Results.Ok(services);
@@ -65,8 +67,8 @@ public static class ServiceEndpoint
     public static async Task<IResult> UpdateServiceAsync(
         int serviceId,
         int barberShopId,
-        ServiceDtoUpdate dto,
-        IServiceService service)
+        ServiceDtoRequest dto,
+        ServiceService service)
     {
         await service.UpdateAsync(dto, serviceId, barberShopId);
         return Results.NoContent();
@@ -76,7 +78,7 @@ public static class ServiceEndpoint
         [FromQuery] bool? forceDelete,
         int serviceId,
         int barberShopId,
-        IServiceService service)
+        ServiceService service)
     {
         await service.DeleteAsync(serviceId, barberShopId, forceDelete is true);
         return Results.NoContent();

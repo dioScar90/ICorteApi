@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDto>
+public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDtoResponse, BarberShopDtoRequest>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -25,10 +21,8 @@ public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDto>
 
     private BarberShop() { }
 
-    public BarberShop(BarberShopDto dto, int? ownerId = null)
+    public BarberShop(BarberShopDtoRequest dto, int? ownerId = null)
     {
-        dto.ThrowExceptionIfInvalid(new BarberShopDtoValidator(), new BarberShopErrors());
-
         Name = dto.Name;
         Description = dto.Description ?? default;
         ComercialNumber = dto.ComercialNumber;
@@ -64,7 +58,7 @@ public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDto>
 
     public void UpdateRating(float rating) => Rating = rating;
     
-    public override void UpdateEntityByDto(BarberShopDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(BarberShopDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -74,14 +68,14 @@ public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDto>
         ComercialEmail = dto.ComercialEmail;
 
         if (dto.Address is not null)
-            Address?.UpdateEntityByDto(dto.Address, utcNow);
+            Address?.UpdateEntity(dto.Address, utcNow);
 
         // UpdateImageUrlIfFirstTime();
 
         UpdatedAt = utcNow;
     }
     
-    public override BarberShopDto CreateDto() => new(
+    public override BarberShopDtoResponse CreateDto() => new(
         Id,
         OwnerId,
         Name,

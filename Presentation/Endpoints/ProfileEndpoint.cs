@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -23,37 +24,31 @@ public static class ProfileEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(ProfileDtoResponse dto) =>
+    private static IResult GetCreatedResult(ProfileDtoResponse dto) =>
         Results.Created("user/me", new { Message = "Pessoa criada com sucesso", Item = dto });
 
     public static async Task<IResult> CreateProfileAsync(
-        [FromBody] ProfileDtoCreate dto,
-        IProfileService service,
-        IUserService userService)
+        [FromBody] ProfileDtoRequest dto,
+        ProfileService service)
     {
-        int userId = await userService.GetMyUserIdAsync();
-        var profile = await service.CreateAsync(dto, userId);
+        var profile = await service.CreateAsync(dto);
         return GetCreatedResult(profile);
     }
 
     public static async Task<IResult> GetProfileAsync(
         int id,
-        IProfileService service,
-        IUserService userService)
+        ProfileService service)
     {
-        int userId = await userService.GetMyUserIdAsync();
-        var profile = await service.GetByIdAsync(id, userId);
+        var profile = await service.GetByIdAsync(id);
         return Results.Ok(profile);
     }
 
     public static async Task<IResult> UpdateProfileAsync(
         int id,
-        [FromBody] ProfileDtoUpdate dto,
-        IProfileService service,
-        IUserService userService)
+        [FromBody] ProfileDtoRequest dto,
+        ProfileService service)
     {
-        int userId = await userService.GetMyUserIdAsync();
-        await service.UpdateAsync(dto, id, userId);
+        await service.UpdateAsync(dto, id);
         return Results.NoContent();
     }
 }

@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Message : BaseEntity<Message, MessageDto>
+public sealed class Message : BaseEntity<Message, MessageDtoResponse, MessageDtoRequest>
 {
     public string Content { get; private set; }
     public DateTime SentAt { get; private set; }
@@ -18,10 +14,8 @@ public sealed class Message : BaseEntity<Message, MessageDto>
 
     private Message() { }
 
-    public Message(MessageDto dto, int? appointmentId = null, int? senderId = null)
+    public Message(MessageDtoRequest dto, int? appointmentId = null, int? senderId = null)
     {
-        dto.ThrowExceptionIfInvalid(new MessageDtoValidator(), new MessageErrors());
-
         Content = dto.Content;
         SentAt = dto.SentAt;
 
@@ -29,7 +23,7 @@ public sealed class Message : BaseEntity<Message, MessageDto>
         SenderId = senderId ?? default;
     }
     
-    public override void UpdateEntityByDto(MessageDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(MessageDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -39,7 +33,7 @@ public sealed class Message : BaseEntity<Message, MessageDto>
         UpdatedAt = utcNow;
     }
 
-    public override MessageDto CreateDto() => new(
+    public override MessageDtoResponse CreateDto() => new(
         Id,
         AppointmentId,
         SenderId,

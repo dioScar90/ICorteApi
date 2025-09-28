@@ -1,22 +1,23 @@
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
     AppDbContext context,
-    IValidator<MessageDtoCreate> createValidator,
-    IValidator<MessageDtoIsReadUpdate> updateValidator,
-    IMessageErrors errors)
-    : BaseService<Message>(context), IMessageService
+    UserService userService,
+    MessageValidator validator,
+    MessageErrors errors)
+    : BaseService<Message, MessageDtoResponse, MessageDtoRequest>(context, userService)
 {
-    private readonly IValidator<MessageDtoCreate> _createValidator = createValidator;
-    private readonly IValidator<MessageDtoIsReadUpdate> _updateValidator = updateValidator;
-    private readonly IMessageErrors _errors = errors;
+    private readonly MessageValidator _validator = validator;
+    private readonly MessageErrors _errors = errors;
 
-    public async Task<bool> CanSendMessageAsync(int appointmentId, int userId)
+    public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
     {
+        var userId = _userId ?? await _userService.GetMyUserIdAsync()!;
+        
         return await _context.Appointments.AnyAsync(
             a => a.Id == appointmentId && (
                 a.ClientId == userId || (
@@ -27,16 +28,48 @@ public sealed class MessageService(
         );
     }
 
-    public async Task<MessageDtoResponse> CreateAsync(MessageDtoCreate dto, int appointmentId, int senderId)
+    public override async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
-        var message = new Message(dto, appointmentId, senderId);
-        return (await CreateAsync(message))!.CreateDto();
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        
+        var senderId = await _userService.GetMyUserIdAsync()!;
+        var message = new Message(dto, dto.AppointmentId, senderId);
+        
+        _dbSet.Add(message);
+        await SaveChangesAsync();
+
+        return await GetByIdAsync(message.Id, message.AppointmentId);
     }
 
-    public async Task<MessageDtoResponse> GetByIdAsync(int id, int appointmentId)
+    public record Includes(bool Appointment = false);
+
+    public async Task<MessageDtoResponse> GetByIdAsync(int id, int appointmentId, Includes? includes = null)
     {
-        var message = await GetByIdAsync(id);
+        includes ??= new();
+
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(m => m.Id == id);
+
+        if (includes.Appointment)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(m => m.Appointment);
+        }
+
+        var message = await query
+            .Select(m => new MessageDtoResponse(
+                m.Id,
+                m.AppointmentId,
+                m.SenderId,
+                m.Content,
+                m.SentAt,
+                m.IsRead,
+                m.Sender.Profile.FirstName,
+                m.Sender.Profile.LastName
+            ))
+            .FirstOrDefaultAsync();
 
         if (message is null)
             _errors.ThrowNotFoundException();
@@ -44,36 +77,50 @@ public sealed class MessageService(
         if (message!.AppointmentId != appointmentId)
             _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
 
-        return message.CreateDto();
+        return message;
     }
 
     public async Task<PaginationResponse<MessageDtoResponse>> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.AppointmentId == appointmentId, new(x => x.SentAt)));
-        
-        return new(
-            [..response.Items.Select(service => service.CreateDto())],
-            response.TotalItems,
-            response.TotalPages,
-            response.Page,
-            response.PageSize
+        return await GetAllAsync(
+            new(
+                page,
+                pageSize,
+                x => x.AppointmentId == appointmentId,
+                new(x => x.SentAt),
+                    m => new MessageDtoResponse(
+                    m.Id,
+                    m.AppointmentId,
+                    m.SenderId,
+                    m.Content,
+                    m.SentAt,
+                    m.IsRead,
+                    m.Sender.Profile.FirstName,
+                    m.Sender.Profile.LastName
+                )
+            )
         );
     }
 
-    public async Task<Message?> SendMessageAsync(MessageDtoCreate dtoRequest, int appointmentId, int senderId)
+    public async Task<MessageDtoResponse> SendMessageAsync(MessageDtoRequest dto, int appointmentId, int senderId)
     {
         if (!await CanSendMessageAsync(appointmentId, senderId))
             _errors.ThrowNotAllowedToSendMessageException(senderId);
 
-        var entity = new Message(dtoRequest, appointmentId, senderId);
-        return await CreateAsync(entity);
+        dto = dto with
+        {
+            AppointmentId = appointmentId,
+            SenderId = senderId
+        };
+
+        return await CreateAsync(dto);
     }
 
     public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdate[] dtos, int senderId)
     {
         foreach (var dto in dtos)
-            dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
-        
+            dto.ThrowExceptionIfInvalid(_validator, _errors);
+
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 
         var changesCount = await _dbSet
@@ -82,17 +129,19 @@ public sealed class MessageService(
 
         return changesCount > 0;
     }
-    
-    public async Task<bool> DeleteAsync(int id, int appointmentId, int senderId)
+
+    public async Task<bool> DeleteAsync(int id, int appointmentId)
     {
-        var message = await GetByIdAsync(id);
+        var message = await _dbSet.FindAsync(id);
 
         if (message is null)
             _errors.ThrowNotFoundException();
 
         if (message!.AppointmentId != appointmentId)
             _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
-
+            
+        var senderId = await _userService.GetMyUserIdAsync()!;
+        
         if (message.SenderId != senderId)
             _errors.ThrowMessageNotBelongsToSenderException(senderId);
 
@@ -199,12 +248,12 @@ public sealed class MessageService(
             .AsNoTracking()
             .ToArrayAsync();
     }
-    
+
     public async Task<ChatWithMessagesDto[]> GetChatHistoryAsync(int senderId, bool isBarber)
     {
         return isBarber ? await GetBarberChatHistoryAsync(senderId) : await GetClientChatHistoryAsync(senderId);
     }
-
+    
     // public async Task<List<Message>> GetConversationAsync(int barberId, int clientId);
     // public async Task<List<Message>> GetUnreadMessagesAsync(int barberId, int clientId);
     // public async Task<bool> IsActiveConversationAsync(int barberId, int clientId);

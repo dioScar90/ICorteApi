@@ -1,54 +1,76 @@
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class RecurringScheduleService(
     AppDbContext context,
-    IValidator<RecurringScheduleDtoCreate> createValidator,
-    IValidator<RecurringScheduleDtoUpdate> updateValidator,
-    IRecurringScheduleErrors errors)
-    : BaseService<RecurringSchedule>(context), IRecurringScheduleService
+    UserService userService,
+    RecurringScheduleValidator validator,
+    RecurringScheduleErrors errors)
+    : BaseService<RecurringSchedule, RecurringScheduleDtoResponse, RecurringScheduleDtoRequest>(context, userService)
 {
-    private readonly IValidator<RecurringScheduleDtoCreate> _createValidator = createValidator;
-    private readonly IValidator<RecurringScheduleDtoUpdate> _updateValidator = updateValidator;
-    private readonly IRecurringScheduleErrors _errors = errors;
+    private readonly RecurringScheduleValidator _validator = validator;
+    private readonly RecurringScheduleErrors _errors = errors;
 
-    public async Task<RecurringScheduleDtoResponse> CreateAsync(RecurringScheduleDtoCreate dto, int barberShopId)
+    public override async Task<RecurringScheduleDtoResponse> CreateAsync(RecurringScheduleDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_createValidator, _errors);
-        var schedule = new RecurringSchedule(dto, barberShopId);
-        return (await CreateAsync(schedule))!.CreateDto();
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+
+        var schedule = new RecurringSchedule(dto, dto.BarberShopId);
+
+        _dbSet.Add(schedule);
+        await SaveChangesAsync();
+
+        return await GetByIdAsync(schedule.DayOfWeek, schedule.BarberShopId);
     }
 
     public async Task<RecurringScheduleDtoResponse> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var schedule = await base.GetByIdAsync(dayOfWeek, barberShopId);
+        var schedule = await _dbSet
+            .AsNoTracking()
+            .Where(s => s.DayOfWeek == dayOfWeek && s.BarberShopId == barberShopId)
+            .Select(s => new RecurringScheduleDtoResponse(
+                s.DayOfWeek,
+                s.BarberShopId,
+                s.OpenTime,
+                s.CloseTime,
+                s.IsActive
+            ))
+            .FirstOrDefaultAsync();
 
         if (schedule is null)
             _errors.ThrowNotFoundException();
         
-        return schedule!.CreateDto();
+        return schedule!;
     }
     
-    public async Task<PaginationResponse<RecurringScheduleDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
+    public async Task<PaginationResponse<RecurringScheduleDtoResponse>> GetAllAsync(
+        int? page, int? pageSize, int barberShopId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.BarberShopId == barberShopId, new(x => x.DayOfWeek)));
-        
-        return new(
-            [..response.Items.Select(service => service.CreateDto())],
-            response.TotalItems,
-            response.TotalPages,
-            response.Page,
-            response.PageSize
+        return await GetAllAsync(
+            new(
+                page,
+                pageSize,
+                x => x.BarberShopId == barberShopId,
+                new(x => x.DayOfWeek),
+                s => new RecurringScheduleDtoResponse(
+                    s.DayOfWeek,
+                    s.BarberShopId,
+                    s.OpenTime,
+                    s.CloseTime,
+                    s.IsActive
+                )
+            )
         );
     }
     
-    public async Task<bool> UpdateAsync(RecurringScheduleDtoUpdate dto, DayOfWeek dayOfWeek, int barberShopId)
+    public async Task<bool> UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_updateValidator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
 
-        var schedule = await base.GetByIdAsync(dayOfWeek, barberShopId);
+        var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
 
         if (schedule is null)
             _errors.ThrowNotFoundException();
@@ -56,13 +78,12 @@ public sealed class RecurringScheduleService(
         if (schedule!.BarberShopId != barberShopId)
             _errors.ThrowRecurringScheduleNotBelongsToBarberShopException(barberShopId);
 
-        schedule.UpdateEntityByDto(dto);
-        return await UpdateAsync(schedule);
+        return await UpdateAsync(schedule, dto);
     }
 
     public async Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var schedule = await base.GetByIdAsync(dayOfWeek, barberShopId);
+        var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
 
         if (schedule is null)
             _errors.ThrowNotFoundException();

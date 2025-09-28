@@ -2,19 +2,20 @@ using System.Linq.Expressions;
 
 namespace ICorteApi.Domain.Base;
 
-public record PaginationProperties<TEntity>
+public record PaginationProperties<TEntity, TDtoResponse>
 {
     public int Page { get; init; }
     public int PageSize { get; init; }
     public Expression<Func<TEntity, bool>> Filter { get; init; }
-    public bool IsDescending { get; init; }
-    public Expression<Func<TEntity, object>> OrderBy { get; init; }
+    public Orderer OrderBy { get; init; }
+    public Expression<Func<TEntity, TDtoResponse>> Select { get; init; }
     public Expression<Func<TEntity, object>>[] Includes { get; init; }
 
     public PaginationProperties(
         int? page, int? pageSize,
         Expression<Func<TEntity, bool>> filter,
-        OrderByRec orderByRec,
+        Orderer orderBy,
+        Expression<Func<TEntity, TDtoResponse>> select,
         params Expression<Func<TEntity, object>>[] includes)
     {
         var (realPage, realPpageSize) = GetSanitizedPagination(page, pageSize);
@@ -23,9 +24,9 @@ public record PaginationProperties<TEntity>
         PageSize = realPpageSize;
 
         Filter = filter;
-        IsDescending = orderByRec.IsDescending is true;
-        OrderBy = orderByRec.OrderBy;
+        OrderBy = orderBy;
         Includes = includes;
+        Select = select;
     }
 
     private static (int, int) GetSanitizedPagination(int? page, int? pageSize)
@@ -35,9 +36,6 @@ public record PaginationProperties<TEntity>
 
         return (realPage, realPageSize);
     }
-
-    public record OrderByRec(
-        Expression<Func<TEntity, object>> OrderBy,
-        bool? IsDescending = null
-    );
+    
+    public record Orderer(Expression<Func<TEntity, object>> KeySelector, bool IsDesc = false);
 }

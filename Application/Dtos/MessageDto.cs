@@ -1,6 +1,8 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record MessageDto(
+public record MessageDtoResponse(
     int Id,
     int AppointmentId,
     int SenderId,
@@ -9,7 +11,18 @@ public record MessageDto(
     bool IsRead,
     string FirstName,
     string LastName
-) : IDto<Message>;
+) : IDtoResponse<Message>;
+
+public record MessageDtoRequest(
+    int Id,
+    int AppointmentId,
+    int SenderId,
+    string Content,
+    DateTime SentAt,
+    bool IsRead,
+    string FirstName,
+    string LastName
+) : IDtoRequest<Message>;
 
 public record ChatWithMessagesDto(
     int AppointmentId,

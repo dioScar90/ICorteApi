@@ -1,9 +1,8 @@
-using ICorteApi.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Errors;
 
-public sealed class AdminErrors : IAdminErrors
+public sealed class AdminErrors
 {
     private static Error[] GetIdentityErrorIntoBasicError(IdentityError[] identityErrors)
         => [..identityErrors.Select(err => new Error(err.Code, err.Description))];

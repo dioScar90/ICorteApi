@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -31,22 +32,23 @@ public static class SpecialScheduleEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(SpecialScheduleDtoResponse dto) =>
+    private static IResult GetCreatedResult(SpecialScheduleDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/special-schedule/{dto.Date}", new { Message = "Horário especial criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateSpecialScheduleAsync(
         int barberShopId,
-        SpecialScheduleDtoCreate dto,
-        ISpecialScheduleService service)
+        SpecialScheduleDtoRequest dto,
+        SpecialScheduleService service)
     {
-        var schedule = await service.CreateAsync(dto, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        var schedule = await service.CreateAsync(dto);
         return GetCreatedResult(schedule);
     }
 
     public static async Task<IResult> GetSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
-        ISpecialScheduleService service)
+        SpecialScheduleService service)
     {
         var schedule = await service.GetByIdAsync(date, barberShopId);
         return Results.Ok(schedule);
@@ -56,7 +58,7 @@ public static class SpecialScheduleEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        ISpecialScheduleService service)
+        SpecialScheduleService service)
     {
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
         return Results.Ok(schedules);
@@ -65,9 +67,10 @@ public static class SpecialScheduleEndpoint
     public static async Task<IResult> UpdateSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
-        SpecialScheduleDtoUpdate dto,
-        ISpecialScheduleService service)
+        SpecialScheduleDtoRequest dto,
+        SpecialScheduleService service)
     {
+        dto = dto with { BarberShopId = barberShopId };
         await service.UpdateAsync(dto, date, barberShopId);
         return Results.NoContent();
     }
@@ -75,7 +78,7 @@ public static class SpecialScheduleEndpoint
     public static async Task<IResult> DeleteSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
-        ISpecialScheduleService service)
+        SpecialScheduleService service)
     {
         await service.DeleteAsync(date, barberShopId);
         return Results.NoContent();

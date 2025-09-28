@@ -1,141 +1,189 @@
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
     AppDbContext context,
-    IValidator<AppointmentDto> validator,
-    IServiceService serviceService,
-    IAppointmentErrors errors)
-    : BaseService<Appointment>(context), IAppointmentService
+    UserService userService,
+    AppointmentValidator validator,
+    ServiceService serviceService,
+    AppointmentErrors errors)
+    : BaseService<Appointment, AppointmentDtoResponse, AppointmentDtoRequest>(context, userService)
 {
-    private readonly IServiceService _serviceService = serviceService;
-    private readonly IValidator<AppointmentDto> _validator = validator;
-    private readonly IAppointmentErrors _errors = errors;
+    private readonly ServiceService _serviceService = serviceService;
+    private readonly AppointmentValidator _validator = validator;
+    private readonly AppointmentErrors _errors = errors;
 
     private static bool IsServicesFromUniqueBarberShopId(Service[] services)
     {
         var ids = services.Select(s => s.BarberShopId).ToHashSet();
         return ids.Count == 1;
     }
-
-    public async Task<AppointmentDto> CreateAsync(AppointmentDto dto, int clientId)
+    
+    public override async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
         if (dto.Services.Length == 0)
             _errors.ThrowEmptyServicesException();
-            
-        var services = await GetSpecificServicesByIdsAsync([..dto.Services.Select(s => s.Id)]);
+
+        var services = await GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
 
         if (!IsServicesFromUniqueBarberShopId(services))
             _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
 
-        var appointment = new Appointment(dto, services, clientId);
-        return (await CreateAsync(appointment))!.CreateDto();
+        var appointment = new Appointment(dto, services);
+
+        _dbSet.Add(appointment);
+        await _context.SaveChangesAsync();
+
+        return await GetByIdAsync(appointment.Id);
     }
     
-    public async Task<Appointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
-    {
-        return await _dbSet.AsNoTracking()
-            .Where(x => x.BarberShopId == barberShopId && x.Date == date)
-            .OrderBy(x => x.Date)
-            .ToArrayAsync() ?? [];
-    }
-
-    private async Task<Appointment?> GetAppointmentWithServicesAsync(int id)
-    {
-        return await _dbSet
-            .Include(x => x.Services)
-            .SingleOrDefaultAsync(x => x.Id == id);
-    }
-    
-    public async Task<AppointmentDto> GetByIdWithServicesAsync(int id)
-    {
-        var appointment = await GetAppointmentWithServicesAsync(id);
-
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-
-        return appointment!.CreateDto();
-    }
-
     private async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
     {
         return await _serviceService.GetSpecificServicesByIdsAsync(ids);
     }
 
-    public async Task<AppointmentDto> GetByIdAsync(int id)
+    public record Includes(bool Collections = false);
+
+    public async Task<AppointmentDtoResponse> GetByIdAsync(int id, Includes? includes = null)
     {
-        var appointment = await base.GetByIdAsync(id);
+        includes ??= new();
+
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(a => a.Id == id);
+            
+        if (includes.Collections)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(a => a.Services);
+        }
+
+        var appointment = await query
+            .Select(a => new AppointmentDtoResponse(
+                a.Id,
+                a.ClientId,
+                a.BarberShopId,
+                a.Date,
+                a.StartTime,
+                a.TotalDuration,
+                a.Notes,
+                a.PaymentType,
+                a.TotalPrice,
+                a.Services
+                    .Where(_ => includes.Collections)
+                    .Select(s => new ServiceDtoResponse(
+                        s.Id,
+                        s.BarberShopId,
+                        s.BarberShop.Name,
+                        s.Name,
+                        s.Description,
+                        s.Price,
+                        s.Duration
+                    ))
+                    .ToArray(),
+                a.Status
+            ))
+            .FirstOrDefaultAsync();
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
-        
-        return appointment!.CreateDto();
+
+        return appointment!;
     }
 
-    public async Task<PaginationResponse<AppointmentDto>> GetAllAsync(int? page, int? pageSize, int clientId)
+    public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(
+        int? page, int? pageSize, int clientId)
     {
-        var response = await GetAllAsync(new(page, pageSize, x => x.ClientId == clientId, new(x => x.Date)));
-        
-        return new(
-            [..response.Items.Select(service => service.CreateDto())],
-            response.TotalItems,
-            response.TotalPages,
-            response.Page,
-            response.PageSize
+        return await GetAllAsync(
+            new(
+                page,
+                pageSize,
+                x => x.ClientId == clientId,
+                new(x => x.Date),
+                a => new AppointmentDtoResponse(
+                    a.Id,
+                    a.ClientId,
+                    a.BarberShopId,
+                    a.Date,
+                    a.StartTime,
+                    a.TotalDuration,
+                    a.Notes,
+                    a.PaymentType,
+                    a.TotalPrice,
+                    a.Services
+                        .Select(s => new ServiceDtoResponse(
+                            s.Id,
+                            s.BarberShopId,
+                            s.BarberShop.Name,
+                            s.Name,
+                            s.Description,
+                            s.Price,
+                            s.Duration
+                        ))
+                        .ToArray(),
+                    a.Status
+                )
+            )
         );
     }
 
-    public async Task<bool> UpdateAsync(AppointmentDto dto, int id, int clientId)
+    private async Task UpdateAppointmentServicesAsync(Appointment appointment, AppointmentDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
-
-        var appointment = await GetAppointmentWithServicesAsync(id);
-
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-        
-        if (appointment!.ClientId != clientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
-
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
         int[] serviceIds = [.. dto.Services.Select(s => s.Id)];
-        
+
         var serviceIdsToRemove = currentServiceIds.Except(serviceIds).ToArray();
+
         var serviceIdsToAdd = serviceIds.Except(currentServiceIds).ToArray();
+        var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
+
+        if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
+            _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
 
         if (serviceIdsToAdd.Length > 0)
-            {
-                var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
-
-                if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
-                    _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
-
-                appointment!.AddServices(servicesToAdd);
-            }
-
-        appointment.UpdateEntityByDto(dto);
-        return await SaveChangesAsync();
+            appointment.AddServices(servicesToAdd);
     }
 
-    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdate dto, int id, int clientId)
+    public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
+    {
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        
+        var appointment = await _dbSet
+            .Include(a => a.Services)
+            .Where(a => a.Id == id)
+            .FirstAsync();
+
+        if (appointment is null)
+            _errors.ThrowNotFoundException();
+
+        if (appointment!.ClientId != dto.ClientId)
+            _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
+            
+        await UpdateAppointmentServicesAsync(appointment, dto);
+
+        return await UpdateAsync(appointment, dto);
+    }
+
+    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
     {
         var appointment = await _dbSet.FindAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
             
-        if (appointment!.ClientId != clientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
+        if (appointment!.ClientId != dto.ClientId)
+            _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
             
-        appointment.UpdateEntityByDto(appointment.CreateDto() with { PaymentType = dto.PaymentType });
+        appointment.UpdatePaymentType(dto);
         return await SaveChangesAsync();
     }
     

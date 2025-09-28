@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class MessageErrors : BaseErrors<Message>, IMessageErrors
+public sealed class MessageErrors : BaseErrors<Message>
 {
     public void ThrowNotAllowedToSendMessageException(int senderId)
     {

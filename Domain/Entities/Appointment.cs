@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
+public sealed class Appointment : BaseEntity<Appointment, AppointmentDtoResponse, AppointmentDtoRequest>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly StartTime { get; private set; }
@@ -25,10 +21,8 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
 
     private Appointment() { }
 
-    public Appointment(AppointmentDto dto, Service[] services, int clientId)
+    public Appointment(AppointmentDtoRequest dto, Service[] services)
     {
-        dto.ThrowExceptionIfInvalid(new AppointmentDtoValidator(), new AppointmentErrors());
-
         Date = dto.Date;
         StartTime = dto.StartTime;
         Notes = dto.Notes;
@@ -39,7 +33,7 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
 
         Status = AppointmentStatus.Pending;
 
-        ClientId = clientId;
+        ClientId = dto.ClientId;
         BarberShopId = services[0].BarberShopId;
     }
 
@@ -67,7 +61,7 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
         UpdateTotalPrice();
     }
     
-    public override void UpdateEntityByDto(AppointmentDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(AppointmentDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -81,9 +75,18 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDto>
         UpdatedAt = utcNow;
     }
     
-    private ServiceDto[] GetServicesIntoDto() => [.. Services.Select(s => s.CreateDto())];
+    public void UpdatePaymentType(AppointmentPaymentTypeDtoUpdateRequest dto, DateTime? utcNow = null)
+    {
+        utcNow ??= DateTime.UtcNow;
+        
+        PaymentType = dto.PaymentType;
+        
+        UpdatedAt = utcNow;
+    }
+    
+    private ServiceDtoResponse[] GetServicesIntoDto() => [.. Services.Select(s => s.CreateDto())];
 
-    public override AppointmentDto CreateDto() => new(
+    public override AppointmentDtoResponse CreateDto() => new(
         Id,
         ClientId,
         BarberShopId,

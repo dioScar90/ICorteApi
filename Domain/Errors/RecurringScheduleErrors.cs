@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class RecurringScheduleErrors : BaseErrors<RecurringSchedule>, IRecurringScheduleErrors
+public sealed class RecurringScheduleErrors : BaseErrors<RecurringSchedule>
 {
     public void ThrowRecurringScheduleNotBelongsToBarberShopException(int barberShopId)
     {

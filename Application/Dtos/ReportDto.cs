@@ -1,9 +1,19 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record ReportDto(
+public record ReportDtoResponse(
     int Id,
     int BarberShopId,
     string? Title,
     string? Content,
     int Rating
-) : IDto<Report>;
+) : IDtoResponse<Report>;
+
+public record ReportDtoRequest(
+    int Id,
+    int BarberShopId,
+    string? Title,
+    string? Content,
+    int Rating
+) : IDtoRequest<Report>;

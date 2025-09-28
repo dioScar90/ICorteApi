@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -31,22 +32,23 @@ public static class RecurringScheduleEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(RecurringScheduleDtoResponse dto) =>
+    private static IResult GetCreatedResult(RecurringScheduleDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/recurring-dto/{dto.DayOfWeek}", new { Message = "Horário de funcionamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateRecurringScheduleAsync(
         int barberShopId,
-        RecurringScheduleDtoCreate dto,
-        IRecurringScheduleService service)
+        RecurringScheduleDtoRequest dto,
+        RecurringScheduleService service)
     {
-        var schedule = await service.CreateAsync(dto, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        var schedule = await service.CreateAsync(dto);
         return GetCreatedResult(schedule);
     }
 
     public static async Task<IResult> GetRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService service)
+        RecurringScheduleService service)
     {
         var schedule = await service.GetByIdAsync(dayOfWeek, barberShopId);
         return Results.Ok(schedule);
@@ -56,7 +58,7 @@ public static class RecurringScheduleEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        IRecurringScheduleService service)
+        RecurringScheduleService service)
     {
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
         return Results.Ok(schedules);
@@ -65,9 +67,10 @@ public static class RecurringScheduleEndpoint
     public static async Task<IResult> UpdateRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        RecurringScheduleDtoUpdate dto,
-        IRecurringScheduleService service)
+        RecurringScheduleDtoRequest dto,
+        RecurringScheduleService service)
     {
+        dto = dto with { BarberShopId = barberShopId };
         await service.UpdateAsync(dto, dayOfWeek, barberShopId);
         return Results.NoContent();
     }
@@ -75,7 +78,7 @@ public static class RecurringScheduleEndpoint
     public static async Task<IResult> DeleteRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
-        IRecurringScheduleService service)
+        RecurringScheduleService service)
     {
         await service.DeleteAsync(dayOfWeek, barberShopId);
         return Results.NoContent();

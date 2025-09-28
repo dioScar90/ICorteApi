@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Profile : BaseEntity<Profile, ProfileDto>
+public sealed class Profile : BaseEntity<Profile, ProfileDtoResponse, ProfileDtoRequest>
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
@@ -17,10 +13,8 @@ public sealed class Profile : BaseEntity<Profile, ProfileDto>
 
     private Profile() { }
 
-    public Profile(ProfileDto dto, int? userId = null)
+    public Profile(ProfileDtoRequest dto, int? userId = null)
     {
-        dto.ThrowExceptionIfInvalid(new ProfileDtoValidator(), new ProfileErrors());
-
         Id = userId ?? default;
         FirstName = dto.FirstName;
         LastName = dto.LastName;
@@ -45,7 +39,7 @@ public sealed class Profile : BaseEntity<Profile, ProfileDto>
 
     public string GetPhoneNumberToUserEntity() => _phoneNumber;
     
-    public override void UpdateEntityByDto(ProfileDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(ProfileDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -58,7 +52,7 @@ public sealed class Profile : BaseEntity<Profile, ProfileDto>
         UpdatedAt = utcNow;
     }
 
-    public override ProfileDto CreateDto() => new(
+    public override ProfileDtoResponse CreateDto() => new(
         Id,
         FirstName,
         LastName,

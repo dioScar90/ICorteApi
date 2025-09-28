@@ -1,8 +1,6 @@
-using ICorteApi.Domain.Interfaces;
-
 namespace ICorteApi.Domain.Errors;
 
-public sealed class BarberShopErrors : BaseErrors<BarberShop>, IBarberShopErrors
+public sealed class BarberShopErrors : BaseErrors<BarberShop>
 {
     public void ThrowBarberShopNotBelongsToOwnerException(int ownerId)
     {

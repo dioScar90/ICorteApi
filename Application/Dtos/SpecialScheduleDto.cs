@@ -1,6 +1,8 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record SpecialScheduleDto(
+public record SpecialScheduleDtoResponse(
     DateOnly Date,
     int BarberShopId,
     DayOfWeek DayOfWeek,
@@ -8,4 +10,14 @@ public record SpecialScheduleDto(
     TimeOnly? OpenTime = null,
     TimeOnly? CloseTime = null,
     bool IsClosed = false
-) : IDto<SpecialSchedule>;
+) : IDtoResponse<SpecialSchedule>;
+
+public record SpecialScheduleDtoRequest(
+    DateOnly Date,
+    int BarberShopId,
+    DayOfWeek DayOfWeek,
+    string? Notes = null,
+    TimeOnly? OpenTime = null,
+    TimeOnly? CloseTime = null,
+    bool IsClosed = false
+) : IDtoRequest<SpecialSchedule>;

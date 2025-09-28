@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
-public class BarberScheduleService(AppDbContext context) : IBarberScheduleService
+public class BarberScheduleService(AppDbContext context)
 {
     private readonly AppDbContext _context = context;
     private readonly DbSet<Service> _dbSetService = context.Set<Service>();
@@ -73,14 +73,19 @@ public class BarberScheduleService(AppDbContext context) : IBarberScheduleServic
     private async Task<BasicAppointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
     {
         return await _dbSetAppointment
+            .AsNoTracking()
             .Include(a => a.Services)
             .Where(a => a.BarberShopId == barberShopId && a.Date == date)
             .Select(a => new BasicAppointment(
                 a.Id,
                 a.StartTime,
-                a.Services.Select(s => new ServiceDuration(s.Id, s.Duration)).ToArray()
+                a.Services
+                    .Select(s => new ServiceDuration(
+                        s.Id,
+                        s.Duration
+                    ))
+                    .ToArray()
             ))
-            .AsNoTracking()
             .ToArrayAsync();
     }
 

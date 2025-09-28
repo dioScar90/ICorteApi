@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class ServiceDtoValidator : AbstractValidator<ServiceDto>
+public sealed class ServiceValidator : AbstractValidator<ServiceDtoRequest>
 {
-    public ServiceDtoValidator()
+    public ServiceValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome obrigatório")

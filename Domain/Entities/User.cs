@@ -19,7 +19,7 @@ public sealed class User : BaseUserEntity
 
     public User(UserDto dto)
     {
-        dto.ThrowExceptionIfInvalid(new UserDtoValidator(), new UserErrors());
+        dto.ThrowExceptionIfInvalid(new UserValidator(), new UserErrors());
 
         UserName = dto.Email;
         Email = dto.Email;

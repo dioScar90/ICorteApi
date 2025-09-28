@@ -1,10 +1,21 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record ProfileDto(
+public record ProfileDtoResponse(
     int Id,
     string FirstName,
     string LastName,
     string FullName,
     Gender Gender,
     string? ImageUrl
-) : IDto<Profile>;
+) : IDtoResponse<Profile>;
+
+public record ProfileDtoRequest(
+    int Id,
+    string FirstName,
+    string LastName,
+    string FullName,
+    Gender Gender,
+    string? ImageUrl
+) : IDtoRequest<Profile>;

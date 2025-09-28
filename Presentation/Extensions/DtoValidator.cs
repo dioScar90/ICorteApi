@@ -1,15 +1,15 @@
 using FluentValidation;
+using ICorteApi.Application.Services;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Presentation.Extensions;
 
-public static class DtoValidator
+public static class Validator
 {
     public static void ThrowExceptionIfInvalid<TDto, TEntity>(
         this TDto dto, IValidator<TDto> validator, IBaseErrors<TEntity> entityErrors)
             where TEntity : class, IBaseTableEntity
-            where TDto : IDto<TEntity>
+            where TDto : IDtoRequest<TEntity>
     {
         var results = validator.Validate(dto);
         

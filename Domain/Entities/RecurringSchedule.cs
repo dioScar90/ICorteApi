@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDto, DayOfWeek, int>
+public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDtoResponse, RecurringScheduleDtoRequest>
 {
     public DayOfWeek DayOfWeek { get; init; }
 
@@ -16,10 +12,8 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Re
 
     private RecurringSchedule() {}
 
-    public RecurringSchedule(RecurringScheduleDto dto, int? barberShopId = null)
+    public RecurringSchedule(RecurringScheduleDtoRequest dto, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new RecurringScheduleDtoValidator(), new RecurringScheduleErrors());
-
         DayOfWeek = dto.DayOfWeek;
         BarberShopId = barberShopId ?? default;
         
@@ -27,7 +21,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Re
         CloseTime = dto.CloseTime;
     }
     
-    public override void UpdateEntityByDto(RecurringScheduleDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(RecurringScheduleDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -38,7 +32,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Re
         UpdatedAt = utcNow;
     }
     
-    public override RecurringScheduleDto CreateDto() => new(
+    public override RecurringScheduleDtoResponse CreateDto() => new(
         DayOfWeek,
         BarberShopId,
         OpenTime,

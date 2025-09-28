@@ -1,8 +1,9 @@
-using ICorteApi.Domain.Errors;
+using ICorteApi.Domain.Interfaces;
 
-namespace ICorteApi.Domain.Interfaces;
+namespace ICorteApi.Domain.Errors;
 
-public interface IBaseErrors<TEntity> : IBaseErrors where TEntity : class, IBaseTableEntity
+public interface IBaseErrors<TEntity> : IBaseErrors
+    where TEntity : class, IBaseTableEntity
 {
     void ThrowDeuRuimException();
     void ThrowCreateException(params Error[] errors);

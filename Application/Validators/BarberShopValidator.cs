@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class BarberShopDtoValidator : AbstractValidator<BarberShopDto>
+public sealed class BarberShopValidator : AbstractValidator<BarberShopDtoRequest>
 {
-    public BarberShopDtoValidator()
+    public BarberShopValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome obrigatório")
@@ -21,7 +21,7 @@ public sealed class BarberShopDtoValidator : AbstractValidator<BarberShopDto>
             .EmailAddress().WithMessage("Email com formato inválido");
 
         RuleFor(x => x.Address)
-            .SetValidator(new AddressDtoValidator())
+            .SetValidator(new AddressValidator()!)
             .When(x => x.Address is not null);
     }
 

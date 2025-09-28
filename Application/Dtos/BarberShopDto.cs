@@ -1,18 +1,34 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
-public record BarberShopDto(
+public record BarberShopDtoResponse(
     int Id,
     int OwnerId,
     string Name,
     string? Description,
     string ComercialNumber,
     string ComercialEmail,
-    AddressDto? Address,
-    RecurringScheduleDto[] RecurringSchedules,
-    SpecialScheduleDto[] SpecialSchedules,
-    ServiceDto[] Services,
-    ReportDto[] Reports
-) : IDto<BarberShop>;
+    AddressDtoResponse? Address,
+    RecurringScheduleDtoResponse[] RecurringSchedules,
+    SpecialScheduleDtoResponse[] SpecialSchedules,
+    ServiceDtoResponse[] Services,
+    ReportDtoResponse[] Reports
+) : IDtoResponse<BarberShop>;
+
+public record BarberShopDtoRequest(
+    int Id,
+    int OwnerId,
+    string Name,
+    string? Description,
+    string ComercialNumber,
+    string ComercialEmail,
+    AddressDtoRequest? Address,
+    RecurringScheduleDtoRequest[] RecurringSchedules,
+    SpecialScheduleDtoRequest[] SpecialSchedules,
+    ServiceDtoRequest[] Services,
+    ReportDtoRequest[] Reports
+) : IDtoRequest<BarberShop>;
 
 public record ClientForAppointmentByBarberShop(
     int Id,
@@ -21,7 +37,7 @@ public record ClientForAppointmentByBarberShop(
     string FullName
 );
 
-public record AppointmentsByBarberShopDto(
+public record AppointmentsByBarberShopDtoResponse(
     int Id,
     ClientForAppointmentByBarberShop Client,
     int BarberShopId,
@@ -31,13 +47,13 @@ public record AppointmentsByBarberShopDto(
     string? Notes,
     PaymentType PaymentType,
     decimal TotalPrice,
-    ServiceDto[] Services,
+    ServiceDtoResponse[] Services,
     AppointmentStatus Status
-) : IDto<BarberShop>;
+) : IDtoResponse<BarberShop>;
 
-public record TopBarberShopDto(
+public record TopBarberShopDtoResponse(
     int Id,
     string Name,
     string? Description,
     float Rating
-) : IDto<BarberShop>;
+) : IDtoResponse<BarberShop>;

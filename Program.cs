@@ -20,17 +20,23 @@ builder.Services
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(c =>
+if (builder.Environment.IsDevelopment())
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
-    c.ResolveConflictingActions(x => x.First());
-});
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
+        c.ResolveConflictingActions(x => x.First());
+    });
+}
 
 var app = builder.Build();
 
-app.UseDeveloperExceptionPage();
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 using (var scope = app.Services.CreateScope())
 {

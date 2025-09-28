@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -32,34 +33,31 @@ public static class ChatEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(MessageDtoResponse dto) =>
+    private static IResult GetCreatedResult(MessageDtoResponse dto) =>
         Results.Created($"appointment/{dto.AppointmentId}/chat/{dto.Id}", new { Message = "Mensagem enviada com sucesso", Item = dto });
 
     public static async Task<IResult> IsAllowedCheckAsync(
         int appointmentId,
-        IMessageService service,
-        IUserService userService)
+        MessageService service)
     {
-        int userId = await userService.GetMyUserIdAsync();
-        var result = await service.CanSendMessageAsync(appointmentId, userId);
+        var result = await service.CanSendMessageAsync(appointmentId);
         return Results.Ok(result);
     }
 
     public static async Task<IResult> CreateMessageAsync(
         int appointmentId,
-        MessageDtoCreate dto,
-        IMessageService service,
-        IUserService userService)
+        MessageDtoRequest dto,
+        MessageService service)
     {
-        int senderId = await userService.GetMyUserIdAsync();
-        var message = await service.CreateAsync(dto, appointmentId, senderId);
+        dto = dto with { AppointmentId = appointmentId };
+        var message = await service.CreateAsync(dto);
         return GetCreatedResult(message);
     }
 
     public static async Task<IResult> GetMessageAsync(
         int id,
         int appointmentId,
-        IMessageService service)
+        MessageService service)
     {
         var message = await service.GetByIdAsync(id, appointmentId);
         return Results.Ok(message);
@@ -69,7 +67,7 @@ public static class ChatEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
-        IMessageService service)
+        MessageService service)
     {
         var messages = await service.GetAllAsync(page, pageSize, appointmentId);
         return Results.Ok(messages);
@@ -78,11 +76,9 @@ public static class ChatEndpoint
     public static async Task<IResult> DeleteMessageAsync(
         int appointmentId,
         int id,
-        IMessageService service,
-        IUserService userService)
+        MessageService service)
     {
-        int senderId = await userService.GetMyUserIdAsync();
-        await service.DeleteAsync(id, appointmentId, senderId);
+        await service.DeleteAsync(id, appointmentId);
         return Results.NoContent();
     }
 }

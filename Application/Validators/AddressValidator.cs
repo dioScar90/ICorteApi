@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class AddressDtoValidator : AbstractValidator<AddressDto>
+public sealed class AddressValidator : AbstractValidator<AddressDtoRequest>
 {
-    public AddressDtoValidator()
+    public AddressValidator()
     {
         RuleFor(x => x.Street)
             .NotEmpty().WithMessage("Logradouro obrigatório")

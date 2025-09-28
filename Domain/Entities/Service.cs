@@ -1,12 +1,9 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Service : BaseEntity<Service, ServiceDto>
+public sealed class Service : BaseEntity<Service, ServiceDtoResponse, ServiceDtoRequest>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -23,10 +20,8 @@ public sealed class Service : BaseEntity<Service, ServiceDto>
 
     private Service() { }
     
-    public Service(ServiceDto dto, int? barberShopId = null)
+    public Service(ServiceDtoRequest dto, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new ServiceDtoValidator(), new ServiceErrors());
-
         Name = dto.Name;
         Description = GetValidStringOrNull(dto.Description);
         Price = dto.Price;
@@ -35,7 +30,7 @@ public sealed class Service : BaseEntity<Service, ServiceDto>
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntityByDto(ServiceDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(ServiceDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -47,7 +42,7 @@ public sealed class Service : BaseEntity<Service, ServiceDto>
         UpdatedAt = utcNow;
     }
 
-    public override ServiceDto CreateDto() => new(
+    public override ServiceDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         default,

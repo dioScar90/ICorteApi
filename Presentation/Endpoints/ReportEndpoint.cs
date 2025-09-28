@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -31,28 +32,25 @@ public static class ReportEndpoint
         return app;
     }
     
-    public static IResult GetCreatedResult(ReportDtoResponse dto) =>
+    private static IResult GetCreatedResult(ReportDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/report/{dto.Id}", new { Message = "Pagamento criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateReportAsync(
         int barberShopId,
-        ReportDtoCreate dto,
-        IReportService service,
-        IUserService userService)
+        ReportDtoRequest dto,
+        ReportService service)
     {
-        int userId = await userService.GetMyUserIdAsync();
-        var report = await service.CreateAsync(dto, userId, barberShopId);
+        dto = dto with { BarberShopId = barberShopId };
+        var report = await service.CreateAsync(dto);
         return GetCreatedResult(report);
     }
 
     public static async Task<IResult> GetReportAsync(
         int id,
         int barberShopId,
-        IReportService service,
-        IUserService userService)
+        ReportService service)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        var report = await service.GetByIdAsync(id, clientId, barberShopId);
+        var report = await service.GetByIdAsync(id, barberShopId);
         return Results.Ok(report);
     }
 
@@ -60,7 +58,7 @@ public static class ReportEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        IReportService service)
+        ReportService service)
     {
         var reports = await service.GetAllAsync(page, pageSize, barberShopId);
         return Results.Ok(reports);
@@ -69,23 +67,19 @@ public static class ReportEndpoint
     public static async Task<IResult> UpdateReportAsync(
         int id,
         int barberShopId,
-        ReportDtoUpdate dto,
-        IReportService service,
-        IUserService userService)
+        ReportDtoRequest dto,
+        ReportService service)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        await service.UpdateAsync(dto, id, clientId, barberShopId);
+        await service.UpdateAsync(dto, id, barberShopId);
         return Results.NoContent();
     }
 
     public static async Task<IResult> DeleteReportAsync(
         int id,
         int barberShopId,
-        IReportService service,
-        IUserService userService)
+        ReportService service)
     {
-        int clientId = await userService.GetMyUserIdAsync();
-        await service.DeleteAsync(id, clientId, barberShopId);
+        await service.DeleteAsync(id, barberShopId);
         return Results.NoContent();
     }
 }

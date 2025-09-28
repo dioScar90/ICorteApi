@@ -1,26 +1,49 @@
-using FluentValidation;
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Validators;
+using ICorteApi.Domain.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class AddressService(
     AppDbContext context,
-    IValidator<AddressDto> validator,
-    IAddressErrors errors)
-    : BaseService<Address>(context), IAddressService
+    UserService userService,
+    AddressValidator validator,
+    AddressErrors errors)
+    : BaseService<Address, AddressDtoResponse, AddressDtoRequest>(context, userService)
 {
-    private readonly IValidator<AddressDto> _validator = validator;
-    private readonly IAddressErrors _errors = errors;
-
-    public async Task<AddressDto> CreateAsync(AddressDto dto, int barberShopId)
+    private readonly AddressValidator _validator = validator;
+    private readonly AddressErrors _errors = errors;
+    
+    public override async Task<AddressDtoResponse> CreateAsync(AddressDtoRequest dto)
     {
-        var address = new Address(dto, barberShopId);
-        return (await CreateAsync(address))!.CreateDto();
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+
+        var address = new Address(dto, dto.BarberShopId);
+
+        _dbSet.Add(address);
+        await SaveChangesAsync();
+
+        return await GetByIdAsync(address.Id, address.BarberShopId);
     }
 
-    public async Task<AddressDto> GetByIdAsync(int id, int barberShopId)
+    public async Task<AddressDtoResponse> GetByIdAsync(int id, int barberShopId)
     {
-        var address = await GetByIdAsync(id);
+        var address = await _dbSet
+            .AsNoTracking()
+            .Select(a => new AddressDtoResponse(
+                a.Id,
+                a.BarberShopId,
+                a.Street,
+                a.Number,
+                a.Complement,
+                a.Neighborhood,
+                a.City,
+                a.State,
+                a.PostalCode,
+                a.Country
+            ))
+            .Where(a => a.Id == id && a.BarberShopId == barberShopId)
+            .FirstOrDefaultAsync();
 
         if (address is null)
             _errors.ThrowNotFoundException();
@@ -28,21 +51,22 @@ public sealed class AddressService(
         if (address!.BarberShopId != barberShopId)
             _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
 
-        return address.CreateDto();
+        return address;
     }
-
-    public async Task<bool> UpdateAsync(AddressDto dto, int id, int barberShopId)
+    
+    public async Task<bool> UpdateAsync(AddressDtoRequest dto, int id)
     {
+        dto.ThrowExceptionIfInvalid(_validator, _errors);
+
         var address = await _dbSet.FindAsync(id);
 
         if (address is null)
             _errors.ThrowNotFoundException();
 
-        if (address!.BarberShopId != barberShopId)
-            _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
-        
-        address!.UpdateEntityByDto(dto);
-        return await SaveChangesAsync();
+        if (address!.BarberShopId != dto.BarberShopId)
+            _errors.ThrowAddressNotBelongsToBarberShopException(dto.BarberShopId);
+
+        return await UpdateAsync(address, dto);
     }
 
     public async Task<bool> DeleteAsync(int id, int barberShopId)
@@ -55,6 +79,6 @@ public sealed class AddressService(
         if (address!.BarberShopId != barberShopId)
             _errors.ThrowAddressNotBelongsToBarberShopException(barberShopId);
         
-        return await DeleteAsync(address!);
+        return await DeleteAsync(address);
     }
 }

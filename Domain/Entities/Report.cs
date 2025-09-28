@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Report : BaseEntity<Report, ReportDto>
+public sealed class Report : BaseEntity<Report, ReportDtoResponse, ReportDtoRequest>
 {
     public string? Title { get; private set; }
     public string? Content { get; private set; }
@@ -18,10 +14,8 @@ public sealed class Report : BaseEntity<Report, ReportDto>
 
     private Report() { }
 
-    public Report(ReportDto dto, int? clientId = null, int? barberShopId = null)
+    public Report(ReportDtoRequest dto, int? clientId = null, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new ReportDtoValidator(), new ReportErrors());
-
         Title = GetValidStringOrNull(dto.Title);
         Content = GetValidStringOrNull(dto.Content);
         Rating = GetValidRatingOrNull(dto.Rating);
@@ -30,7 +24,7 @@ public sealed class Report : BaseEntity<Report, ReportDto>
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntityByDto(ReportDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(ReportDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -41,7 +35,7 @@ public sealed class Report : BaseEntity<Report, ReportDto>
         UpdatedAt = utcNow;
     }
 
-    public override ReportDto CreateDto() => new(
+    public override ReportDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         Title,

@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace ICorteApi.Application.Validators;
 
-public sealed class RecurringScheduleDtoValidator : AbstractValidator<RecurringScheduleDto>
+public sealed class RecurringScheduleValidator : AbstractValidator<RecurringScheduleDtoRequest>
 {
-    public RecurringScheduleDtoValidator()
+    public RecurringScheduleValidator()
     {
         RuleFor(x => x.DayOfWeek)
             .NotEmpty().WithMessage("Dia da semana obrigatório")

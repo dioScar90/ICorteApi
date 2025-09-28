@@ -1,10 +1,6 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
-public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, SpecialScheduleDto>
+public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, SpecialScheduleDtoResponse, SpecialScheduleDtoRequest>
 {
     public DateOnly Date { get; init; }
     public DayOfWeek DayOfWeek { get; set; }
@@ -18,10 +14,8 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, Specia
 
     private SpecialSchedule() {}
 
-    public SpecialSchedule(SpecialScheduleDto dto, int? barberShopId = null)
+    public SpecialSchedule(SpecialScheduleDtoRequest dto, int? barberShopId = null)
     {
-        dto.ThrowExceptionIfInvalid(new SpecialScheduleDtoValidator(), new SpecialScheduleErrors());
-
         Date = dto.Date;
         BarberShopId = barberShopId ?? default;
         
@@ -32,7 +26,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, Specia
         IsClosed = dto is { OpenTime: null, CloseTime: null };
     }
     
-    public override void UpdateEntityByDto(SpecialScheduleDto dto, DateTime? utcNow = null)
+    public override void UpdateEntity(SpecialScheduleDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -45,7 +39,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, Specia
         UpdatedAt = utcNow;
     }
     
-    public override SpecialScheduleDto CreateDto() => new(
+    public override SpecialScheduleDtoResponse CreateDto() => new(
         Date,
         BarberShopId,
         DayOfWeek,
