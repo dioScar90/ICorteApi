@@ -22,6 +22,9 @@ This is my personal repository about my TCC (Final Paper) project. It is a barbe
 - `dotnet add package Microsoft.AspNetCore.Identity.UI`
 - `dotnet add package FluentValidation.AspNetCore`
 - `dotnet add package Swashbuckle.AspNetCore`
+- `dotnet add package Serilog.AspNetCore`
+- `dotnet add package Serilog.Sinks.Console`
+- `dotnet add package Serilog.Sinks.File`
 
 ### Migrations:
 - `dotnet ef migrations add {{Message}}`

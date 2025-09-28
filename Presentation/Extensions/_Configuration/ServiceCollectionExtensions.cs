@@ -3,7 +3,6 @@ using FluentValidation;
 using ICorteApi.Application.Services;
 using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using ICorteApi.Settings;
 using Microsoft.AspNetCore.Identity;
 

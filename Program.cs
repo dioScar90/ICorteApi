@@ -5,6 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.StartDatabaseWithAppropriateConnectionStrings();
 
+builder.Host
+    .AddSerilog()
+;
+
 // Most important applications services
 // This order was suggested by Chat GPT
 builder.Services
