@@ -32,25 +32,80 @@ public static class ServiceEndpoint
         return app;
     }
     
+    internal record LoggerActions
+    {
+        private string Entity;
+        private ILogger Logger;
+
+        private LoggerActions() { }
+
+        internal static LoggerActions FactoryCreate(ILoggerFactory loggerFactory)
+        {
+            return new()
+            {
+                Entity = nameof(Service),
+                Logger = loggerFactory.CreateLogger(nameof(ServiceEndpoint))
+            };
+        }
+
+        internal void CreatingStart(ServiceDtoRequest dto) =>
+            Logger.LogInformation("Received request to create {Entity} {@Entity}", Entity, dto);
+
+        internal void Created(int id) =>
+            Logger.LogInformation("{Entity} successfully created with Id={Id}", Entity, id);
+
+        internal void GettingStart(int id) =>
+            Logger.LogInformation("Received request to get {Entity} with Id={Id}", Entity, id);
+
+        internal void GettingAllStart(int barberShopId, int? page, int? pageSize) =>
+            Logger.LogInformation(
+                "Received request to get all {Entity} with BarberShopId={BarberShopId} Page={Page} PageSize={PageSize}",
+                Entity, barberShopId, page, pageSize);
+
+        internal void UpdatingStart(int id, ServiceDtoRequest dto) =>
+            Logger.LogInformation("Received request to update {Entity} with Id={Id} {@Entity}", Entity, id, dto);
+
+        internal void Updated(int id) =>
+            Logger.LogInformation("{Entity} successfully updated with Id={Id}", Entity, id);
+            
+        internal void DeletingStart(int id) =>
+            Logger.LogInformation("Received request to delete {Entity} Id={Id}", Entity, id);
+
+        internal void Deleted(int id) =>
+            Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
+    }
+    
     private static IResult GetCreatedResult(ServiceDtoResponse dto) =>
         Results.Created($"barber-shop/{dto.BarberShopId}/service/{dto.Id}", new { Message = "Serviço criado com sucesso", Item = dto });
 
     public static async Task<IResult> CreateServiceAsync(
         int barberShopId,
         ServiceDtoRequest dto,
-        ServiceService service)
+        ServiceService serviceService,
+        ILoggerFactory loggerFactory)
     {
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+
         dto = dto with { BarberShopId = barberShopId };
-        var serviceEntity = await service.CreateAsync(dto);
-        return GetCreatedResult(serviceEntity);
+        logger.CreatingStart(dto);
+
+        var service = await serviceService.CreateAsync(dto);
+
+        logger.Created(service.Id);
+        return GetCreatedResult(service);
     }
 
     public static async Task<IResult> GetServiceAsync(
         int serviceId,
         int barberShopId,
-        ServiceService service)
+        ServiceService serviceService,
+        ILoggerFactory loggerFactory)
     {
-        var serviceDto = await service.GetByIdAsync(serviceId, barberShopId);
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+
+        logger.GettingStart(serviceId);
+
+        var serviceDto = await serviceService.GetByIdAsync(serviceId, barberShopId);
         return Results.Ok(serviceDto);
     }
 
@@ -58,9 +113,14 @@ public static class ServiceEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
-        ServiceService service)
+        ServiceService serviceService,
+        ILoggerFactory loggerFactory)
     {
-        var services = await service.GetAllAsync(page, pageSize, barberShopId);
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+
+        logger.GettingAllStart(barberShopId, page, pageSize);
+
+        var services = await serviceService.GetAllAsync(page, pageSize, barberShopId);
         return Results.Ok(services);
     }
 
@@ -68,9 +128,16 @@ public static class ServiceEndpoint
         int serviceId,
         int barberShopId,
         ServiceDtoRequest dto,
-        ServiceService service)
+        ServiceService serviceService,
+        ILoggerFactory loggerFactory)
     {
-        await service.UpdateAsync(dto, serviceId, barberShopId);
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+
+        logger.UpdatingStart(serviceId, dto);
+
+        await serviceService.UpdateAsync(dto, serviceId, barberShopId);
+
+        logger.Updated(serviceId);
         return Results.NoContent();
     }
 
@@ -78,9 +145,16 @@ public static class ServiceEndpoint
         [FromQuery] bool? forceDelete,
         int serviceId,
         int barberShopId,
-        ServiceService service)
+        ServiceService serviceService,
+        ILoggerFactory loggerFactory)
     {
-        await service.DeleteAsync(serviceId, barberShopId, forceDelete is true);
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+
+        logger.DeletingStart(serviceId);
+
+        await serviceService.DeleteAsync(serviceId, barberShopId, forceDelete is true);
+
+        logger.Deleted(serviceId);
         return Results.NoContent();
     }
 }

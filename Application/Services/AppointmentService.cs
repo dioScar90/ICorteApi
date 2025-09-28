@@ -33,7 +33,8 @@ public sealed class AppointmentService(
 
         if (!IsServicesFromUniqueBarberShopId(services))
             _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
-
+            
+        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
         var appointment = new Appointment(dto, services);
 
         _dbSet.Add(appointment);
@@ -98,8 +99,10 @@ public sealed class AppointmentService(
     }
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(
-        int? page, int? pageSize, int clientId)
+        int? page, int? pageSize)
     {
+        var clientId = await _userService.GetMyUserIdAsync()!;
+
         return await GetAllAsync(
             new(
                 page,
@@ -164,6 +167,8 @@ public sealed class AppointmentService(
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
+            
+        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
 
         if (appointment!.ClientId != dto.ClientId)
             _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
@@ -180,6 +185,8 @@ public sealed class AppointmentService(
         if (appointment is null)
             _errors.ThrowNotFoundException();
             
+        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
+            
         if (appointment!.ClientId != dto.ClientId)
             _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
             
@@ -187,12 +194,14 @@ public sealed class AppointmentService(
         return await SaveChangesAsync();
     }
     
-    public async Task<bool> DeleteAsync(int id, int clientId)
+    public async Task<bool> DeleteAsync(int id)
     {
         var appointment = await _dbSet.FindAsync(id);
 
         if (appointment is null)
             _errors.ThrowNotFoundException();
+            
+        var clientId = await _userService.GetMyUserIdAsync()!;
         
         if (appointment!.ClientId != clientId)
             _errors.ThrowAppointmentNotBelongsToClientException(clientId);
