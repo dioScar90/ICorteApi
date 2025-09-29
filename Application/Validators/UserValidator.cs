@@ -30,7 +30,7 @@ public sealed class UserDtoPhoneNumberUpdateValidator : AbstractValidator<UserDt
     }
 }
 
-public sealed class UserValidator : AbstractValidator<UserDto>
+public sealed class UserValidator : AbstractValidator<UserDtoRegisterRequest>
 {
     public UserValidator()
     {
@@ -39,7 +39,7 @@ public sealed class UserValidator : AbstractValidator<UserDto>
         RuleFor(x => x.Password).ApplyPasswordValidation();
 
         RuleFor(x => x.Profile)
-            .SetValidator(new ProfileValidator())
+            .SetValidator(new ProfileValidator()!)
             .When(x => x.Profile is not null);
     }
 }

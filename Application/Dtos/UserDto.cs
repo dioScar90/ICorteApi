@@ -19,11 +19,11 @@ public record UserDtoPhoneNumberUpdate(
     string PhoneNumber
 ) : IDtoRequest<User>;
 
-public record UserDtoRegisterCreate(
+public record UserDtoRegisterRequest(
     string Email,
     string Password,
-    ProfileDtoCreate? Profile = null,
-    BarberShopDtoCreate? BarberShop = null
+    ProfileDtoRequest? Profile = null,
+    BarberShopDtoRequest? BarberShop = null
 ) : IDtoRequest<User>;
 
 public record UserDtoLoginRequest(
@@ -35,7 +35,7 @@ public record UserDtoForgotPasswordRequest(
     string Email
 ) : IDtoRequest<User>;
 
-public record UserDtoPasswordUpdate(
+public record UserDtoPasswordUpdateRequest(
     string CurrentPassword,
     string NewPassword
 ) : IDtoRequest<User>;
