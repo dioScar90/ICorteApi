@@ -1,4 +1,4 @@
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,14 +8,14 @@ namespace ICorteApi.Application.Services;
 public sealed class AdminService(
     AppDbContext context,
     UserManager<User> userManager,
-    IBarberScheduleRepository repository,
-    IAdminErrors errors,
-    IConfiguration configuration) : IAdminService
+    BarberScheduleService barberScheduleRep,
+    AdminErrors errors,
+    IConfiguration configuration)
 {
     private readonly AppDbContext _context = context;
     private readonly UserManager<User> _userManager = userManager;
-    private readonly IBarberScheduleRepository _barberScheduleRep = repository;
-    private readonly IAdminErrors _errors = errors;
+    private readonly BarberScheduleService _barberScheduleRep = barberScheduleRep;
+    private readonly AdminErrors _errors = errors;
     private readonly IConfiguration _configuration = configuration;
     
     private string? GetEnvironmentValue(string key) => Environment.GetEnvironmentVariable(key) ?? _configuration[key];

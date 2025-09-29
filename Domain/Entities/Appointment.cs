@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Appointment : BaseEntity<Appointment, AppointmentDtoResponse, AppointmentDtoRequest>
+public sealed class Appointment : BaseEntity<Appointment>
 {
     public DateOnly Date { get; private set; }
     public TimeOnly StartTime { get; private set; }
@@ -61,7 +61,7 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDtoResponse
         UpdateTotalPrice();
     }
     
-    public override void UpdateEntity(AppointmentDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(AppointmentDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -86,7 +86,7 @@ public sealed class Appointment : BaseEntity<Appointment, AppointmentDtoResponse
     
     private ServiceDtoResponse[] GetServicesIntoDto() => [.. Services.Select(s => s.CreateDto())];
 
-    public override AppointmentDtoResponse CreateDto() => new(
+    public AppointmentDtoResponse CreateDto() => new(
         Id,
         ClientId,
         BarberShopId,

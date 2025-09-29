@@ -18,7 +18,7 @@ public sealed class BarberShopService(
 
     public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var ownerId = await _userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -48,13 +49,13 @@ public static class AdminEndpoint
         return app;
     }
     
-    private static async Task<string> GetCurrentUserEmail(this IUserService userService) => (await userService.GetMeAsync())?.Email ?? string.Empty;
+    private static async Task<string> GetCurrentUserEmail(this UserService userService) => (await userService.GetMeAsync())?.Email ?? string.Empty;
     
     public static async Task<IResult> RemoveAllRowsAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
         [FromQuery] bool? evenMasterAdmin,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
@@ -66,8 +67,8 @@ public static class AdminEndpoint
     public static async Task<IResult> DeleteServiceAndRemoveFromAllAppointmentsAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
         [FromQuery] int serviceId,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
@@ -78,8 +79,8 @@ public static class AdminEndpoint
     
     public static async Task<IResult> PopulateAllInitialTablesAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
@@ -92,8 +93,8 @@ public static class AdminEndpoint
         [FromQuery] DateOnly? firstDate,
         [FromQuery] DateOnly? limitDate,
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
@@ -105,8 +106,8 @@ public static class AdminEndpoint
     public static async Task<IResult> ResetPasswordForSomeUserAsync(
         ResetPasswordDto dto,
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
@@ -121,8 +122,8 @@ public static class AdminEndpoint
     
     public static async Task<IResult> SearchForUsersByNameAsync(
         [FromQuery] string? q,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
         
@@ -133,8 +134,8 @@ public static class AdminEndpoint
     
     public static async Task<IResult> GetLastUsersAsync(
         [FromQuery] int? take,
-        IAdminService service,
-        IUserService userService)
+        AdminService service,
+        UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
         

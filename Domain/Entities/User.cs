@@ -1,5 +1,4 @@
 using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Base;
 using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Domain.Entities;

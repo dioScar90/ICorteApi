@@ -1,3 +1,5 @@
+using ICorteApi.Application.Services;
+
 namespace ICorteApi.Application.Dtos;
 
 public record UserDto(
@@ -5,8 +7,8 @@ public record UserDto(
     string Email,
     string PhoneNumber,
     string[] Roles,
-    ProfileDto? Profile,
-    BarberShopDto? BarberShop
+    ProfileDtoRequest? Profile,
+    BarberShopDtoRequest? BarberShop
 ) : IDto<User>;
 
 public record UserDtoEmailUpdate(

@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Message : BaseEntity<Message, MessageDtoResponse, MessageDtoRequest>
+public sealed class Message : BaseEntity<Message>
 {
     public string Content { get; private set; }
     public DateTime SentAt { get; private set; }
@@ -23,7 +23,7 @@ public sealed class Message : BaseEntity<Message, MessageDtoResponse, MessageDto
         SenderId = senderId ?? default;
     }
     
-    public override void UpdateEntity(MessageDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(MessageDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -33,7 +33,7 @@ public sealed class Message : BaseEntity<Message, MessageDtoResponse, MessageDto
         UpdatedAt = utcNow;
     }
 
-    public override MessageDtoResponse CreateDto() => new(
+    public MessageDtoResponse CreateDto() => new(
         Id,
         AppointmentId,
         SenderId,

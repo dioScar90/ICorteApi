@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Profile : BaseEntity<Profile, ProfileDtoResponse, ProfileDtoRequest>
+public sealed class Profile : BaseEntity<Profile>
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
@@ -39,7 +39,7 @@ public sealed class Profile : BaseEntity<Profile, ProfileDtoResponse, ProfileDto
 
     public string GetPhoneNumberToUserEntity() => _phoneNumber;
     
-    public override void UpdateEntity(ProfileDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(ProfileDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -52,7 +52,7 @@ public sealed class Profile : BaseEntity<Profile, ProfileDtoResponse, ProfileDto
         UpdatedAt = utcNow;
     }
 
-    public override ProfileDtoResponse CreateDto() => new(
+    public ProfileDtoResponse CreateDto() => new(
         Id,
         FirstName,
         LastName,

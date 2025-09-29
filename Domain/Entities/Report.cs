@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Report : BaseEntity<Report, ReportDtoResponse, ReportDtoRequest>
+public sealed class Report : BaseEntity<Report>
 {
     public string? Title { get; private set; }
     public string? Content { get; private set; }
@@ -24,7 +24,7 @@ public sealed class Report : BaseEntity<Report, ReportDtoResponse, ReportDtoRequ
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntity(ReportDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(ReportDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -35,7 +35,7 @@ public sealed class Report : BaseEntity<Report, ReportDtoResponse, ReportDtoRequ
         UpdatedAt = utcNow;
     }
 
-    public override ReportDtoResponse CreateDto() => new(
+    public ReportDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         Title,

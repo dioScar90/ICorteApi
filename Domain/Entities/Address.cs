@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Address : BaseEntity<Address, AddressDtoResponse, AddressDtoRequest>
+public sealed class Address : BaseEntity<Address>
 {
     public string Street { get; private set; }
     public string Number { get; private set; }
@@ -30,7 +30,7 @@ public sealed class Address : BaseEntity<Address, AddressDtoResponse, AddressDto
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntity(AddressDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(AddressDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -46,7 +46,7 @@ public sealed class Address : BaseEntity<Address, AddressDtoResponse, AddressDto
         UpdatedAt = utcNow;
     }
 
-    public override AddressDtoResponse CreateDto() => new(
+    public AddressDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         Street,

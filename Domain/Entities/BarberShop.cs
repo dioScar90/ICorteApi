@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDtoResponse, BarberShopDtoRequest>
+public sealed class BarberShop : BaseEntity<BarberShop>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -58,7 +58,7 @@ public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDtoResponse, B
 
     public void UpdateRating(float rating) => Rating = rating;
     
-    public override void UpdateEntity(BarberShopDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(BarberShopDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -75,7 +75,7 @@ public sealed class BarberShop : BaseEntity<BarberShop, BarberShopDtoResponse, B
         UpdatedAt = utcNow;
     }
     
-    public override BarberShopDtoResponse CreateDto() => new(
+    public BarberShopDtoResponse CreateDto() => new(
         Id,
         OwnerId,
         Name,

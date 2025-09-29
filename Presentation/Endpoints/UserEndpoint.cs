@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using ICorteApi.Domain.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -34,7 +36,7 @@ public static class UserEndpoint
         return app;
     }
     
-    public static async Task<Ok<UserDtoResponse>> GetMeAsync(IUserService service, IUserErrors errors)
+    public static async Task<Ok<UserDtoResponse>> GetMeAsync(UserService service, UserErrors errors)
     {
         var user = await service.GetMeAsync();
 
@@ -47,8 +49,8 @@ public static class UserEndpoint
     public static async Task<IResult> UpdateUserEmailAsync(
         UserDtoEmailUpdate dto,
         IValidator<UserDtoEmailUpdate> validator,
-        IUserService service,
-        IUserErrors errors)
+        UserService service,
+        UserErrors errors)
     {
         dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdateEmailAsync(dto);
@@ -62,8 +64,8 @@ public static class UserEndpoint
     public static async Task<IResult> UpdateUserPasswordAsync(
         UserDtoPasswordUpdate dto,
         IValidator<UserDtoPasswordUpdate> validator,
-        IUserService service,
-        IUserErrors errors)
+        UserService service,
+        UserErrors errors)
     {
         dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdatePasswordAsync(dto);
@@ -77,8 +79,8 @@ public static class UserEndpoint
     public static async Task<IResult> UpdateUserPhoneNumberAsync(
         UserDtoPhoneNumberUpdate dto,
         IValidator<UserDtoPhoneNumberUpdate> validator,
-        IUserService service,
-        IUserErrors errors)
+        UserService service,
+        UserErrors errors)
     {
         dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdatePhoneNumberAsync(dto);
@@ -89,7 +91,7 @@ public static class UserEndpoint
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteUserAsync(IUserService service, IUserErrors errors)
+    public static async Task<IResult> DeleteUserAsync(UserService service, UserErrors errors)
     {
         int userId = await service.GetMyUserIdAsync();
         var result = await service.DeleteAsync(userId);

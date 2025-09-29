@@ -32,7 +32,7 @@ public sealed class MessageService(
 
     public async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
         
         var senderId = await _userService.GetMyUserIdAsync()!;
         var message = new Message(dto, dto.AppointmentId, senderId);
@@ -121,7 +121,7 @@ public sealed class MessageService(
     public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdate[] dtos, int senderId)
     {
         foreach (var dto in dtos)
-            dto.ThrowExceptionIfInvalid(_validator, _errors);
+            dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 

@@ -27,7 +27,7 @@ public sealed class AppointmentService(
     public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
     {
         _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         if (dto.Services.Length == 0)
             _errors.ThrowEmptyServicesException();
@@ -196,7 +196,7 @@ public sealed class AppointmentService(
     public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
     {
         _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var appointment = await FindEntityAsync(id);
         
@@ -205,7 +205,8 @@ public sealed class AppointmentService(
         await UpdateAppointmentServicesAsync(appointment, dto);
         
         _logger.LogDebug("Updating Appointment with Id={Id}", id);
-        return await UpdateAsync(appointment, dto);
+        appointment.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)

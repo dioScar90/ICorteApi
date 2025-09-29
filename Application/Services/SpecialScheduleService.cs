@@ -16,7 +16,7 @@ public sealed class SpecialScheduleService(
 
     public async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var schedule = new SpecialSchedule(dto);
 
@@ -72,7 +72,7 @@ public sealed class SpecialScheduleService(
 
     public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var schedule = await _dbSet.FindAsync(date, barberShopId);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -34,7 +35,7 @@ public static class BarberScheduleEndpoint
     public static async Task<IResult> GetAvailableDatesForBarberAsync(
         int barberShopId,
         DateOnly dateOfWeek,
-        IBarberScheduleService service)
+        BarberScheduleService service)
     {
         var dates = await service.GetAvailableDatesForBarberAsync(barberShopId, dateOfWeek);
         return Results.Ok(dates);
@@ -44,7 +45,7 @@ public static class BarberScheduleEndpoint
         int barberShopId,
         DateOnly date,
         [FromQuery] int[] serviceIds,
-        IBarberScheduleService service)
+        BarberScheduleService service)
     {
         var slots = await service.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
         return Results.Ok(slots);
@@ -53,7 +54,7 @@ public static class BarberScheduleEndpoint
     public static async Task<IResult> GetTopBarbersWithAvailabilityAsync(
         DateOnly dateOfWeek,
         [FromQuery] int? take,
-        IBarberScheduleService service)
+        BarberScheduleService service)
     {
         var TopBarberShopDtos = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
         return Results.Ok(TopBarberShopDtos);
@@ -61,7 +62,7 @@ public static class BarberScheduleEndpoint
     
     public static async Task<IResult> SearchServicesByNameAsync(
         [FromQuery] string q,
-        IBarberScheduleService service)
+        BarberScheduleService service)
     {
         var TopBarberShopDtos = await service.SearchServicesByName(q);
         return Results.Ok(TopBarberShopDtos);

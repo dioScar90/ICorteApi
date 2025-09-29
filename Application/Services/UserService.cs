@@ -5,21 +5,21 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class UserService : IUserService
+public sealed class UserService
 {
     private readonly IHttpContextAccessor _httpCtx;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly AppDbContext _context;
     private readonly DbSet<User> _userDbSet;
-    private readonly IUserErrors _userErrors;
+    private readonly UserErrors _userErrors;
     
     public UserService(
         IHttpContextAccessor httpContextAccessor,
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         AppDbContext context,
-        IUserErrors errors)
+        UserErrors errors)
     {
         _httpCtx = httpContextAccessor;
         _userManager = userManager;

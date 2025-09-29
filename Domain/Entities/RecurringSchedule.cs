@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, RecurringScheduleDtoResponse, RecurringScheduleDtoRequest>
+public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
 {
     public DayOfWeek DayOfWeek { get; init; }
 
@@ -21,7 +21,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Re
         CloseTime = dto.CloseTime;
     }
     
-    public override void UpdateEntity(RecurringScheduleDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(RecurringScheduleDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -32,7 +32,7 @@ public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule, Re
         UpdatedAt = utcNow;
     }
     
-    public override RecurringScheduleDtoResponse CreateDto() => new(
+    public RecurringScheduleDtoResponse CreateDto() => new(
         DayOfWeek,
         BarberShopId,
         OpenTime,

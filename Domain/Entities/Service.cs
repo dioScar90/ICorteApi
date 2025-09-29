@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ICorteApi.Domain.Entities;
 
-public sealed class Service : BaseEntity<Service, ServiceDtoResponse, ServiceDtoRequest>
+public sealed class Service : BaseEntity<Service>
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }
@@ -30,7 +30,7 @@ public sealed class Service : BaseEntity<Service, ServiceDtoResponse, ServiceDto
         BarberShopId = barberShopId ?? default;
     }
     
-    public override void UpdateEntity(ServiceDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(ServiceDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -42,7 +42,7 @@ public sealed class Service : BaseEntity<Service, ServiceDtoResponse, ServiceDto
         UpdatedAt = utcNow;
     }
 
-    public override ServiceDtoResponse CreateDto() => new(
+    public ServiceDtoResponse CreateDto() => new(
         Id,
         BarberShopId,
         default,

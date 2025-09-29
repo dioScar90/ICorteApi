@@ -1,17 +1,13 @@
-using ICorteApi.Application.Services;
-
 namespace ICorteApi.Domain.Entities;
 
-public interface IBaseUserEntity : IBaseEntity<User, UserDto>
+public interface IBaseUserEntity : IBaseEntity<User>
 {
     void UpdatedUserNow();
 }
 
-public interface IBaseEntity<TEntity, TDtoResponse, TDtoRequest>
-    : IBaseEntity, IBaseTableEntity<TEntity, TDtoResponse, TDtoRequest>
+public interface IBaseEntity<TEntity>
+    : IBaseEntity, IBaseTableEntity<TEntity>
         where TEntity : class, IBaseTableEntity
-        where TDtoResponse : class, IDtoResponse<TEntity>
-        where TDtoRequest : class, IDtoRequest<TEntity>
 {
 }
 
@@ -25,25 +21,19 @@ public interface IBaseEntity
     void DeleteEntity();
 }
 
-public interface ICompositeKeyEntity<TEntity, TDtoResponse, TDtoRequest>
-    : IBaseTableEntity<TEntity, TDtoResponse, TDtoRequest>
+public interface ICompositeKeyEntity<TEntity>
+    : IBaseTableEntity<TEntity>
         where TEntity : class, IBaseTableEntity
-        where TDtoResponse : class, IDtoResponse<TEntity>
-        where TDtoRequest : class, IDtoRequest<TEntity>
 {
     DateTime CreatedAt { get; }
     DateTime? UpdatedAt { get; }
     bool IsActive { get; }
 }
 
-public interface IBaseTableEntity<TEntity, TDtoResponse, TDtoRequest>
+public interface IBaseTableEntity<TEntity>
     : IBaseTableEntity
         where TEntity : class, IBaseTableEntity
-        where TDtoResponse : class, IDtoResponse<TEntity>
-        where TDtoRequest : class, IDtoRequest<TEntity>
 {
-    void UpdateEntity(TDtoRequest dto, DateTime? utcNow = null);
-    TDtoResponse CreateDto();
 }
 
 public interface IBaseTableEntity

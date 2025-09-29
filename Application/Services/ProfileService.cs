@@ -18,7 +18,7 @@ public sealed class ProfileService(
 
     public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var userId = await _userService.GetMyUserIdAsync();
         var profile = new Profile(dto, userId);
@@ -74,7 +74,7 @@ public sealed class ProfileService(
     
     public async Task<bool> UpdateAsync(ProfileDtoRequest dto, int id)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var userId = await _userService.GetMyUserIdAsync();
         var profile = await _dbSet.FindAsync(id);

@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, SpecialScheduleDtoResponse, SpecialScheduleDtoRequest>
+public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
 {
     public DateOnly Date { get; init; }
     public DayOfWeek DayOfWeek { get; set; }
@@ -26,7 +26,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, Specia
         IsClosed = dto is { OpenTime: null, CloseTime: null };
     }
     
-    public override void UpdateEntity(SpecialScheduleDtoRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(SpecialScheduleDtoRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
 
@@ -39,7 +39,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule, Specia
         UpdatedAt = utcNow;
     }
     
-    public override SpecialScheduleDtoResponse CreateDto() => new(
+    public SpecialScheduleDtoResponse CreateDto() => new(
         Date,
         BarberShopId,
         DayOfWeek,

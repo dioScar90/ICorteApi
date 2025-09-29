@@ -76,12 +76,14 @@ public sealed class AddressService(
     public async Task<bool> UpdateAsync(AddressDtoRequest dto, int id)
     {
         _logger.LogDebug("Starting validation for Address {@Address}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var address = await FindEntityAsync(id, dto.BarberShopId);
-        
+
         _logger.LogDebug("Updating Address with Id={Id}", id);
-        return await UpdateAsync(address, dto);
+
+        address.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id, int barberShopId)

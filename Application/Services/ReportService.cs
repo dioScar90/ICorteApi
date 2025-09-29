@@ -18,7 +18,7 @@ public sealed class ReportService(
 
     public async Task<ReportDtoResponse> CreateAsync(ReportDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var clientId = await _userService.GetMyUserIdAsync()!;
         var report = new Report(dto, clientId, dto.BarberShopId);
@@ -74,7 +74,7 @@ public sealed class ReportService(
     
     public async Task<bool> UpdateAsync(ReportDtoRequest dto, int id, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors);
+        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var report = await _dbSet.FindAsync(id);
 

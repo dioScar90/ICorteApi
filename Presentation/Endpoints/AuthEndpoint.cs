@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using ICorteApi.Domain.Interfaces;
 using FluentValidation;
+using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 
 namespace ICorteApi.Presentation.Endpoints;
 
@@ -36,9 +38,9 @@ public static class AuthEndpoint
     public static async Task<IResult> RegisterAsync(
         UserDtoRegisterCreate dto,
         IValidator<UserDtoRegisterCreate> validator,
-        IUserService service,
+        UserService service,
         SignInManager<User> signInManager,
-        IUserErrors errors)
+        UserErrors errors)
     {
         dto.ThrowExceptionIfInvalid(validator, errors);
         var user = await service.CreateAsync(dto);
@@ -58,7 +60,7 @@ public static class AuthEndpoint
         UserDtoLoginRequest dto,
         IValidator<UserDtoLoginRequest> validator,
         SignInManager<User> signInManager,
-        IUserErrors errors)
+        UserErrors errors)
     {
         dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await LoginHowItMustBe(dto.Email, dto.Password, signInManager);
