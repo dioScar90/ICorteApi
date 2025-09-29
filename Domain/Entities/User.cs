@@ -1,6 +1,3 @@
-using ICorteApi.Application.Validators;
-using ICorteApi.Domain.Errors;
-
 namespace ICorteApi.Domain.Entities;
 
 public sealed class User : BaseUserEntity
@@ -16,10 +13,8 @@ public sealed class User : BaseUserEntity
 
     public User() { }
 
-    public User(UserDto dto)
+    public User(UserDtoRegisterRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(new UserValidator(), new UserErrors());
-
         UserName = dto.Email;
         Email = dto.Email;
 
@@ -45,7 +40,7 @@ public sealed class User : BaseUserEntity
 
     private string[] GetRolesAsStringArray() => _roles.Select(Enum.GetName).ToArray()!;
 
-    public override UserDto CreateDto() => new(
+    public UserDtoResponse CreateDto() => new(
         Id,
         Email,
         PhoneNumber,

@@ -128,7 +128,7 @@ public class BarberScheduleService(AppDbContext context)
         return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
     }
     
-    public async Task<TopBarberShopDto[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? _take)
+    public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? _take)
     {
         var (firstDateThisWeek, lastDateThisWeek) = GetFirstAndLastDatesOfWeek(randomDate);
 
@@ -148,7 +148,7 @@ public class BarberScheduleService(AppDbContext context)
             .OrderByDescending(x => x.b.Rating)
                 .ThenBy(x => x.b.Name)
             .Take(take)
-            .Select(x => new TopBarberShopDto(
+            .Select(x => new TopBarberShopDtoResponse(
                 x.b.Id,
                 x.b.Name,
                 x.b.Description,

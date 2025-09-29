@@ -24,11 +24,16 @@ public record MessageDtoRequest(
     string LastName
 ) : IDtoRequest<Message>;
 
-public record ChatWithMessagesDto(
+public record MessageDtoIsReadUpdateRequest(
+    int Id,
+    bool IsRead
+) : IDtoRequest<Message>;
+
+public record ChatWithMessagesDtoResponse(
     int AppointmentId,
     bool IsMe,
     string Content,
     DateTime SentAt,
     string FirstName,
     bool IsRead
-) : IDto<Message>;
+) : IDtoResponse<Message>;

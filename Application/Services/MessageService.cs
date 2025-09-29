@@ -118,10 +118,10 @@ public sealed class MessageService(
         return await CreateAsync(dto);
     }
 
-    public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdate[] dtos, int senderId)
+    public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdateRequest[] dtos, int senderId)
     {
-        foreach (var dto in dtos)
-            dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
+        // foreach (var dto in dtos)
+        //     dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 
@@ -185,10 +185,10 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
 
-    private async Task<ChatWithMessagesDto[]> GetClientChatHistoryAsync(int clientId)
+    private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
     {
         return await _context.Database
-            .SqlQuery<ChatWithMessagesDto>(@$"
+            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
                 SELECT A.id AS AppointmentId
                     ,IIF(M.sender_id = {clientId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
                     ,M.content AS Content
@@ -213,10 +213,10 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
 
-    private async Task<ChatWithMessagesDto[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
+    private async Task<ChatWithMessagesDtoResponse[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
     {
         return await _context.Database
-            .SqlQuery<ChatWithMessagesDto>(@$"
+            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
                 SELECT A.id AS AppointmentId
                     ,IIF(M.sender_id = {ownerBarberShopId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
                     ,M.content AS Content
@@ -251,7 +251,7 @@ public sealed class MessageService(
             .ToArrayAsync();
     }
 
-    public async Task<ChatWithMessagesDto[]> GetChatHistoryAsync(int senderId, bool isBarber)
+    public async Task<ChatWithMessagesDtoResponse[]> GetChatHistoryAsync(int senderId, bool isBarber)
     {
         return isBarber ? await GetBarberChatHistoryAsync(senderId) : await GetClientChatHistoryAsync(senderId);
     }

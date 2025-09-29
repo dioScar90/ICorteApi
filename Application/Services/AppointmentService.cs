@@ -217,7 +217,7 @@ public sealed class AppointmentService(
             
         dto = dto with { ClientId = appointment.ClientId };
 
-        appointment.UpdatePaymentType(dto);
+        appointment.UpdateEntity(dto);
         return await SaveChangesAsync();
     }
     

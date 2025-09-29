@@ -75,7 +75,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         UpdatedAt = utcNow;
     }
     
-    public void UpdatePaymentType(AppointmentPaymentTypeDtoUpdateRequest dto, DateTime? utcNow = null)
+    public void UpdateEntity(AppointmentPaymentTypeDtoUpdateRequest dto, DateTime? utcNow = null)
     {
         utcNow ??= DateTime.UtcNow;
         

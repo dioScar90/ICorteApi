@@ -7,8 +7,6 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
     public bool IsDeleted { get; protected set; } = false;
-    public abstract void UpdateEntity(UserDto dto, DateTime? utcNow = null);
-    public abstract UserDto CreateDto();
 
     public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
 
