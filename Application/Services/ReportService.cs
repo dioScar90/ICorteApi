@@ -1,4 +1,3 @@
-using FluentValidation;
 using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
@@ -7,15 +6,17 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ReportService(
     AppDbContext context,
+    ILogger<ReportService> logger,
     UserService userService,
     ReportValidator validator,
     ReportErrors errors)
-    : BaseService<Report, ReportDtoResponse, ReportDtoRequest>(context, userService)
+    : BaseService<Report>(context, logger)
 {
+    private readonly UserService _userService = userService;
     private readonly ReportValidator _validator = validator;
     private readonly ReportErrors _errors = errors;
 
-    public override async Task<ReportDtoResponse> CreateAsync(ReportDtoRequest dto)
+    public async Task<ReportDtoResponse> CreateAsync(ReportDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
@@ -54,13 +55,13 @@ public sealed class ReportService(
     public async Task<PaginationResponse<ReportDtoResponse>> GetAllAsync(
         int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(
+        return await GetAllAsync<ReportDtoResponse>(
             new(
                 page,
                 pageSize,
                 x => x.BarberShopId == barberShopId,
                 new(x => x.Id),
-                    r => new ReportDtoResponse(
+                r => new(
                     r.Id,
                     r.BarberShopId,
                     r.Title,
@@ -83,7 +84,8 @@ public sealed class ReportService(
         if (report!.BarberShopId != barberShopId)
             _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
 
-        return await UpdateAsync(report, dto);
+        report.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id, int barberShopId)

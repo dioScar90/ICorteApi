@@ -6,15 +6,17 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ProfileService(
     AppDbContext context,
+    ILogger<ProfileService> logger,
     UserService userService,
     ProfileValidator validator,
     ProfileErrors errors)
-    : BaseService<Profile, ProfileDtoResponse, ProfileDtoRequest>(context, userService)
+    : BaseService<Profile>(context, logger)
 {
+    private readonly UserService _userService = userService;
     private readonly ProfileValidator _validator = validator;
     private readonly ProfileErrors _errors = errors;
 
-    public override async Task<ProfileDtoResponse> CreateAsync(ProfileDtoRequest dto)
+    public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 

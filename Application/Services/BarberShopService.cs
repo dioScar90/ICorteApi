@@ -6,15 +6,17 @@ namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
+    ILogger<BarberShopService> logger,
     UserService userService,
     BarberShopValidator validator,
     BarberShopErrors errors)
-    : BaseService<BarberShop, BarberShopDtoResponse, BarberShopDtoRequest>(context, userService)
+    : BaseService<BarberShop>(context, logger)
 {
+    private readonly UserService _userService = userService;
     private readonly BarberShopValidator _validator = validator;
     private readonly BarberShopErrors _errors = errors;
 
-    public override async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
+    public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
@@ -122,12 +124,12 @@ public sealed class BarberShopService(
 
         return barberShop!;
     }
-    
+
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
         int barberShopId, int page, int pageSize)
     {
         var ownerId = await _userService.GetMyUserIdAsync()!;
-
+        
         var query = _context.Appointments
             .AsNoTracking()
             .AsSplitQuery()
@@ -162,9 +164,9 @@ public sealed class BarberShopService(
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-        
+
         page = page > 0 && totalPages > 0 ? Math.Clamp(page, 1, totalPages) : 1;
-        
+
         var entities = totalItems == 0 ? [] : await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -184,8 +186,9 @@ public sealed class BarberShopService(
         
         if (barberShop!.OwnerId != ownerId)
             _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
-            
-        return await UpdateAsync(barberShop, dto);
+
+        barberShop.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(int id)

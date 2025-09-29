@@ -6,15 +6,15 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
     AppDbContext context,
-    UserService userService,
+    ILogger<ServiceService> logger,
     ServiceValidator validator,
     ServiceErrors errors)
-    : BaseService<Service, ServiceDtoResponse, ServiceDtoRequest>(context, userService)
+    : BaseService<Service>(context, logger)
 {
     private readonly ServiceValidator _validator = validator;
     private readonly ServiceErrors _errors = errors;
 
-    public override async Task<ServiceDtoResponse> CreateAsync(ServiceDtoRequest dto)
+    public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
@@ -66,13 +66,13 @@ public sealed class ServiceService(
     
     public async Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(
+        return await GetAllAsync<ServiceDtoResponse>(
             new(
                 page,
                 pageSize,
                 x => x.BarberShopId == barberShopId,
                 new(x => x.Name),
-                s => new ServiceDtoResponse(
+                s => new(
                     s.Id,
                     s.BarberShopId,
                     s.BarberShop.Name,
@@ -96,8 +96,9 @@ public sealed class ServiceService(
 
         if (service!.BarberShopId != barberShopId)
             _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
-            
-        return await UpdateAsync(service, dto);
+
+        service.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)

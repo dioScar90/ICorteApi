@@ -16,8 +16,14 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Exception occurred: {exception.Message}", exception.Message);
-
+        if (exception is not ICustomException)
+        {
+            if (exception is ValidationException validationException)
+                _logger.LogWarning(validationException, "Validation Exception occurred: {Message}", validationException.Message);
+            else
+                _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
+        }
+        
         httpContext.Response.StatusCode = GetStatusCodeForProblemDetails(exception);
 
         return await problemDetailsService.TryWriteAsync(new()
@@ -47,7 +53,7 @@ public sealed class GlobalExceptionHandler(
 
         string getUnknownMessage(Exception _exception) => $"Unknown {_exception.GetType().Name} problem";
 
-        if (exception is BaseException bEx)
+        if (exception is ICustomException bEx)
             setProps(new()
             {
                 ["errors"] = bEx.Errors
@@ -76,54 +82,16 @@ public sealed class GlobalExceptionHandler(
 
         return extensions;
     }
-
-    private static bool IsMappedExceptionType(Exception exception) => exception
-        // Custom exceptions
-        is UnauthorizedException
-        or NotFoundException
-        or BadRequestException
-        or ForbiddenException
-        or ConflictException
-        or UnprocessableEntity
-        or MethodNotAllowedException
-        // Native exceptions
-        or BadHttpRequestException
-        or ArgumentNullException
-        or ArgumentException
-        or UnauthorizedAccessException
-        or InvalidOperationException
-        or KeyNotFoundException
-        or NotSupportedException
-        or TimeoutException
-        // Entity Framework Excceptions
-        or DbUpdateException
-        or SqlException
-        // Fluent Validation Excceptions
-        or ValidationException
-    ;
     
-    private static string GetTitleForProblemDetails(Exception exception)
+    private static string GetTitleForProblemDetails(Exception exception) => exception switch
     {
-        var nameWithoutException = IsMappedExceptionType(exception) ? exception.GetType().Name.Replace("Exception", "") : "Server";
-        
-        var name = nameWithoutException.ToSnakeCase()
-            .Split("_")
-            .Select(text => char.ToUpper(text[0]) + text[1..])
-            .Append("Error");
-            
-        return string.Join(" ", name);
-    }
-        
+        ICustomException mappedException => mappedException.Title,
+        _ => "Server Error"
+    };
+    
     private static int GetStatusCodeForProblemDetails(Exception exception) => exception switch
     {
-        // Custom exceptions
-        UnauthorizedException => StatusCodes.Status401Unauthorized,
-        NotFoundException => StatusCodes.Status404NotFound,
-        BadRequestException => StatusCodes.Status400BadRequest,
-        ForbiddenException => StatusCodes.Status403Forbidden,
-        ConflictException => StatusCodes.Status409Conflict,
-        UnprocessableEntity => StatusCodes.Status422UnprocessableEntity,
-        MethodNotAllowedException => StatusCodes.Status405MethodNotAllowed,
+        ICustomException mappedException => mappedException.HttpStatusCode,
 
         // Native exceptions
         BadHttpRequestException => StatusCodes.Status400BadRequest,

@@ -1,4 +1,3 @@
-using FluentValidation;
 using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
@@ -7,15 +6,15 @@ namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
     AppDbContext context,
-    UserService userService,
+    ILogger<SpecialScheduleService> logger,
     SpecialScheduleValidator validator,
     SpecialScheduleErrors errors)
-    : BaseService<SpecialSchedule, SpecialScheduleDtoResponse, SpecialScheduleDtoRequest>(context, userService)
+    : BaseService<SpecialSchedule>(context, logger)
 {
     private readonly SpecialScheduleValidator _validator = validator;
     private readonly SpecialScheduleErrors _errors = errors;
 
-    public override async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoRequest dto)
+    public async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
@@ -52,13 +51,13 @@ public sealed class SpecialScheduleService(
     public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(
         int? page, int? pageSize, int barberShopId)
     {
-        return await GetAllAsync(
+        return await GetAllAsync<SpecialScheduleDtoResponse>(
             new(
                 page,
                 pageSize,
                 x => x.BarberShopId == barberShopId,
                 new(x => x.Date),
-                    s => new SpecialScheduleDtoResponse(
+                s => new(
                     s.Date,
                     s.BarberShopId,
                     s.DayOfWeek,
@@ -82,8 +81,9 @@ public sealed class SpecialScheduleService(
 
         if (schedule!.BarberShopId != barberShopId)
             _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
-        
-        return await UpdateAsync(schedule, dto);
+
+        schedule.UpdateEntity(dto);
+        return await SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)

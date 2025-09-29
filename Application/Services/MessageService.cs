@@ -6,11 +6,13 @@ namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
     AppDbContext context,
+    ILogger<MessageService> logger,
     UserService userService,
     MessageValidator validator,
     MessageErrors errors)
-    : BaseService<Message, MessageDtoResponse, MessageDtoRequest>(context, userService)
+    : BaseService<Message>(context, logger)
 {
+    private readonly UserService _userService = userService;
     private readonly MessageValidator _validator = validator;
     private readonly MessageErrors _errors = errors;
 
@@ -28,7 +30,7 @@ public sealed class MessageService(
         );
     }
 
-    public override async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
+    public async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
     {
         dto.ThrowExceptionIfInvalid(_validator, _errors);
         
@@ -82,13 +84,13 @@ public sealed class MessageService(
 
     public async Task<PaginationResponse<MessageDtoResponse>> GetAllAsync(int? page, int? pageSize, int appointmentId)
     {
-        return await GetAllAsync(
+        return await GetAllAsync<MessageDtoResponse>(
             new(
                 page,
                 pageSize,
                 x => x.AppointmentId == appointmentId,
                 new(x => x.SentAt),
-                    m => new MessageDtoResponse(
+                m => new(
                     m.Id,
                     m.AppointmentId,
                     m.SenderId,

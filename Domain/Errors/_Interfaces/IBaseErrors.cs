@@ -1,4 +1,4 @@
-using ICorteApi.Domain.Interfaces;
+using ICorteApi.Application.Services;
 
 namespace ICorteApi.Domain.Errors;
 

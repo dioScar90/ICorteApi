@@ -6,12 +6,14 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
     AppDbContext context,
+    ILogger<AppointmentService> logger,
     UserService userService,
     AppointmentValidator validator,
     ServiceService serviceService,
     AppointmentErrors errors)
-    : BaseService<Appointment, AppointmentDtoResponse, AppointmentDtoRequest>(context, userService)
+    : BaseService<Appointment>(context, logger)
 {
+    private readonly UserService _userService = userService;
     private readonly ServiceService _serviceService = serviceService;
     private readonly AppointmentValidator _validator = validator;
     private readonly AppointmentErrors _errors = errors;
@@ -22,8 +24,9 @@ public sealed class AppointmentService(
         return ids.Count == 1;
     }
     
-    public override async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
+    public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
     {
+        _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
         dto.ThrowExceptionIfInvalid(_validator, _errors);
 
         if (dto.Services.Length == 0)
@@ -40,6 +43,7 @@ public sealed class AppointmentService(
         _dbSet.Add(appointment);
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation("Appointment persisted in database with Id={Id}", appointment.Id);
         return await GetByIdAsync(appointment.Id);
     }
     
@@ -50,14 +54,46 @@ public sealed class AppointmentService(
 
     public record Includes(bool Collections = false);
 
+    private async Task<Appointment> FindEntityAsync(int id, Includes? includes = null)
+    {
+        _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
+        
+        includes ??= new();
+
+        var query = _dbSet
+            .Where(a => a.Id == id);
+            
+        if (includes.Collections)
+        {
+            query = query
+                .AsSplitQuery()
+                .Include(a => a.Services);
+        }
+
+        var appointment = await query
+            .FirstOrDefaultAsync();
+
+        if (appointment is null)
+            _errors.ThrowNotFoundException();
+            
+        var clientId = await _userService.GetMyUserIdAsync();
+
+        if (appointment!.ClientId != clientId)
+            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
+
+        return appointment;
+    }
+
     public async Task<AppointmentDtoResponse> GetByIdAsync(int id, Includes? includes = null)
     {
+        _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
+        
         includes ??= new();
 
         var query = _dbSet
             .AsNoTracking()
             .Where(a => a.Id == id);
-            
+
         if (includes.Collections)
         {
             query = query
@@ -103,13 +139,13 @@ public sealed class AppointmentService(
     {
         var clientId = await _userService.GetMyUserIdAsync()!;
 
-        return await GetAllAsync(
+        return await GetAllAsync<AppointmentDtoResponse>(
             new(
                 page,
                 pageSize,
                 x => x.ClientId == clientId,
                 new(x => x.Date),
-                a => new AppointmentDtoResponse(
+                a => new(
                     a.Id,
                     a.ClientId,
                     a.BarberShopId,
@@ -131,7 +167,8 @@ public sealed class AppointmentService(
                         ))
                         .ToArray(),
                     a.Status
-                )
+                ),
+                a => a.Services
             )
         );
     }
@@ -158,54 +195,36 @@ public sealed class AppointmentService(
 
     public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
     {
+        _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
         dto.ThrowExceptionIfInvalid(_validator, _errors);
+
+        var appointment = await FindEntityAsync(id);
         
-        var appointment = await _dbSet
-            .Include(a => a.Services)
-            .Where(a => a.Id == id)
-            .FirstAsync();
+        dto = dto with { ClientId = appointment.ClientId };
 
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-            
-        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
-
-        if (appointment!.ClientId != dto.ClientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
-            
         await UpdateAppointmentServicesAsync(appointment, dto);
-
+        
+        _logger.LogDebug("Updating Appointment with Id={Id}", id);
         return await UpdateAsync(appointment, dto);
     }
 
     public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
     {
-        var appointment = await _dbSet.FindAsync(id);
+        // dto.ThrowExceptionIfInvalid(_validator, _errors);
+        
+        var appointment = await FindEntityAsync(id);
+            
+        dto = dto with { ClientId = appointment.ClientId };
 
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-            
-        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
-            
-        if (appointment!.ClientId != dto.ClientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(dto.ClientId);
-            
         appointment.UpdatePaymentType(dto);
         return await SaveChangesAsync();
     }
     
     public async Task<bool> DeleteAsync(int id)
     {
-        var appointment = await _dbSet.FindAsync(id);
-
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-            
-        var clientId = await _userService.GetMyUserIdAsync()!;
+        var appointment = await FindEntityAsync(id);
         
-        if (appointment!.ClientId != clientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
-
+        _logger.LogDebug("Deleting Appointment with Id={Id}", id);
         return await DeleteAsync(appointment);
     }
 }
