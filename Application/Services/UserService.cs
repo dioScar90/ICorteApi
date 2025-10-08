@@ -30,10 +30,6 @@ public sealed class UserService
         _userErrors = errors;
     }
     
-    private async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
-    private static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
-    private static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
-    
     private async Task<User?> GetMyUserEntityAsync() =>
         _httpCtx.HttpContext?.User is null ? null : await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
     
@@ -98,12 +94,12 @@ public sealed class UserService
             if (!roleIdentityResult.Succeeded)
                 _userErrors.ThrowBasicUserException([..roleIdentityResult.Errors]);
             
-            await CommitAsync(transaction);
+            await transaction.CommitAsync();
             return newUser;
         }
         catch (Exception)
         {
-            await RollbackAsync(transaction);
+            await transaction.RollbackAsync();
             throw;
         }
     }
@@ -234,12 +230,12 @@ public sealed class UserService
             if (!identityResult.Succeeded)
                 _userErrors.ThrowBasicUserException([..identityResult.Errors]);
 
-            await CommitAsync(transaction);
+            await transaction.CommitAsync();
             return true;
         }
         catch (Exception)
         {
-            await RollbackAsync(transaction);
+            await transaction.RollbackAsync();
             throw;
         }
     }

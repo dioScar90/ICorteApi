@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace ICorteApi.Domain.Base;
+namespace ICorteApi.Domain.Utils;
 
 public record PaginationProperties<TEntity, TDtoResponse>
 {

@@ -22,6 +22,12 @@ builder.Services
     .AddExceptionHandlers()
 ;
 
+builder.Services
+    .AddAuthorizationBuilder(options =>
+    {
+        options.Defaul
+    })
+
 builder.Services.AddEndpointsApiExplorer();
 
 if (builder.Environment.IsDevelopment())

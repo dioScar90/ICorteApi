@@ -21,8 +21,7 @@ public static class AuthEndpoint
             .AllowAnonymous();
         
         group.MapPost("logout", LogoutUserAsync)
-            .WithSummary("Logout")
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .WithSummary("Logout");
 
         return app;
     }

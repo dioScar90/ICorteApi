@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class MessageEndpoint
 {
+    private static string GetBaseEndpoint(MessageDtoResponse? message = null) => message is null
+        ? "appointment/{appointmentId}/chat"
+        : $"appointment/{message.AppointmentId}/chat/{message.Id}";
+        
     public static IEndpointRouteBuilder MapMessageEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("appointment/{appointmentId}/chat").WithTags("Chat");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Chat");
 
         group.MapGet("check", IsAllowedCheckAsync)
             .WithSummary("Is Allowed Check")
@@ -29,7 +34,7 @@ public static class MessageEndpoint
         group.MapDelete("{id}", DeleteMessageAsync)
             .WithSummary("Delete Message")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
-            
+
         return app;
     }
     
@@ -75,10 +80,7 @@ public static class MessageEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(MessageDtoResponse dto) =>
-        Results.Created($"appointment/{dto.AppointmentId}/chat/{dto.Id}", new { Message = "Mensagem enviada com sucesso", Item = dto });
-
-    public static async Task<IResult> IsAllowedCheckAsync(
+    public static async Task<Ok<bool>> IsAllowedCheckAsync(
         int appointmentId,
         MessageService service,
         ILoggerFactory loggerFactory)
@@ -88,10 +90,10 @@ public static class MessageEndpoint
         logger.CheckingAllowingStart(appointmentId);
 
         var result = await service.CanSendMessageAsync(appointmentId);
-        return Results.Ok(result);
+        return TypedResults.Ok(result);
     }
 
-    public static async Task<IResult> CreateMessageAsync(
+    public static async Task<Created<MessageDtoResponse>> CreateMessageAsync(
         int appointmentId,
         MessageDtoRequest dto,
         MessageService service,
@@ -105,10 +107,10 @@ public static class MessageEndpoint
         var message = await service.CreateAsync(dto);
 
         logger.Created(message.Id);
-        return GetCreatedResult(message);
+        return TypedResults.Created(GetBaseEndpoint(message), message);
     }
 
-    public static async Task<IResult> GetMessageAsync(
+    public static async Task<Ok<MessageDtoResponse>> GetMessageAsync(
         int id,
         int appointmentId,
         MessageService service,
@@ -119,10 +121,10 @@ public static class MessageEndpoint
         logger.GettingStart(id);
 
         var message = await service.GetByIdAsync(id, appointmentId);
-        return Results.Ok(message);
+        return TypedResults.Ok(message);
     }
 
-    public static async Task<IResult> GetAllMessagesAsync(
+    public static async Task<Ok<PaginationResponse<MessageDtoResponse>>> GetAllMessagesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int appointmentId,
@@ -134,10 +136,10 @@ public static class MessageEndpoint
         logger.GettingAllStart(appointmentId, page, pageSize);
 
         var messages = await service.GetAllAsync(page, pageSize, appointmentId);
-        return Results.Ok(messages);
+        return TypedResults.Ok(messages);
     }
 
-    public static async Task<IResult> DeleteMessageAsync(
+    public static async Task<NoContent> DeleteMessageAsync(
         int appointmentId,
         int id,
         MessageService service,
@@ -150,6 +152,6 @@ public static class MessageEndpoint
         await service.DeleteAsync(id, appointmentId);
 
         logger.Deleted(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

@@ -1,6 +1,6 @@
 using ICorteApi.Domain.Errors;
 
-namespace ICorteApi.Domain.Interfaces;
+namespace ICorteApi.Domain.Utils;
 
 public interface IResponse
 {

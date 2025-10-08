@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class ServiceEndpoint
 {
+    private static string GetBaseEndpoint(ServiceDtoResponse? service = null) => service is null
+        ? "barber-shop/{barberShopId}/service"
+        : $"barber-shop/{service.BarberShopId}/service/{service.Id}";
+
     public static IEndpointRouteBuilder MapServiceEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("barber-shop/{barberShopId}/service").WithTags("Service");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Service");
 
         group.MapPost("", CreateServiceAsync)
             .WithSummary("Create Service")
@@ -75,10 +80,7 @@ public static class ServiceEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(ServiceDtoResponse dto) =>
-        Results.Created($"barber-shop/{dto.BarberShopId}/service/{dto.Id}", new { Message = "Serviço criado com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateServiceAsync(
+    public static async Task<Created<ServiceDtoResponse>> CreateServiceAsync(
         int barberShopId,
         ServiceDtoRequest dto,
         ServiceService serviceService,
@@ -92,10 +94,10 @@ public static class ServiceEndpoint
         var service = await serviceService.CreateAsync(dto);
 
         logger.Created(service.Id);
-        return GetCreatedResult(service);
+        return TypedResults.Created(GetBaseEndpoint(service), service);
     }
 
-    public static async Task<IResult> GetServiceAsync(
+    public static async Task<Ok<ServiceDtoResponse>> GetServiceAsync(
         int serviceId,
         int barberShopId,
         ServiceService serviceService,
@@ -105,11 +107,11 @@ public static class ServiceEndpoint
 
         logger.GettingStart(serviceId);
 
-        var serviceDto = await serviceService.GetByIdAsync(serviceId, barberShopId);
-        return Results.Ok(serviceDto);
+        var service = await serviceService.GetByIdAsync(serviceId, barberShopId);
+        return TypedResults.Ok(service);
     }
 
-    public static async Task<IResult> GetAllServicesAsync(
+    public static async Task<Ok<PaginationResponse<ServiceDtoResponse>>> GetAllServicesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -121,10 +123,10 @@ public static class ServiceEndpoint
         logger.GettingAllStart(barberShopId, page, pageSize);
 
         var services = await serviceService.GetAllAsync(page, pageSize, barberShopId);
-        return Results.Ok(services);
+        return TypedResults.Ok(services);
     }
 
-    public static async Task<IResult> UpdateServiceAsync(
+    public static async Task<NoContent> UpdateServiceAsync(
         int serviceId,
         int barberShopId,
         ServiceDtoRequest dto,
@@ -138,10 +140,10 @@ public static class ServiceEndpoint
         await serviceService.UpdateAsync(dto, serviceId, barberShopId);
 
         logger.Updated(serviceId);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteServiceAsync(
+    public static async Task<NoContent> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
         int serviceId,
         int barberShopId,
@@ -155,6 +157,6 @@ public static class ServiceEndpoint
         await serviceService.DeleteAsync(serviceId, barberShopId, forceDelete is true);
 
         logger.Deleted(serviceId);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

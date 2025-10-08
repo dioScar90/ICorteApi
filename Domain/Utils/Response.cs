@@ -1,11 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 
-namespace ICorteApi.Domain.Base;
+namespace ICorteApi.Domain.Utils;
 
-public abstract record Response : IResponse
+public abstract record Response
 {
+    public bool IsSuccess;
+
+    public Error[] Error;
+
     protected Response(bool isSuccess, params Error[] error)
     {
         if (!IsValidResponseConstruction(isSuccess, error))
@@ -26,10 +29,6 @@ public abstract record Response : IResponse
         return true;
     }
 
-    public bool IsSuccess { get; }
-
-    public Error[] Error { get; }
-
     public static Response Success() => new SuccessResponse();
 
     public static SingleResponse<TValue> Success<TValue>(TValue value)
@@ -49,11 +48,6 @@ public abstract record Response : IResponse
 
     public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[] error)
         where TValue : class, IBaseTableEntity => new(default, false, error);
-
-    internal static IResponse Failure(Error removeError, Error[] errors)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[] Error)
@@ -77,8 +71,8 @@ public record CollectionResponseWithPagination<TValue>(
     : Response(IsSuccess), ICollectionResponseWithPagination<TValue> where TValue : class, IBaseTableEntity
 {
     [NotNull]
-    public ICollection<TValue> Values { get; init; } = Values;
-    public IResponsePagination? Pagination { get; init; } = Pagination;
+    public ICollection<TValue> Values => Values;
+    public IResponsePagination? Pagination => Pagination ?? default;
 }
 
 public record SuccessResponse() : Response(true);

@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using ICorteApi.Application.Services;
 using ICorteApi.Domain.Errors;
-using ICorteApi.Domain.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -14,8 +13,7 @@ public static class UserEndpoint
         
         group.MapGet("me", GetMeAsync)
             .WithSummary("Get Me")
-            .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.")
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.");
 
         group.MapPatch("changeEmail", UpdateUserEmailAsync)
             .WithSummary("Update User's Email")

@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class AppointmentEndpoint
 {
+    private static string GetBaseEndpoint(AppointmentDtoResponse? appointment = null) => appointment is null
+        ? "appointment"
+        : $"appointment/{appointment.Id}";
+
     public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("appointment").WithTags("Appointment");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Appointment");
 
         group.MapPost("", CreateAppointmentAsync)
             .WithSummary("Create Appointment")
@@ -85,10 +90,7 @@ public static class AppointmentEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(AppointmentDtoResponse dto) =>
-        Results.Created($"appointment/{dto.Id}", new { Message = "Agendamento criado com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateAppointmentAsync(
+    public static async Task<Created<AppointmentDtoResponse>> CreateAppointmentAsync(
         AppointmentDtoRequest dto,
         AppointmentService service,
         ILoggerFactory loggerFactory)
@@ -100,10 +102,10 @@ public static class AppointmentEndpoint
         var appointment = await service.CreateAsync(dto);
 
         logger.Created(appointment.Id);
-        return GetCreatedResult(appointment);
+        return TypedResults.Created(GetBaseEndpoint(appointment), appointment);
     }
     
-    public static async Task<IResult> GetAppointmentAsync(
+    public static async Task<Ok<AppointmentDtoResponse>> GetAppointmentAsync(
         int id,
         bool? services,
         AppointmentService service,
@@ -114,10 +116,10 @@ public static class AppointmentEndpoint
         logger.GettingStart(id);
 
         var appointment = await service.GetByIdAsync(id, new(services is true));
-        return Results.Ok(appointment);
+        return TypedResults.Ok(appointment);
     }
     
-    public static async Task<IResult> GetAllAppointmentsAsync(
+    public static async Task<Ok<PaginationResponse<AppointmentDtoResponse>>> GetAllAppointmentsAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         AppointmentService service,
@@ -128,10 +130,10 @@ public static class AppointmentEndpoint
         logger.GettingAllStart(page, pageSize);
 
         var appointments = await service.GetAllAsync(page, pageSize);
-        return Results.Ok(appointments);
+        return TypedResults.Ok(appointments);
     }
 
-    public static async Task<IResult> UpdateAppointmentAsync(
+    public static async Task<NoContent> UpdateAppointmentAsync(
         int id,
         AppointmentDtoRequest dto,
         AppointmentService service,
@@ -144,10 +146,10 @@ public static class AppointmentEndpoint
         await service.UpdateAsync(dto, id);
 
         logger.Updated(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public static async Task<IResult> UpdatePaymentTypeAsync(
+    public static async Task<NoContent> UpdatePaymentTypeAsync(
         int id,
         AppointmentPaymentTypeDtoUpdateRequest dto,
         AppointmentService service,
@@ -160,10 +162,10 @@ public static class AppointmentEndpoint
         await service.UpdatePaymentTypeAsync(dto, id);
 
         logger.UpdatedPayment(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteAppointmentAsync(
+    public static async Task<NoContent> DeleteAppointmentAsync(
         int id,
         AppointmentService service,
         ILoggerFactory loggerFactory)
@@ -175,6 +177,6 @@ public static class AppointmentEndpoint
         await service.DeleteAsync(id);
 
         logger.Deleted(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

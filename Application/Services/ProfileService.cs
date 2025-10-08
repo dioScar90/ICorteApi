@@ -36,12 +36,12 @@ public sealed class ProfileService(
             await _userService.AddUserRoleAsync(UserRole.Client);
             await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
 
-            await CommitAsync(transaction);
+            await transaction.CommitAsync();
             return await GetByIdAsync(profile.Id);
         }
         catch (Exception)
         {
-            await RollbackAsync(transaction);
+            await transaction.RollbackAsync();
             throw;
         }
     }
@@ -94,12 +94,12 @@ public sealed class ProfileService(
             _dbSet.Update(profile);
             await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
 
-            await CommitAsync(transaction);
+            await transaction.CommitAsync();
             return true;
         }
         catch (Exception)
         {
-            await RollbackAsync(transaction);
+            await transaction.RollbackAsync();
             throw;
         }
     }

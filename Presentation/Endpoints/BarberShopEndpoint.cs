@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class BarberShopEndpoint
 {
+    private static string GetBaseEndpoint(BarberShopDtoResponse? barberShop = null) => barberShop is null
+        ? "barber-shop"
+        : $"barber-shop/{barberShop.Id}";
+        
     public static IEndpointRouteBuilder MapBarberShopEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("barber-shop").WithTags("Barber Shop");
-        
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Barber Shop");
+
         group.MapPost("", CreateBarberShopAsync)
             .WithSummary("Create BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
@@ -19,15 +24,15 @@ public static class BarberShopEndpoint
         group.MapGet("{barberShopId}/appointments", GetAppointmentsByBarberShopAsync)
             .WithSummary("Get Appointments By BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-        
+
         group.MapPut("{id}", UpdateBarberShopAsync)
             .WithSummary("Update BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-        
+
         group.MapDelete("{id}", DeleteBarberShopAsync)
             .WithSummary("Delete BarberShop")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-        
+
         return app;
     }
     
@@ -74,10 +79,7 @@ public static class BarberShopEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(BarberShopDtoResponse dto) =>
-        Results.Created($"barber-shop/{dto.Id}", new { Message = "Barbearia criada com sucesso", Item = dto });
-    
-    public static async Task<IResult> CreateBarberShopAsync(
+    public static async Task<Created<BarberShopDtoResponse>> CreateBarberShopAsync(
         BarberShopDtoRequest dto,
         BarberShopService service,
         ILoggerFactory loggerFactory)
@@ -89,10 +91,10 @@ public static class BarberShopEndpoint
         var barberShop = await service.CreateAsync(dto);
 
         logger.Created(barberShop.Id);
-        return GetCreatedResult(barberShop);
+        return TypedResults.Created(GetBaseEndpoint(barberShop), barberShop);
     }
     
-    public static async Task<IResult> GetBarberShopAsync(
+    public static async Task<Ok<BarberShopDtoResponse>> GetBarberShopAsync(
         int id,
         BarberShopService service,
         ILoggerFactory loggerFactory)
@@ -102,10 +104,10 @@ public static class BarberShopEndpoint
         logger.GettingStart(id);
 
         var barberShop = await service.GetByIdAsync(id);
-        return Results.Ok(barberShop);
+        return TypedResults.Ok(barberShop);
     }
     
-    public static async Task<IResult> GetAppointmentsByBarberShopAsync(
+    public static async Task<Ok<PaginationResponse<AppointmentsByBarberShopDtoResponse>>> GetAppointmentsByBarberShopAsync(
         int barberShopId,
         int? page,
         int? pageSize,
@@ -117,10 +119,10 @@ public static class BarberShopEndpoint
         logger.GettingAppointmentsByBarbershopStart(barberShopId, page, pageSize);
 
         var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, page ?? 1, pageSize ?? 25);
-        return Results.Ok(barberShop);
+        return TypedResults.Ok(barberShop);
     }
 
-    public static async Task<IResult> UpdateBarberShopAsync(
+    public static async Task<NoContent> UpdateBarberShopAsync(
         int id,
         BarberShopDtoRequest dto,
         BarberShopService service,
@@ -130,13 +132,13 @@ public static class BarberShopEndpoint
 
         logger.UpdatingStart(id, dto);
 
-        var appointments = await service.UpdateAsync(dto, id);
+        await service.UpdateAsync(dto, id);
 
         logger.Updated(id);
-        return Results.Ok(appointments);
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteBarberShopAsync(
+    public static async Task<NoContent> DeleteBarberShopAsync(
         int id,
         BarberShopService service,
         ILoggerFactory loggerFactory)
@@ -148,6 +150,6 @@ public static class BarberShopEndpoint
         await service.DeleteAsync(id);
 
         logger.Deleted(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

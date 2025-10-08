@@ -6,10 +6,10 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AddressService(
     AppDbContext context,
-    ILogger<AddressService> logger,
+    ILogger<AddressService> _logger,
     AddressValidator validator,
     AddressErrors errors)
-    : BaseService<Address>(context, logger)
+    : BaseService<Address>(context)
 {
     private readonly AddressValidator _validator = validator;
     private readonly AddressErrors _errors = errors;
@@ -18,6 +18,8 @@ public sealed class AddressService(
     {
         _logger.LogDebug("Starting validation for Address {@Address}", dto);
         dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
         
         var address = new Address(dto, dto.BarberShopId);
 

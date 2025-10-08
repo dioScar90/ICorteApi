@@ -1,23 +1,16 @@
-using ICorteApi.Domain.Base;
+using ICorteApi.Domain.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Application.Services;
 
-public abstract class BaseService<TEntity>(
-    AppDbContext context,
-    ILogger<IService<TEntity>> logger)
-    : IService<TEntity>
-        where TEntity : class, IBaseTableEntity
+public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEntity>
+    where TEntity : class, IBaseTableEntity
 {
     protected readonly AppDbContext _context = context;
-    protected readonly ILogger<IService<TEntity>> _logger = logger;
     protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     
     protected async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
-    protected static async Task CommitAsync(IDbContextTransaction transaction) => await transaction.CommitAsync();
-    protected static async Task RollbackAsync(IDbContextTransaction transaction) => await transaction.RollbackAsync();
-
     protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     
     public virtual async Task<PaginationResponse<TDtoResponse>> GetAllAsync<TDtoResponse>(

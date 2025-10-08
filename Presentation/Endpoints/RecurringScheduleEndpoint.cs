@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class RecurringScheduleEndpoint
 {
+    private static string GetBaseEndpoint(RecurringScheduleDtoResponse? schedule = null) => schedule is null
+        ? "barber-shop/{barberShopId}/recurring-schedule"
+        : $"barber-shop/{schedule.BarberShopId}/recurring-schedule/{schedule.DayOfWeek}";
+
     public static IEndpointRouteBuilder MapRecurringScheduleEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("barber-shop/{barberShopId}/recurring-schedule").WithTags("Recurring Schedule");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Recurring Schedule");
 
         group.MapPost("", CreateRecurringScheduleAsync)
             .WithSummary("Create Recurring Schedule")
@@ -87,27 +92,24 @@ public static class RecurringScheduleEndpoint
                 Entity, dayOfWeek, barberShopId);
     }
     
-    private static IResult GetCreatedResult(RecurringScheduleDtoResponse dto) =>
-        Results.Created($"barber-shop/{dto.BarberShopId}/recurring-dto/{dto.DayOfWeek}", new { Message = "Horário de funcionamento criado com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateRecurringScheduleAsync(
+    public static async Task<Created<RecurringScheduleDtoResponse>> CreateRecurringScheduleAsync(
         int barberShopId,
         RecurringScheduleDtoRequest dto,
         RecurringScheduleService service,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-        
+
         dto = dto with { BarberShopId = barberShopId };
         logger.CreatingStart(dto);
 
         var schedule = await service.CreateAsync(dto);
 
         logger.Created(schedule.DayOfWeek, schedule.BarberShopId);
-        return GetCreatedResult(schedule);
+        return TypedResults.Created(GetBaseEndpoint(schedule), schedule);
     }
 
-    public static async Task<IResult> GetRecurringScheduleAsync(
+    public static async Task<Ok<RecurringScheduleDtoResponse>> GetRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
@@ -118,10 +120,10 @@ public static class RecurringScheduleEndpoint
         logger.GettingStart(dayOfWeek, barberShopId);
 
         var schedule = await service.GetByIdAsync(dayOfWeek, barberShopId);
-        return Results.Ok(schedule);
+        return TypedResults.Ok(schedule);
     }
 
-    public static async Task<IResult> GetAllRecurringSchedulesAsync(
+    public static async Task<Ok<PaginationResponse<RecurringScheduleDtoResponse>>> GetAllRecurringSchedulesAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -133,10 +135,10 @@ public static class RecurringScheduleEndpoint
         logger.GettingAllStart(barberShopId, page, pageSize);
 
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
-        return Results.Ok(schedules);
+        return TypedResults.Ok(schedules);
     }
 
-    public static async Task<IResult> UpdateRecurringScheduleAsync(
+    public static async Task<NoContent> UpdateRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoRequest dto,
@@ -151,10 +153,10 @@ public static class RecurringScheduleEndpoint
         await service.UpdateAsync(dto, dayOfWeek, barberShopId);
 
         logger.Updated(dayOfWeek, barberShopId);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteRecurringScheduleAsync(
+    public static async Task<NoContent> DeleteRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
@@ -167,6 +169,6 @@ public static class RecurringScheduleEndpoint
         await service.DeleteAsync(dayOfWeek, barberShopId);
 
         logger.Deleted(dayOfWeek, barberShopId);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

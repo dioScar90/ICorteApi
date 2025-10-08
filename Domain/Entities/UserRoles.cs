@@ -2,27 +2,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Entities;
 
-public static class UserRoles
-{
-    public const string Guest = "Guest";
-    public const string Client = "Client";
-    public const string BarberShop = "BarberShop";
-    public const string Admin = "Admin";
-
-    public static List<string> GetAllRoles() => [Guest, Client, BarberShop, Admin];
-}
-
 public class ApplicationRole : IdentityRole<int>
 {
-}
-
-public enum PolicyUserRole
-{
-    FreeIfAuthenticated,
-    ClientOrHigh,
-    ClientOnly,
-    BarberShopOrHigh,
-    AdminOnly
 }
 
 public enum UserRole
@@ -31,4 +12,56 @@ public enum UserRole
     Client,
     BarberShop,
     Admin,
+}
+
+public enum PolicyUserRole
+{
+    FreeIfAuthenticated,
+    ClientOrHigh,
+    ClientOnly,
+    BarberShopOrHigh,
+    AdminOnly,
+}
+
+public static partial class PolicyUserRoleExtensions
+{
+    public static string[] GetRolesString(this PolicyUserRole policy) =>
+        [.. policy.GetRolesEnum().Select(role => role.ToString())];
+
+    public static UserRole[] GetRolesEnum(this PolicyUserRole policy) => policy switch
+    {
+        PolicyUserRole.AdminOnly =>
+            [
+                UserRole.Admin,
+            ],
+
+        PolicyUserRole.BarberShopOrHigh =>
+            [
+                UserRole.BarberShop,
+                UserRole.Admin,
+            ],
+
+        PolicyUserRole.ClientOnly =>
+            [
+                UserRole.Client,
+                UserRole.Admin,
+            ],
+
+        PolicyUserRole.ClientOrHigh =>
+            [
+                UserRole.Client,
+                UserRole.BarberShop,
+                UserRole.Admin,
+            ],
+
+        PolicyUserRole.FreeIfAuthenticated =>
+            [
+                UserRole.Guest,
+                UserRole.Client,
+                UserRole.BarberShop,
+                UserRole.Admin,
+            ],
+
+        _ => []
+    };
 }

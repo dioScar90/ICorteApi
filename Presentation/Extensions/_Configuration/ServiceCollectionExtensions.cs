@@ -114,23 +114,20 @@ public static class ServiceCollectionExtensions
         // After .NET 8 it's not necessary to use `AddAuthentication` here.
         // The use of `AddAuthorization` can be converted to the new `AddAuthorizationBuilder`.
         // https://learn.microsoft.com/en-us/aspnet/core/diagnostics/asp0025?view=aspnetcore-8.0
-        services.AddAuthorizationBuilder()
-            .AddPolicy(nameof(PolicyUserRole.AdminOnly), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Admin)))
-            .AddPolicy(nameof(PolicyUserRole.BarberShopOrHigh), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-            .AddPolicy(nameof(PolicyUserRole.ClientOnly), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Client), nameof(UserRole.Admin)))
-            .AddPolicy(nameof(PolicyUserRole.ClientOrHigh), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)))
-            .AddPolicy(nameof(PolicyUserRole.FreeIfAuthenticated), policy =>
-                policy.RequireRole(
-                    nameof(UserRole.Guest), nameof(UserRole.Client), nameof(UserRole.BarberShop), nameof(UserRole.Admin)));
 
+        var authBuilder = services.AddAuthorizationBuilder();
+        
+        foreach (var policyRole in Enum.GetValues<PolicyUserRole>())
+        {
+            string name = policyRole.ToString();
+            string[] roles = policyRole.GetRolesString();
+
+            if (policyRole == PolicyUserRole.FreeIfAuthenticated)
+                authBuilder.AddDefaultPolicy(name, policy => policy.RequireRole(roles));
+            else
+                authBuilder.AddPolicy(name, policy => policy.RequireRole(roles));
+        }
+        
         return services;
     }
 

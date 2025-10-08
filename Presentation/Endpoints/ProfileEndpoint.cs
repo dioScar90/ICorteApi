@@ -1,17 +1,21 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class ProfileEndpoint
 {
+    private static string GetBaseEndpoint(ProfileDtoResponse? profile = null) => profile is null
+        ? "profile"
+        : $"profile/{profile.Id}";
+
     public static IEndpointRouteBuilder MapProfileEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("profile").WithTags("Profile");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Profile");
 
         group.MapPost("", CreateProfileAsync)
-            .WithSummary("Create Profile")
-            .RequireAuthorization(nameof(PolicyUserRole.FreeIfAuthenticated));
+            .WithSummary("Create Profile");
 
         group.MapGet("{id}", GetProfileAsync)
             .WithSummary("Get Profile")
@@ -56,10 +60,7 @@ public static class ProfileEndpoint
             Logger.LogInformation("{Entity} successfully updated with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(ProfileDtoResponse dto) =>
-        Results.Created("user/me", new { Message = "Pessoa criada com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateProfileAsync(
+    public static async Task<Created<ProfileDtoResponse>> CreateProfileAsync(
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
         ILoggerFactory loggerFactory)
@@ -71,10 +72,10 @@ public static class ProfileEndpoint
         var profile = await service.CreateAsync(dto);
 
         logger.Created(profile.Id);
-        return GetCreatedResult(profile);
+        return TypedResults.Created(GetBaseEndpoint(profile), profile);
     }
 
-    public static async Task<IResult> GetProfileAsync(
+    public static async Task<Ok<ProfileDtoResponse>> GetProfileAsync(
         int id,
         ProfileService service,
         ILoggerFactory loggerFactory)
@@ -84,10 +85,10 @@ public static class ProfileEndpoint
         logger.GettingStart(id);
 
         var profile = await service.GetByIdAsync(id);
-        return Results.Ok(profile);
+        return TypedResults.Ok(profile);
     }
 
-    public static async Task<IResult> UpdateProfileAsync(
+    public static async Task<NoContent> UpdateProfileAsync(
         int id,
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
@@ -100,6 +101,6 @@ public static class ProfileEndpoint
         await service.UpdateAsync(dto, id);
 
         logger.Updated(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

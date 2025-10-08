@@ -1,12 +1,17 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class AddressEndpoint
 {
+    private static string GetBaseEndpoint(AddressDtoResponse? address = null) => address is null
+        ? "barber-shop/{barberShopId}/address"
+        : $"barber-shop/{address.BarberShopId}/address/{address.Id}";
+
     public static IEndpointRouteBuilder MapAddressEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("barber-shop/{barberShopId}/address").WithTags("Address");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Address");
 
         group.MapPost("", CreateAddressAsync)
             .WithSummary("Create Address")
@@ -65,10 +70,7 @@ public static class AddressEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(AddressDtoResponse dto) =>
-        Results.Created($"barber-shop/{dto.BarberShopId}/address/{dto.Id}", new { Message = "Endereço criado com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateAddressAsync(
+    public static async Task<Created<AddressDtoResponse>> CreateAddressAsync(
         int barberShopId,
         AddressDtoRequest dto,
         AddressService service,
@@ -80,12 +82,12 @@ public static class AddressEndpoint
 
         dto = dto with { BarberShopId = barberShopId };
         var address = await service.CreateAsync(dto);
-        
+
         logger.Created(address.Id);
-        return GetCreatedResult(address);
+        return TypedResults.Created(GetBaseEndpoint(address), address!); ;
     }
 
-    public static async Task<IResult> GetAddressAsync(
+    public static async Task<Ok<AddressDtoResponse>> GetAddressAsync(
         int barberShopId,
         int id,
         AddressService service,
@@ -96,10 +98,10 @@ public static class AddressEndpoint
         logger.GettingStart(id);
 
         var address = await service.GetByIdAsync(id, barberShopId);
-        return Results.Ok(address);
+        return TypedResults.Ok(address);
     }
 
-    public static async Task<IResult> UpdateAddressAsync(
+    public static async Task<NoContent> UpdateAddressAsync(
         int barberShopId,
         int id,
         AddressDtoRequest dto,
@@ -114,10 +116,10 @@ public static class AddressEndpoint
         await service.UpdateAsync(dto, id);
         
         logger.Updated(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteAddressAsync(
+    public static async Task<NoContent> DeleteAddressAsync(
         int barberShopId,
         int id,
         AddressService service,
@@ -130,6 +132,6 @@ public static class AddressEndpoint
         await service.DeleteAsync(id, barberShopId);
         
         logger.Deleted(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }

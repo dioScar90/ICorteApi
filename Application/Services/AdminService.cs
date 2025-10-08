@@ -7,12 +7,14 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AdminService(
     AppDbContext context,
+    ILogger<AdminService> logger,
     UserManager<User> userManager,
     BarberScheduleService barberScheduleRep,
     AdminErrors errors,
     IConfiguration configuration)
 {
     private readonly AppDbContext _context = context;
+    private readonly ILogger<AdminService> _logger = logger;
     private readonly UserManager<User> _userManager = userManager;
     private readonly BarberScheduleService _barberScheduleRep = barberScheduleRep;
     private readonly AdminErrors _errors = errors;

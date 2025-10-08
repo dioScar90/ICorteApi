@@ -1,13 +1,18 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
 
 public static class ReportEndpoint
 {
+    private static string GetBaseEndpoint(ReportDtoResponse? report = null) => report is null
+        ? "barber-shop/{barberShopId}/report"
+        : $"barber-shop/{report.BarberShopId}/report/{report.Id}";
+
     public static IEndpointRouteBuilder MapReportEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("barber-shop/{barberShopId}/report").WithTags("Report");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("Report");
 
         group.MapPost("", CreateReportAsync)
             .WithSummary("Create Report")
@@ -75,10 +80,7 @@ public static class ReportEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    private static IResult GetCreatedResult(ReportDtoResponse dto) =>
-        Results.Created($"barber-shop/{dto.BarberShopId}/report/{dto.Id}", new { Message = "Pagamento criado com sucesso", Item = dto });
-
-    public static async Task<IResult> CreateReportAsync(
+    public static async Task<Created<ReportDtoResponse>> CreateReportAsync(
         int barberShopId,
         ReportDtoRequest dto,
         ReportService service,
@@ -92,10 +94,10 @@ public static class ReportEndpoint
         var report = await service.CreateAsync(dto);
 
         logger.Created(report.Id);
-        return GetCreatedResult(report);
+        return TypedResults.Created(GetBaseEndpoint(report), report);
     }
 
-    public static async Task<IResult> GetReportAsync(
+    public static async Task<Ok<ReportDtoResponse>> GetReportAsync(
         int id,
         int barberShopId,
         ReportService service,
@@ -106,10 +108,10 @@ public static class ReportEndpoint
         logger.GettingStart(id);
 
         var report = await service.GetByIdAsync(id, barberShopId);
-        return Results.Ok(report);
+        return TypedResults.Ok(report);
     }
 
-    public static async Task<IResult> GetAllReportsAsync(
+    public static async Task<Ok<PaginationResponse<ReportDtoResponse>>> GetAllReportsAsync(
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         int barberShopId,
@@ -121,10 +123,10 @@ public static class ReportEndpoint
         logger.GettingAllStart(barberShopId, page, pageSize);
 
         var reports = await service.GetAllAsync(page, pageSize, barberShopId);
-        return Results.Ok(reports);
+        return TypedResults.Ok(reports);
     }
 
-    public static async Task<IResult> UpdateReportAsync(
+    public static async Task<NoContent> UpdateReportAsync(
         int id,
         int barberShopId,
         ReportDtoRequest dto,
@@ -138,10 +140,10 @@ public static class ReportEndpoint
         await service.UpdateAsync(dto, id, barberShopId);
 
         logger.Updated(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteReportAsync(
+    public static async Task<NoContent> DeleteReportAsync(
         int id,
         int barberShopId,
         ReportService service,
@@ -154,6 +156,6 @@ public static class ReportEndpoint
         await service.DeleteAsync(id, barberShopId);
 
         logger.Deleted(id);
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 }
