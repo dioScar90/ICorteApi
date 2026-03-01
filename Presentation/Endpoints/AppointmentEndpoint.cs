@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,32 +91,51 @@ public static class AppointmentEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<AppointmentDtoResponse>> CreateAppointmentAsync(
+    public static async Task<Results<Created<AppointmentDtoResponse>, UnprocessableEntity<Error>, Conflict<Error>, BadRequest<Error>>> CreateAppointmentAsync(
         AppointmentDtoRequest dto,
         AppointmentService service,
+        AppointmentErrors errors,
+        ServiceService serviceService,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
+        if (dto.Services.Length == 0)
+            return errors.EmptyServices();
+            
+        if (!await serviceService.IsServicesFromUniqueBarberShop([.. dto.Services.Select(s => s.Id)]))
+            return errors.NotBarberShopIdsUniqueFromServices();
+            
         logger.CreatingStart(dto);
-
+        
         var appointment = await service.CreateAsync(dto);
-
+        
+        if (appointment is null)
+            return errors.Create();
+            
         logger.Created(appointment.Id);
         return TypedResults.Created(GetBaseEndpoint(appointment), appointment);
     }
     
-    public static async Task<Ok<AppointmentDtoResponse>> GetAppointmentAsync(
+    public static async Task<Results<Ok<AppointmentDtoResponse>, NotFound<Error>, Conflict<Error>>> GetAppointmentAsync(
         int id,
         bool? services,
         AppointmentService service,
+        AppointmentErrors errors,
+        UserService userService,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingStart(id);
 
         var appointment = await service.GetByIdAsync(id, new(services is true));
+
+        if (appointment is null)
+            return errors.NotFound();
+            
+        if (!await service.AppointmentBelongsToClientAsync(id))
+            return errors.AppointmentNotBelongsToClient();
+        
         return TypedResults.Ok(appointment);
     }
     
@@ -123,59 +143,75 @@ public static class AppointmentEndpoint
         [FromQuery] int? page,
         [FromQuery] int? pageSize,
         AppointmentService service,
+        AppointmentErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingAllStart(page, pageSize);
 
         var appointments = await service.GetAllAsync(page, pageSize);
         return TypedResults.Ok(appointments);
     }
 
-    public static async Task<NoContent> UpdateAppointmentAsync(
+    public static async Task<Results<NoContent, UnprocessableEntity<Error>, BadRequest<Error>, Conflict<Error>>> UpdateAppointmentAsync(
         int id,
         AppointmentDtoRequest dto,
         AppointmentService service,
+        AppointmentErrors errors,
+        ServiceService serviceService,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.UpdatingStart(id, dto);
-
-        await service.UpdateAsync(dto, id);
+            
+        if (!await serviceService.IsServicesFromUniqueBarberShop([.. dto.Services.Select(s => s.Id)]))
+            return errors.NotBarberShopIdsUniqueFromServices();
+            
+        if (!await service.AppointmentBelongsToClientAsync(id))
+            return errors.AppointmentNotBelongsToClient();
+            
+        if (!await service.UpdateAsync(dto, id))
+            return errors.Update();
 
         logger.Updated(id);
         return TypedResults.NoContent();
     }
     
-    public static async Task<NoContent> UpdatePaymentTypeAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> UpdatePaymentTypeAsync(
         int id,
         AppointmentPaymentTypeDtoUpdateRequest dto,
         AppointmentService service,
+        AppointmentErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.UpdatingPaymentStart(id, dto);
+            
+        if (!await service.AppointmentBelongsToClientAsync(id))
+            return errors.AppointmentNotBelongsToClient();
 
-        await service.UpdatePaymentTypeAsync(dto, id);
+        if (!await service.UpdatePaymentTypeAsync(dto, id))
+            return errors.Update();
 
         logger.UpdatedPayment(id);
         return TypedResults.NoContent();
     }
-
-    public static async Task<NoContent> DeleteAppointmentAsync(
+    
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> DeleteAppointmentAsync(
         int id,
         AppointmentService service,
+        AppointmentErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.DeletingStart(id);
+            
+        if (!await service.AppointmentBelongsToClientAsync(id))
+            return errors.AppointmentNotBelongsToClient();
 
-        await service.DeleteAsync(id);
-
+        if (!await service.DeleteAsync(id))
+            return errors.Delete();
+            
         logger.Deleted(id);
         return TypedResults.NoContent();
     }

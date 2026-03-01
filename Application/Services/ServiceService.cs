@@ -1,15 +1,12 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
-    AppDbContext context,
-    ILogger<ServiceService> _logger,
-    ServiceErrors _errors)
+    AppDbContext context)
     : BaseService<Service>(context)
 {
-    public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoRequest dto)
+    public async Task<ServiceDtoResponse?> CreateAsync(ServiceDtoRequest dto)
     {
         var service = new Service(dto, dto.BarberShopId);
 
@@ -21,7 +18,7 @@ public sealed class ServiceService(
 
     public record Includes(bool Collections = false);
     
-    public async Task<ServiceDtoResponse> GetByIdAsync(int id, int barberShopId, Includes? includes = null)
+    public async Task<ServiceDtoResponse?> GetByIdAsync(int id, int barberShopId, Includes? includes = null)
     {
         includes ??= new();
 
@@ -36,7 +33,7 @@ public sealed class ServiceService(
                 .Include(s => s.Appointments);
         }
 
-        var service = await query
+        return await query
             .Select(s => new ServiceDtoResponse(
                 s.Id,
                 s.BarberShopId,
@@ -48,13 +45,11 @@ public sealed class ServiceService(
             ))
             .FirstOrDefaultAsync();
 
-        if (service is null)
-            _errors.ThrowNotFoundException();
+        // if (service is null)
+        //     _errors.ThrowNotFoundException();
 
-        if (service!.BarberShopId != barberShopId)
-            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
-
-        return service;
+        // if (service!.BarberShopId != barberShopId)
+        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
     }
     
     public async Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
@@ -82,14 +77,26 @@ public sealed class ServiceService(
     {
         var service = await _dbSet.FindAsync(id);
 
-        if (service is null)
-            _errors.ThrowNotFoundException();
+        // if (service is null)
+        //     _errors.ThrowNotFoundException();
 
-        if (service!.BarberShopId != barberShopId)
-            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+        // if (service!.BarberShopId != barberShopId)
+        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+        
+        if (service?.BarberShopId != barberShopId)
+            return false;
 
         service.UpdateEntity(dto);
         return await SaveChangesAsync();
+    }
+    
+    public async Task<bool> IsServicesFromUniqueBarberShop(HashSet<int> ids)
+    {
+        return await _dbSet
+            .Where(x => ids.Contains(x.Id))
+            .Select(x => x.BarberShopId)
+            .Distinct()
+            .CountAsync() == 1;
     }
 
     public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
@@ -107,15 +114,18 @@ public sealed class ServiceService(
             .SelectMany(s => s.Appointments)
             .ToArrayAsync();
             
-    public async Task DeleteAsync(int id, int barberShopId, bool forceDelete = false)
+    public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
         var service = await _dbSet.FindAsync(id);
 
-        if (service is null)
-            _errors.ThrowNotFoundException();
+        // if (service is null)
+        //     _errors.ThrowNotFoundException();
 
-        if (service!.BarberShopId != barberShopId)
-            _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+        // if (service!.BarberShopId != barberShopId)
+        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
+
+        if (service?.BarberShopId != barberShopId)
+            return false;
 
         var thereAreAppointments = !forceDelete && await CheckCorrelatedAppointmentsAsync(service.Id);
 
@@ -124,9 +134,11 @@ public sealed class ServiceService(
             var appointments = await GetCorrelatedAppointmentsAsync(service.Id);
             var dates = appointments.Select(a => a.Date);
 
-            _errors.ThrowThereAreStillAppointmentsException([.. dates]);
+            // _errors.ThrowThereAreStillAppointmentsException([.. dates]);
+            return false;
         }
-
-        await DeleteAsync(service);
+        
+        _dbSet.Remove(service);
+        return await SaveChangesAsync();
     }
 }

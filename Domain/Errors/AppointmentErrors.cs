@@ -1,20 +1,24 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class AppointmentErrors : BaseErrors<Appointment>
 {
-    public void ThrowEmptyServicesException()
+    public UnprocessableEntity<Error> EmptyServices()
     {
-        throw new UnprocessableEntity("Selecione pelo menos um serviço");
+        string message = "Selecione pelo menos um serviço";
+        return TypedResults.UnprocessableEntity(new Error("Unprocessable Entity Error", message));
     }
-
-    public void ThrowNotBarberShopIdsUniqueFromServicesException()
+    
+    public UnprocessableEntity<Error> NotBarberShopIdsUniqueFromServices()
     {
-        throw new UnprocessableEntity("Serviços escolhidos precisam todos pertencer à mesma barbearia");
+        string message = "Serviços escolhidos precisam todos pertencer à mesma barbearia";
+        return TypedResults.UnprocessableEntity(new Error("Unprocessable Entity Error", message));
     }
-
-    public void ThrowAppointmentNotBelongsToClientException(int clientId)
+    
+    public Conflict<Error> AppointmentNotBelongsToClient()
     {
-        string message = $"{_entity} não pertence ao perfil \"{clientId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao perfil informado";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

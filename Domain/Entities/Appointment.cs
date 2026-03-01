@@ -29,6 +29,7 @@ public sealed class Appointment : BaseEntity<Appointment>
         PaymentType = dto.PaymentType;
         
         Services = services;
+
         UpdatePriceAndDuration();
 
         Status = AppointmentStatus.Pending;

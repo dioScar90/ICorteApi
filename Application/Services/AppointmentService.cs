@@ -1,4 +1,3 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
@@ -7,31 +6,16 @@ public sealed class AppointmentService(
     AppDbContext context,
     ILogger<AppointmentService> _logger,
     UserService _userService,
-    ServiceService _serviceService,
-    AppointmentErrors _errors)
+    ServiceService _serviceService)
     : BaseService<Appointment>(context)
 {
-    private static bool IsServicesFromUniqueBarberShopId(Service[] services)
+    public async Task<AppointmentDtoResponse?> CreateAsync(AppointmentDtoRequest dto)
     {
-        var ids = services.Select(s => s.BarberShopId).ToHashSet();
-        return ids.Count == 1;
-    }
-    
-    public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
-    {
-        _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-
-        if (dto.Services.Length == 0)
-            _errors.ThrowEmptyServicesException();
-
-        var services = await GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
-
-        if (!IsServicesFromUniqueBarberShopId(services))
-            _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
-            
+        var services = await _serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
+        
         dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
         var appointment = new Appointment(dto, services);
-
+        
         _dbSet.Add(appointment);
         await _context.SaveChangesAsync();
 
@@ -39,14 +23,21 @@ public sealed class AppointmentService(
         return await GetByIdAsync(appointment.Id);
     }
     
-    private async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
+    public record Includes(bool Collections = false);
+    
+    public async Task<bool> AppointmentBelongsToClientAsync(int appointmentId, int? clientId = null)
     {
-        return await _serviceService.GetSpecificServicesByIdsAsync(ids);
+        _logger.LogDebug("Checking if Appointment with Id={Id} belongs to Client with Id={ClientId}", appointmentId, clientId);
+     
+        clientId ??= await _userService.GetMyUserIdAsync();
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(a => a.Id == appointmentId)
+            .AnyAsync(a => a.ClientId == clientId);
     }
 
-    public record Includes(bool Collections = false);
-
-    private async Task<Appointment> FindEntityAsync(int id, Includes? includes = null)
+    private async Task<Appointment?> FindEntityAsync(int id, Includes? includes = null)
     {
         _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
         
@@ -61,22 +52,12 @@ public sealed class AppointmentService(
                 .AsSplitQuery()
                 .Include(a => a.Services);
         }
-
-        var appointment = await query
+        
+        return await query
             .FirstOrDefaultAsync();
-
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-            
-        var clientId = await _userService.GetMyUserIdAsync();
-
-        if (appointment!.ClientId != clientId)
-            _errors.ThrowAppointmentNotBelongsToClientException(clientId);
-
-        return appointment;
     }
 
-    public async Task<AppointmentDtoResponse> GetByIdAsync(int id, Includes? includes = null)
+    public async Task<AppointmentDtoResponse?> GetByIdAsync(int id, Includes? includes = null)
     {
         _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
         
@@ -93,7 +74,7 @@ public sealed class AppointmentService(
                 .Include(a => a.Services);
         }
 
-        var appointment = await query
+        return await query
             .Select(a => new AppointmentDtoResponse(
                 a.Id,
                 a.ClientId,
@@ -119,11 +100,6 @@ public sealed class AppointmentService(
                 a.Status
             ))
             .FirstOrDefaultAsync();
-
-        if (appointment is null)
-            _errors.ThrowNotFoundException();
-
-        return appointment!;
     }
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(
@@ -169,14 +145,11 @@ public sealed class AppointmentService(
     {
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
         int[] serviceIds = [.. dto.Services.Select(s => s.Id)];
-
+        
         var serviceIdsToRemove = currentServiceIds.Except(serviceIds).ToArray();
-
+        
         var serviceIdsToAdd = serviceIds.Except(currentServiceIds).ToArray();
-        var servicesToAdd = await GetSpecificServicesByIdsAsync(serviceIdsToAdd);
-
-        if (!IsServicesFromUniqueBarberShopId(servicesToAdd))
-            _errors.ThrowNotBarberShopIdsUniqueFromServicesException();
+        var servicesToAdd = await _serviceService.GetSpecificServicesByIdsAsync(serviceIdsToAdd);
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
@@ -187,34 +160,44 @@ public sealed class AppointmentService(
 
     public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
     {
-        _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-
         var appointment = await FindEntityAsync(id);
+
+        if (appointment is null)
+            return false;
         
         dto = dto with { ClientId = appointment.ClientId };
 
         await UpdateAppointmentServicesAsync(appointment, dto);
         
         _logger.LogDebug("Updating Appointment with Id={Id}", id);
+
         appointment.UpdateEntity(dto);
         return await SaveChangesAsync();
     }
 
-    public async Task UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
+    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
     {
         var appointment = await FindEntityAsync(id);
+
+        if (appointment is null)
+            return false;
             
         dto = dto with { ClientId = appointment.ClientId };
 
         appointment.UpdateEntity(dto);
-        await SaveChangesAsync();
+        return await SaveChangesAsync();
     }
     
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var appointment = await FindEntityAsync(id);
+
+        if (appointment is null)
+            return false;
         
         _logger.LogDebug("Deleting Appointment with Id={Id}", id);
-        await DeleteAsync(appointment);
+
+        _dbSet.Remove(appointment);
+        return await SaveChangesAsync();
     }
 }

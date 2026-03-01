@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -80,10 +81,11 @@ public static class ServiceEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<ServiceDtoResponse>> CreateServiceAsync(
+    public static async Task<Results<Created<ServiceDtoResponse>, BadRequest<Error>>> CreateServiceAsync(
         int barberShopId,
         ServiceDtoRequest dto,
         ServiceService serviceService,
+        ServiceErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -93,21 +95,31 @@ public static class ServiceEndpoint
 
         var service = await serviceService.CreateAsync(dto);
 
+        if (service is null)
+            return errors.Create();
+
         logger.Created(service.Id);
         return TypedResults.Created(GetBaseEndpoint(service), service);
     }
 
-    public static async Task<Ok<ServiceDtoResponse>> GetServiceAsync(
+    public static async Task<Results<Ok<ServiceDtoResponse>, NotFound<Error>, Conflict<Error>>> GetServiceAsync(
         int serviceId,
         int barberShopId,
         ServiceService serviceService,
+        ServiceErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingStart(serviceId);
-
+        
         var service = await serviceService.GetByIdAsync(serviceId, barberShopId);
+        
+        if (service is null)
+            return errors.NotFound();
+            
+        if (service!.BarberShopId != barberShopId)
+            return errors.ServiceNotBelongsToBarberShop(barberShopId);
+            
         return TypedResults.Ok(service);
     }
 
@@ -126,35 +138,39 @@ public static class ServiceEndpoint
         return TypedResults.Ok(services);
     }
 
-    public static async Task<NoContent> UpdateServiceAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> UpdateServiceAsync(
         int serviceId,
         int barberShopId,
         ServiceDtoRequest dto,
         ServiceService serviceService,
+        ServiceErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.UpdatingStart(serviceId, dto);
 
-        await serviceService.UpdateAsync(dto, serviceId, barberShopId);
+        if (!await serviceService.UpdateAsync(dto, serviceId, barberShopId))
+            return errors.Update();
 
         logger.Updated(serviceId);
         return TypedResults.NoContent();
     }
-
-    public static async Task<NoContent> DeleteServiceAsync(
+    
+    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
         int serviceId,
         int barberShopId,
         ServiceService serviceService,
+        ServiceErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(serviceId);
 
-        await serviceService.DeleteAsync(serviceId, barberShopId, forceDelete is true);
+        if (!await serviceService.DeleteAsync(serviceId, barberShopId, forceDelete is true))
+            return errors.Delete();
 
         logger.Deleted(serviceId);
         return TypedResults.NoContent();
