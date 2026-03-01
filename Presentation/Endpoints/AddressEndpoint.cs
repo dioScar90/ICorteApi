@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -20,7 +21,7 @@ public static class AddressEndpoint
         group.MapGet("{id}", GetAddressAsync)
             .WithSummary("Get Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
-
+        
         group.MapPut("{id}", UpdateAddressAsync)
             .WithSummary("Update Address")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
@@ -70,66 +71,80 @@ public static class AddressEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<AddressDtoResponse>> CreateAddressAsync(
+    public static async Task<Results<Created<AddressDtoResponse>, BadRequest<Error>>> CreateAddressAsync(
         int barberShopId,
         AddressDtoRequest dto,
         AddressService service,
+        AddressErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.CreatingStart(dto);
-
+        
         dto = dto with { BarberShopId = barberShopId };
         var address = await service.CreateAsync(dto);
 
+        if (address is null)
+            return errors.Create();
+        
         logger.Created(address.Id);
-        return TypedResults.Created(GetBaseEndpoint(address), address!); ;
+        return TypedResults.Created(GetBaseEndpoint(address), address); ;
     }
-
-    public static async Task<Ok<AddressDtoResponse>> GetAddressAsync(
+    
+    public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>>> GetAddressAsync(
         int barberShopId,
         int id,
         AddressService service,
+        AddressErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingStart(id);
-
+        
         var address = await service.GetByIdAsync(id, barberShopId);
+        
+        if (address is null)
+            return errors.NotFound();
+
+        if (address!.BarberShopId != barberShopId)
+            return errors.AddressNotBelongsToBarberShop(barberShopId);
+
         return TypedResults.Ok(address);
     }
-
-    public static async Task<NoContent> UpdateAddressAsync(
+    
+    public static async Task<Results<NoContent, BadRequest<Error>>> UpdateAddressAsync(
         int barberShopId,
         int id,
         AddressDtoRequest dto,
         AddressService service,
+        AddressErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.UpdatingStart(id, dto);
 
         dto = dto with { BarberShopId = barberShopId };
-        await service.UpdateAsync(dto, id);
+
+        if (!await service.UpdateAsync(dto, id))
+            return errors.Update();
         
         logger.Updated(id);
         return TypedResults.NoContent();
     }
 
-    public static async Task<NoContent> DeleteAddressAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteAddressAsync(
         int barberShopId,
         int id,
         AddressService service,
+        AddressErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
-
-        await service.DeleteAsync(id, barberShopId);
+        
+        if (!await service.DeleteAsync(id, barberShopId))
+            return errors.Delete();
         
         logger.Deleted(id);
         return TypedResults.NoContent();

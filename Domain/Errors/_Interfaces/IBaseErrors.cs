@@ -1,17 +1,15 @@
-using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Domain.Errors;
 
 public interface IBaseErrors<TEntity> : IBaseErrors
     where TEntity : class, IBaseTableEntity
 {
-    void ThrowDeuRuimException();
-    void ThrowCreateException(params Error[] errors);
-    void ThrowUpdateException(params Error[] errors);
-    void ThrowDeleteException(params Error[] errors);
-    void ThrowNotFoundException(params Error[] errors);
-    void ThrowValidationException(params Error[] errors);
-    void ThrowBadRequestException(params Error[] errors);
+    BadRequest<Error> BadRequest(params Error[] errors);
+    BadRequest<Error> Create(params Error[] errors);
+    BadRequest<Error> Update(params Error[] errors);
+    BadRequest<Error> Delete(params Error[] errors);
+    NotFound<Error> NotFound(params Error[] errors);
 }
 
 public interface IBaseErrors

@@ -1,4 +1,3 @@
-using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +17,9 @@ public sealed class GlobalExceptionHandler(
     {
         if (exception is not ICustomException)
         {
-            if (exception is ValidationException validationException)
-                _logger.LogWarning(validationException, "Validation Exception occurred: {Message}", validationException.Message);
-            else
+            // if (exception is ValidationException validationException)
+            //     _logger.LogWarning(validationException, "Validation Exception occurred: {Message}", validationException.Message);
+            // else
                 _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
         }
         
@@ -73,12 +72,12 @@ public sealed class GlobalExceptionHandler(
                 ["dbErrors"] = sEx.Errors
             });
 
-        if (exception is ValidationException vEx)
-            setProps(new()
-            {
-                ["validationProblem"] = vEx.InnerException?.Message ?? getUnknownMessage(vEx),
-                ["validationErrors"] = vEx.Errors
-            });
+        // if (exception is ValidationException vEx)
+        //     setProps(new()
+        //     {
+        //         ["validationProblem"] = vEx.InnerException?.Message ?? getUnknownMessage(vEx),
+        //         ["validationErrors"] = vEx.Errors
+        //     });
 
         return extensions;
     }
@@ -107,7 +106,7 @@ public sealed class GlobalExceptionHandler(
         DbUpdateException => StatusCodes.Status500InternalServerError,
 
         // Fluent Validation Excceptions
-        ValidationException => StatusCodes.Status409Conflict,
+        // ValidationException => StatusCodes.Status409Conflict,
 
         _ => StatusCodes.Status500InternalServerError
     };

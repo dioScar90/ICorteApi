@@ -43,11 +43,5 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEnt
 
         return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }
-    
-    public async Task DeleteAsync(TEntity entity)
-    {
-        _dbSet.Remove(entity);
-        await SaveChangesAsync();
-    }
 }
 

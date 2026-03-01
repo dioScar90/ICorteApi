@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
@@ -37,42 +39,34 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             .Select(a => a.Length > 2 ? char.ToUpper(a[0]) + a[1..].ToLower() : a.ToLower())
         );
         
-    public void ThrowDeuRuimException() => throw new BadRequestException("Deu ruim");
-        
-    public void ThrowCreateException(params Error[] errors)
+    public BadRequest<Error> BadRequest(string? message = null)
+    {
+        message ??= $"Não foi possível concluir a operação {_the} {_entity}";
+        return TypedResults.BadRequest<Error>(new("Bad Request Error", message));
+    }
+    
+    public BadRequest<Error> Create()
     {
         string message = $"Não foi possível criar {_the} {_entity}";
-        throw new BadRequestException(message, errors);
+        return BadRequest(message);
     }
 
-    public void ThrowUpdateException(params Error[] errors)
+    public BadRequest<Error> Update()
     {
         string message = $"Não foi possível atualizar {_the} {_entity}";
-        throw new BadRequestException(message, errors);
+        return BadRequest(message);
     }
     
-    public void ThrowDeleteException(params Error[] errors)
+    public BadRequest<Error> Delete(params Error[] errors)
     {
         string message = $"Não foi possível excluir {_the} {_entity}";
-        throw new BadRequestException(message, errors);
-    }
-    
-    public void ThrowBadRequestException(params Error[] errors)
-    {
-        string message = $"Não foi possível concluir a operação {_the} {_entity}";
-        throw new BadRequestException(message, errors);
+        return BadRequest(message);
     }
 
-    public void ThrowNotFoundException(params Error[] errors)
+    public NotFound<Error> NotFound()
     {
         string encontrada = _isFemale ? "encontrada" : "encontrado";
         string message = $"{_entity} não {encontrada}";
-        throw new NotFoundException(message, errors);
-    }
-
-    public void ThrowValidationException(params Error[] errors)
-    {
-        string message = $"Um ou mais itens de {_entity} inválidos";
-        throw new UnprocessableEntity(message, errors);
+        return TypedResults.NotFound(new Error("Not Found Error", message));
     }
 }
