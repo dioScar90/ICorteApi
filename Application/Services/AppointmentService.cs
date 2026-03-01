@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,18 +5,12 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
     AppDbContext context,
-    ILogger<AppointmentService> logger,
-    UserService userService,
-    AppointmentValidator validator,
-    ServiceService serviceService,
-    AppointmentErrors errors)
-    : BaseService<Appointment>(context, logger)
+    ILogger<AppointmentService> _logger,
+    UserService _userService,
+    ServiceService _serviceService,
+    AppointmentErrors _errors)
+    : BaseService<Appointment>(context)
 {
-    private readonly UserService _userService = userService;
-    private readonly ServiceService _serviceService = serviceService;
-    private readonly AppointmentValidator _validator = validator;
-    private readonly AppointmentErrors _errors = errors;
-
     private static bool IsServicesFromUniqueBarberShopId(Service[] services)
     {
         var ids = services.Select(s => s.BarberShopId).ToHashSet();
@@ -27,7 +20,6 @@ public sealed class AppointmentService(
     public async Task<AppointmentDtoResponse> CreateAsync(AppointmentDtoRequest dto)
     {
         _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         if (dto.Services.Length == 0)
             _errors.ThrowEmptyServicesException();
@@ -196,7 +188,6 @@ public sealed class AppointmentService(
     public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
     {
         _logger.LogDebug("Starting validation for Appointment {@Appointment}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var appointment = await FindEntityAsync(id);
         
@@ -209,23 +200,21 @@ public sealed class AppointmentService(
         return await SaveChangesAsync();
     }
 
-    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
+    public async Task UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
     {
-        // dto.ThrowExceptionIfInvalid(_validator, _errors);
-        
         var appointment = await FindEntityAsync(id);
             
         dto = dto with { ClientId = appointment.ClientId };
 
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
     
-    public async Task<bool> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var appointment = await FindEntityAsync(id);
         
         _logger.LogDebug("Deleting Appointment with Id={Id}", id);
-        return await DeleteAsync(appointment);
+        await DeleteAsync(appointment);
     }
 }

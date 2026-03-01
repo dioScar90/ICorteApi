@@ -1,5 +1,5 @@
 using ICorteApi.Settings;
-using Microsoft.OpenApi.Models;
+// using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,21 +22,21 @@ builder.Services
     .AddExceptionHandlers()
 ;
 
-builder.Services
-    .AddAuthorizationBuilder(options =>
-    {
-        options.Defaul
-    })
+// builder.Services
+//     .AddAuthorizationBuilder(options =>
+//     {
+//         options.Defaul
+//     })
 
 builder.Services.AddEndpointsApiExplorer();
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddSwaggerGen(c =>
-    {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
-        c.ResolveConflictingActions(x => x.First());
-    });
+    // builder.Services.AddSwaggerGen(c =>
+    // {
+    //     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BarberShop API", Version = "v1" });
+    //     c.ResolveConflictingActions(x => x.First());
+    // });
 }
 
 var app = builder.Build();

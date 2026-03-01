@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using ICorteApi.Application.Services;
+using ICorteApi.Application.Validators;
 
 namespace ICorteApi.Application.Dtos;
 
@@ -19,10 +21,23 @@ public record BarberShopDtoResponse(
 public record BarberShopDtoRequest(
     int Id,
     int OwnerId,
+
+    [Required(ErrorMessage = "Nome obrigatório")]
+    [MinLength(3, ErrorMessage = "Nome precisa ter pelo menos 3 caracteres")]
     string Name,
+    
+    [MinLength(3, ErrorMessage = "Descrição precisa ter pelo menos 3 caracteres")]
     string? Description,
+    
+    [Required(ErrorMessage = "Telefone comercial obrigatório")]
+    [PhoneNumber]
     string ComercialNumber,
+    
+    [Required(ErrorMessage = "Email obrigatório")]
+    [RegularExpression(@".$", ErrorMessage = "Email incompleto ou com formato inválido")]
+    [EmailAddress(ErrorMessage = "Email com formato inválido")]
     string ComercialEmail,
+    
     AddressDtoRequest? Address,
     RecurringScheduleDtoRequest[] RecurringSchedules,
     SpecialScheduleDtoRequest[] SpecialSchedules,

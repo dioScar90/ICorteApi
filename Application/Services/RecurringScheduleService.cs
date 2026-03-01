@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,18 +5,12 @@ namespace ICorteApi.Application.Services;
 
 public sealed class RecurringScheduleService(
     AppDbContext context,
-    ILogger<RecurringScheduleService> logger,
-    RecurringScheduleValidator validator,
-    RecurringScheduleErrors errors)
-    : BaseService<RecurringSchedule>(context, logger)
+    ILogger<RecurringScheduleService> _logger,
+    RecurringScheduleErrors _errors)
+    : BaseService<RecurringSchedule>(context)
 {
-    private readonly RecurringScheduleValidator _validator = validator;
-    private readonly RecurringScheduleErrors _errors = errors;
-
     public async Task<RecurringScheduleDtoResponse> CreateAsync(RecurringScheduleDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var schedule = new RecurringSchedule(dto, dto.BarberShopId);
 
         _dbSet.Add(schedule);
@@ -66,10 +59,8 @@ public sealed class RecurringScheduleService(
         );
     }
     
-    public async Task<bool> UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId)
+    public async Task UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
 
         if (schedule is null)
@@ -79,10 +70,10 @@ public sealed class RecurringScheduleService(
             _errors.ThrowRecurringScheduleNotBelongsToBarberShopException(barberShopId);
 
         schedule.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
+    public async Task DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
         var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
 
@@ -92,6 +83,6 @@ public sealed class RecurringScheduleService(
         if (schedule!.BarberShopId != barberShopId)
             _errors.ThrowRecurringScheduleNotBelongsToBarberShopException(barberShopId);
         
-        return await DeleteAsync(schedule);
+        await DeleteAsync(schedule);
     }
 }

@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,20 +5,13 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ProfileService(
     AppDbContext context,
-    ILogger<ProfileService> logger,
-    UserService userService,
-    ProfileValidator validator,
-    ProfileErrors errors)
-    : BaseService<Profile>(context, logger)
+    ILogger<ProfileService> _logger,
+    UserService _userService,
+    ProfileErrors _errors)
+    : BaseService<Profile>(context)
 {
-    private readonly UserService _userService = userService;
-    private readonly ProfileValidator _validator = validator;
-    private readonly ProfileErrors _errors = errors;
-
     public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var userId = await _userService.GetMyUserIdAsync();
         var profile = new Profile(dto, userId);
         
@@ -28,11 +20,7 @@ public sealed class ProfileService(
         try
         {
             _dbSet.Add(profile);
-            // var newProfile = await CreateAsync(profile!);
-
-            // if (newProfile is null)
-            //     _errors.ThrowCreateException();
-
+            
             await _userService.AddUserRoleAsync(UserRole.Client);
             await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
 
@@ -72,10 +60,8 @@ public sealed class ProfileService(
         return profile;
     }
     
-    public async Task<bool> UpdateAsync(ProfileDtoRequest dto, int id)
+    public async Task UpdateAsync(ProfileDtoRequest dto, int id)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var userId = await _userService.GetMyUserIdAsync();
         var profile = await _dbSet.FindAsync(id);
 
@@ -95,7 +81,6 @@ public sealed class ProfileService(
             await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
 
             await transaction.CommitAsync();
-            return true;
         }
         catch (Exception)
         {

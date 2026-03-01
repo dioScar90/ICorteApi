@@ -2,8 +2,8 @@ namespace ICorteApi.Domain.Entities;
 
 public sealed class BarberShop : BaseEntity<BarberShop>
 {
-    public string Name { get; private set; }
-    public string? Description { get; private set; }
+    public string Name { get;  set; }
+    public string? Description { get;  set; }
     public string ComercialNumber { get; private set; }
     public string ComercialEmail { get; private set; }
     public string? ImageUrl { get; private set; }

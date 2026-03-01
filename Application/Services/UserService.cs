@@ -1,34 +1,17 @@
 using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ICorteApi.Application.Services;
 
-public sealed class UserService
+public sealed class UserService(
+        IHttpContextAccessor _httpCtx,
+        UserManager<User> _userManager,
+        SignInManager<User> _signInManager,
+        AppDbContext _context,
+        UserErrors _userErrors)
 {
-    private readonly IHttpContextAccessor _httpCtx;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly AppDbContext _context;
-    private readonly DbSet<User> _userDbSet;
-    private readonly UserErrors _userErrors;
-    
-    public UserService(
-        IHttpContextAccessor httpContextAccessor,
-        UserManager<User> userManager,
-        SignInManager<User> signInManager,
-        AppDbContext context,
-        UserErrors errors)
-    {
-        _httpCtx = httpContextAccessor;
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _context = context;
-        _userDbSet = _context.Set<User>();
-
-        _userErrors = errors;
-    }
+    private readonly DbSet<User> _userDbSet = _context.Set<User>();
     
     private async Task<User?> GetMyUserEntityAsync() =>
         _httpCtx.HttpContext?.User is null ? null : await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
@@ -76,11 +59,11 @@ public sealed class UserService
         return roles;
     }
     
-    public async Task<User?> CreateAsync(UserDtoRegisterCreate dto)
+    public async Task<User?> CreateAsync(UserDtoRegisterRequest dto)
     {
         var newUser = new User(dto);
         
-        using var transaction = await BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -133,7 +116,7 @@ public sealed class UserService
         await _userManager.UpdateAsync(user);
     }
     
-    public async Task<bool> AddUserRoleAsync(UserRole role)
+    public async Task AddUserRoleAsync(UserRole role)
     {
         var user = await GetMyUserEntityAsync();
         var identityResult = await _userManager.AddToRoleAsync(user, role.ToString());
@@ -143,11 +126,9 @@ public sealed class UserService
 
         await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
-
-        return true;
     }
     
-    public async Task<bool> RemoveFromRoleAsync(UserRole role)
+    public async Task RemoveFromRoleAsync(UserRole role)
     {
         var user = await GetMyUserEntityAsync();
         var identityResult = await _userManager.RemoveFromRoleAsync(user, role.ToString());
@@ -157,8 +138,6 @@ public sealed class UserService
 
         await UpdatedUserEntityNow(user);
         await RegenerateUserCookieAsync();
-
-        return true;
     }
 
     public async Task<bool> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest)
@@ -173,7 +152,7 @@ public sealed class UserService
         return true;
     }
 
-    public async Task<bool> UpdatePasswordAsync(UserDtoPasswordUpdate dtoRequest)
+    public async Task UpdatePasswordAsync(UserDtoPasswordUpdateRequest dtoRequest)
     {
         var user = await GetMyUserEntityAsync();
         var identityResult = await _userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
@@ -182,10 +161,9 @@ public sealed class UserService
             _userErrors.ThrowUpdatePasswordException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
-        return true;
     }
 
-    public async Task<bool> UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
+    public async Task UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
     {
         var user = await GetMyUserEntityAsync();
         var identityResult = await _userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
@@ -194,7 +172,6 @@ public sealed class UserService
             _userErrors.ThrowUpdatePhoneNumberException([..identityResult.Errors]);
 
         await UpdatedUserEntityNow(user);
-        return true;
     }
 
     private async Task DeleteUserEntity(User user)
@@ -203,7 +180,7 @@ public sealed class UserService
         await _userManager.UpdateAsync(user);
     }
     
-    public async Task<bool> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var user = await GetMeAsync();
 
@@ -213,7 +190,7 @@ public sealed class UserService
         if (user!.Id != id)
             _userErrors.ThrowWrongUserIdException(id);
 
-        using var transaction = await BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -231,7 +208,6 @@ public sealed class UserService
                 _userErrors.ThrowBasicUserException([..identityResult.Errors]);
 
             await transaction.CommitAsync();
-            return true;
         }
         catch (Exception)
         {

@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,20 +5,13 @@ namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
-    ILogger<BarberShopService> logger,
-    UserService userService,
-    BarberShopValidator validator,
-    BarberShopErrors errors)
-    : BaseService<BarberShop>(context, logger)
+    ILogger<BarberShopService> _logger,
+    UserService _userService,
+    BarberShopErrors _errors)
+    : BaseService<BarberShop>(context)
 {
-    private readonly UserService _userService = userService;
-    private readonly BarberShopValidator _validator = validator;
-    private readonly BarberShopErrors _errors = errors;
-
     public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var ownerId = await _userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);
 
@@ -175,7 +167,7 @@ public sealed class BarberShopService(
         return new(entities ?? [], totalItems, totalPages, page, pageSize);
     }
     
-    public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id)
+    public async Task UpdateAsync(BarberShopDtoRequest dto, int id)
     {
         var barberShop = await _dbSet.FindAsync(id);
 
@@ -188,10 +180,10 @@ public sealed class BarberShopService(
             _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
 
         barberShop.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var barberShop = await _dbSet.FindAsync(id);
 
@@ -203,6 +195,6 @@ public sealed class BarberShopService(
         if (barberShop!.OwnerId != ownerId)
             _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
             
-        return await DeleteAsync(barberShop);
+        await DeleteAsync(barberShop);
     }
 }

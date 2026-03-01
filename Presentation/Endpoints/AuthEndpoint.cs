@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using ICorteApi.Domain.Interfaces;
-using FluentValidation;
 using ICorteApi.Application.Services;
 using ICorteApi.Domain.Errors;
 
@@ -35,13 +33,11 @@ public static class AuthEndpoint
     // This method was written using both inspiration of Chat GPT and real Microsoft ASP.NET Core documentation,
     // that you can find in: https://github.com/dotnet/aspnetcore/blob/main/src/Identity/Core/src/IdentityApiEndpointRouteBuilderExtensions.cs
     public static async Task<IResult> RegisterAsync(
-        UserDtoRegisterCreate dto,
-        IValidator<UserDtoRegisterCreate> validator,
+        UserDtoRegisterRequest dto,
         UserService service,
         SignInManager<User> signInManager,
         UserErrors errors)
     {
-        dto.ThrowExceptionIfInvalid(validator, errors);
         var user = await service.CreateAsync(dto);
 
         if (user is null)
@@ -57,11 +53,9 @@ public static class AuthEndpoint
 
     public static async Task<IResult> LoginAsync(
         UserDtoLoginRequest dto,
-        IValidator<UserDtoLoginRequest> validator,
         SignInManager<User> signInManager,
         UserErrors errors)
     {
-        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await LoginHowItMustBe(dto.Email, dto.Password, signInManager);
         
         if (!result.Succeeded)

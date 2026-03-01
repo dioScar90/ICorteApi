@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using ICorteApi.Domain.Interfaces;
 
 namespace ICorteApi.Infraestructure.Context;
 

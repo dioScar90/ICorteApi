@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using ICorteApi.Application.Services;
+﻿using ICorteApi.Application.Services;
 using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -46,11 +45,9 @@ public static class UserEndpoint
 
     public static async Task<IResult> UpdateUserEmailAsync(
         UserDtoEmailUpdate dto,
-        IValidator<UserDtoEmailUpdate> validator,
         UserService service,
         UserErrors errors)
     {
-        dto.ThrowExceptionIfInvalid(validator, errors);
         var result = await service.UpdateEmailAsync(dto);
 
         if (!result)
@@ -60,43 +57,28 @@ public static class UserEndpoint
     }
 
     public static async Task<IResult> UpdateUserPasswordAsync(
-        UserDtoPasswordUpdate dto,
-        IValidator<UserDtoPasswordUpdate> validator,
+        UserDtoPasswordUpdateRequest dto,
         UserService service,
         UserErrors errors)
     {
-        dto.ThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdatePasswordAsync(dto);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdatePasswordAsync(dto);
         return Results.NoContent();
     }
 
     public static async Task<IResult> UpdateUserPhoneNumberAsync(
         UserDtoPhoneNumberUpdate dto,
-        IValidator<UserDtoPhoneNumberUpdate> validator,
         UserService service,
         UserErrors errors)
     {
-        dto.ThrowExceptionIfInvalid(validator, errors);
-        var result = await service.UpdatePhoneNumberAsync(dto);
-
-        if (!result)
-            errors.ThrowUpdateException();
-
+        await service.UpdatePhoneNumberAsync(dto);
         return Results.NoContent();
     }
 
-    public static async Task<IResult> DeleteUserAsync(UserService service, UserErrors errors)
+    public static async Task<IResult> DeleteUserAsync(
+        UserService service,
+        UserErrors errors)
     {
-        int userId = await service.GetMyUserIdAsync();
-        var result = await service.DeleteAsync(userId);
-
-        if (!result)
-            errors.ThrowDeleteException();
-
+        await service.DeleteAsync(await service.GetMyUserIdAsync());
         return Results.NoContent();
     }
 }

@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,18 +5,12 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
     AppDbContext context,
-    ILogger<ServiceService> logger,
-    ServiceValidator validator,
-    ServiceErrors errors)
-    : BaseService<Service>(context, logger)
+    ILogger<ServiceService> _logger,
+    ServiceErrors _errors)
+    : BaseService<Service>(context)
 {
-    private readonly ServiceValidator _validator = validator;
-    private readonly ServiceErrors _errors = errors;
-
     public async Task<ServiceDtoResponse> CreateAsync(ServiceDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var service = new Service(dto, dto.BarberShopId);
 
         _dbSet.Add(service);
@@ -87,8 +80,6 @@ public sealed class ServiceService(
     
     public async Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var service = await _dbSet.FindAsync(id);
 
         if (service is null)
@@ -116,7 +107,7 @@ public sealed class ServiceService(
             .SelectMany(s => s.Appointments)
             .ToArrayAsync();
             
-    public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
+    public async Task DeleteAsync(int id, int barberShopId, bool forceDelete = false)
     {
         var service = await _dbSet.FindAsync(id);
 
@@ -136,6 +127,6 @@ public sealed class ServiceService(
             _errors.ThrowThereAreStillAppointmentsException([.. dates]);
         }
 
-        return await DeleteAsync(service);
+        await DeleteAsync(service);
     }
 }

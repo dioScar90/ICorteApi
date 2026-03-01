@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,16 +5,11 @@ namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
     AppDbContext context,
-    ILogger<MessageService> logger,
-    UserService userService,
-    MessageValidator validator,
-    MessageErrors errors)
-    : BaseService<Message>(context, logger)
+    ILogger<MessageService> _logger,
+    UserService _userService,
+    MessageErrors _errors)
+    : BaseService<Message>(context)
 {
-    private readonly UserService _userService = userService;
-    private readonly MessageValidator _validator = validator;
-    private readonly MessageErrors _errors = errors;
-
     public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
     {
         var userId = _userId ?? await _userService.GetMyUserIdAsync()!;
@@ -32,8 +26,6 @@ public sealed class MessageService(
 
     public async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-        
         var senderId = await _userService.GetMyUserIdAsync()!;
         var message = new Message(dto, dto.AppointmentId, senderId);
         
@@ -118,21 +110,16 @@ public sealed class MessageService(
         return await CreateAsync(dto);
     }
 
-    public async Task<bool> MarkMessageAsReadAsync(MessageDtoIsReadUpdateRequest[] dtos, int senderId)
+    public async Task MarkMessageAsReadAsync(MessageDtoIsReadUpdateRequest[] dtos, int senderId)
     {
-        // foreach (var dto in dtos)
-        //     dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 
-        var changesCount = await _dbSet
+        await _dbSet
             .Where(x => !x.IsRead && messageIds.Contains(x.Id) && x.SenderId == senderId)
             .ExecuteUpdateAsync(x => x.SetProperty(p => p.IsRead, true));
-
-        return changesCount > 0;
     }
 
-    public async Task<bool> DeleteAsync(int id, int appointmentId)
+    public async Task DeleteAsync(int id, int appointmentId)
     {
         var message = await _dbSet.FindAsync(id);
 
@@ -147,7 +134,7 @@ public sealed class MessageService(
         if (message.SenderId != senderId)
             _errors.ThrowMessageNotBelongsToSenderException(senderId);
 
-        return await DeleteAsync(message);
+        await DeleteAsync(message);
     }
 
     public async Task<MessageDtoResponse[]> GetLastMessagesAsync(int appointmentId, int senderId, int? lastMessageId)

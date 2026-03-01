@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,17 +6,12 @@ namespace ICorteApi.Application.Services;
 public sealed class AddressService(
     AppDbContext context,
     ILogger<AddressService> _logger,
-    AddressValidator validator,
-    AddressErrors errors)
+    AddressErrors _errors)
     : BaseService<Address>(context)
 {
-    private readonly AddressValidator _validator = validator;
-    private readonly AddressErrors _errors = errors;
-    
     public async Task<AddressDtoResponse> CreateAsync(AddressDtoRequest dto)
     {
         _logger.LogDebug("Starting validation for Address {@Address}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         using var transaction = await _context.Database.BeginTransactionAsync();
         
@@ -75,24 +69,23 @@ public sealed class AddressService(
         return address;
     }
     
-    public async Task<bool> UpdateAsync(AddressDtoRequest dto, int id)
+    public async Task UpdateAsync(AddressDtoRequest dto, int id)
     {
         _logger.LogDebug("Starting validation for Address {@Address}", dto);
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
 
         var address = await FindEntityAsync(id, dto.BarberShopId);
 
         _logger.LogDebug("Updating Address with Id={Id}", id);
 
         address.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteAsync(int id, int barberShopId)
+    public async Task DeleteAsync(int id, int barberShopId)
     {
         var address = await FindEntityAsync(id, barberShopId);
         
         _logger.LogDebug("Deleting Address with Id={Id}", id);
-        return await DeleteAsync(address);
+        await DeleteAsync(address);
     }
 }

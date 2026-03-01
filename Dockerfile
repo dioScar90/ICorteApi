@@ -1,5 +1,5 @@
 # Usar a imagem do SDK .NET 8.0
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 # Definir o diretório de trabalho
 WORKDIR /src
@@ -15,7 +15,7 @@ COPY . .
 RUN dotnet publish "ICorteApi.csproj" -c Release -o /app/publish
 
 # Usar a imagem do runtime .NET
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 # Definir o diretório de trabalho
 WORKDIR /app

@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,18 +5,12 @@ namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
     AppDbContext context,
-    ILogger<SpecialScheduleService> logger,
-    SpecialScheduleValidator validator,
-    SpecialScheduleErrors errors)
-    : BaseService<SpecialSchedule>(context, logger)
+    ILogger<SpecialScheduleService> _logger,
+    SpecialScheduleErrors _errors)
+    : BaseService<SpecialSchedule>(context)
 {
-    private readonly SpecialScheduleValidator _validator = validator;
-    private readonly SpecialScheduleErrors _errors = errors;
-
     public async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var schedule = new SpecialSchedule(dto);
 
         _dbSet.Add(schedule);
@@ -70,10 +63,8 @@ public sealed class SpecialScheduleService(
         );
     }
 
-    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
+    public async Task UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var schedule = await _dbSet.FindAsync(date, barberShopId);
 
         if (schedule is null)
@@ -83,10 +74,10 @@ public sealed class SpecialScheduleService(
             _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
 
         schedule.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
+    public async Task DeleteAsync(DateOnly date, int barberShopId)
     {
         var schedule = await _dbSet.FindAsync(date, barberShopId);
 
@@ -96,6 +87,6 @@ public sealed class SpecialScheduleService(
         if (schedule!.BarberShopId != barberShopId)
             _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
         
-        return await DeleteAsync(schedule);
+        await DeleteAsync(schedule);
     }
 }

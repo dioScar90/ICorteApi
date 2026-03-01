@@ -1,4 +1,3 @@
-using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,20 +5,13 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ReportService(
     AppDbContext context,
-    ILogger<ReportService> logger,
-    UserService userService,
-    ReportValidator validator,
-    ReportErrors errors)
-    : BaseService<Report>(context, logger)
+    ILogger<ReportService> _logger,
+    UserService _userService,
+    ReportErrors _errors)
+    : BaseService<Report>(context)
 {
-    private readonly UserService _userService = userService;
-    private readonly ReportValidator _validator = validator;
-    private readonly ReportErrors _errors = errors;
-
     public async Task<ReportDtoResponse> CreateAsync(ReportDtoRequest dto)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var clientId = await _userService.GetMyUserIdAsync()!;
         var report = new Report(dto, clientId, dto.BarberShopId);
 
@@ -72,10 +64,8 @@ public sealed class ReportService(
         );
     }
     
-    public async Task<bool> UpdateAsync(ReportDtoRequest dto, int id, int barberShopId)
+    public async Task UpdateAsync(ReportDtoRequest dto, int id, int barberShopId)
     {
-        dto.ThrowExceptionIfInvalid(_validator, _errors, _logger);
-
         var report = await _dbSet.FindAsync(id);
 
         if (report is null)
@@ -85,10 +75,10 @@ public sealed class ReportService(
             _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
 
         report.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteAsync(int id, int barberShopId)
+    public async Task DeleteAsync(int id, int barberShopId)
     {
         var report = await _dbSet.FindAsync(id);
         
@@ -98,6 +88,6 @@ public sealed class ReportService(
         if (report!.BarberShopId != barberShopId)
             _errors.ThrowReportNotBelongsToBarberShopException(barberShopId);
         
-        return await DeleteAsync(report);
+        await DeleteAsync(report);
     }
 }
