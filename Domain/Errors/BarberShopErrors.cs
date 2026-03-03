@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class BarberShopErrors : BaseErrors<BarberShop>
 {
-    public void ThrowBarberShopNotBelongsToOwnerException(int ownerId)
+    public Conflict<Error> BarberShopNotBelongsToOwner()
     {
-        string message = $"{_entity} não pertence ao proprietário \"{ownerId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao proprietário informado";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

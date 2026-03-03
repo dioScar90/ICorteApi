@@ -1,16 +1,18 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class ReportErrors : BaseErrors<Report>
 {
-    public void ThrowReportNotBelongsToClientException(int clientId)
+    public Conflict<Error> ReportNotBelongsToClient()
     {
-        string message = $"{_entity} não pertence ao cliente \"{clientId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao cliente";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
     
-    public void ThrowReportNotBelongsToBarberShopException(int barberShopId)
+    public Conflict<Error> ReportNotBelongsToBarberShop()
     {
-        string message = $"{_entity} não pertence à barbearia \"{barberShopId}\" informada";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence à barbearia informada";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

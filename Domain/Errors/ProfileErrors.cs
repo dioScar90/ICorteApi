@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class ProfileErrors : BaseErrors<Profile>
 {
-    public void ThrowProfileNotBelongsToUserException(int userId)
+    public Conflict<Error> ProfileNotBelongsToUser()
     {
-        string message = $"{_entity} não pertence ao usuário \"{userId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao usuário informado";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

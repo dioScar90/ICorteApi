@@ -103,7 +103,7 @@ public static class AppointmentEndpoint
         if (dto.Services.Length == 0)
             return errors.EmptyServices();
             
-        if (!await serviceService.IsServicesFromUniqueBarberShop([.. dto.Services.Select(s => s.Id)]))
+        if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services))
             return errors.NotBarberShopIdsUniqueFromServices();
             
         logger.CreatingStart(dto);
@@ -163,8 +163,8 @@ public static class AppointmentEndpoint
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
-            
-        if (!await serviceService.IsServicesFromUniqueBarberShop([.. dto.Services.Select(s => s.Id)]))
+        
+        if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services))
             return errors.NotBarberShopIdsUniqueFromServices();
             
         if (!await service.AppointmentBelongsToClientAsync(id))

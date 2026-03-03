@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 namespace ICorteApi.Application.Services;
 
 public sealed class ServiceService(
-    AppDbContext context)
+    AppDbContext context,
+    UserService _userService)
     : BaseService<Service>(context)
 {
     public async Task<ServiceDtoResponse?> CreateAsync(ServiceDtoRequest dto)
@@ -15,7 +16,54 @@ public sealed class ServiceService(
 
         return await GetByIdAsync(service.Id, service.BarberShopId);
     }
+    
+    public async Task<bool> ServiceExists(int id)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == id);
+    }
+    
+    public async Task<bool> ServiceBelongsToBarberShop(int id, int? barberShopId = null)
+    {
+        barberShopId ??= await _userService.GetMyUserIdAsync();
 
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == id && x.BarberShopId == barberShopId);
+    }
+
+    public async Task<bool> CheckCorrelatedAppointmentsAsync(int id) =>
+        await _dbSet
+            .AsNoTracking()
+            .AnyAsync(s => s.Id == id && s.Appointments.Any());
+            
+    public async Task<DateOnly[]> GetDatesFromCorrelatedAppointmentsAsync(int id) =>
+        await _dbSet
+            .AsNoTracking()
+            .Where(s => s.Id == id)
+            .SelectMany(s => s.Appointments)
+            .Select(a => a.Date)
+            .Distinct()
+            .ToArrayAsync();
+    
+    public async Task<bool> IsServicesFromUniqueBarberShop(ServiceForUpdateAppointmentDtoRequest[] dtos)
+    {
+        HashSet<int> ids = [..dtos.Select(s => s.Id)];
+        
+        return await _dbSet
+            .Where(x => ids.Contains(x.Id))
+            .Select(x => x.BarberShopId)
+            .Distinct()
+            .CountAsync() == 1;
+    }
+
+    public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
+    {
+        var hashIds = ids.ToHashSet();
+        return await _dbSet.Where(x => hashIds.Contains(x.Id)).ToArrayAsync();
+    }
+    
     public record Includes(bool Collections = false);
     
     public async Task<ServiceDtoResponse?> GetByIdAsync(int id, int barberShopId, Includes? includes = null)
@@ -44,12 +92,6 @@ public sealed class ServiceService(
                 s.Duration
             ))
             .FirstOrDefaultAsync();
-
-        // if (service is null)
-        //     _errors.ThrowNotFoundException();
-
-        // if (service!.BarberShopId != barberShopId)
-        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
     }
     
     public async Task<PaginationResponse<ServiceDtoResponse>> GetAllAsync(int? page, int? pageSize, int barberShopId)
@@ -76,68 +118,21 @@ public sealed class ServiceService(
     public async Task<bool> UpdateAsync(ServiceDtoRequest dto, int id, int barberShopId)
     {
         var service = await _dbSet.FindAsync(id);
-
-        // if (service is null)
-        //     _errors.ThrowNotFoundException();
-
-        // if (service!.BarberShopId != barberShopId)
-        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
         
-        if (service?.BarberShopId != barberShopId)
+        if (service is null)
             return false;
 
         service.UpdateEntity(dto);
         return await SaveChangesAsync();
     }
     
-    public async Task<bool> IsServicesFromUniqueBarberShop(HashSet<int> ids)
-    {
-        return await _dbSet
-            .Where(x => ids.Contains(x.Id))
-            .Select(x => x.BarberShopId)
-            .Distinct()
-            .CountAsync() == 1;
-    }
-
-    public async Task<Service[]> GetSpecificServicesByIdsAsync(int[] ids)
-    {
-        var hashIds = ids.ToHashSet();
-        return await _dbSet.Where(x => hashIds.Contains(x.Id)).ToArrayAsync();
-    }
-
-    private async Task<bool> CheckCorrelatedAppointmentsAsync(int id) =>
-        await _dbSet.AnyAsync(s => s.Id == id && s.Appointments.Any());
-
-    private async Task<Appointment[]> GetCorrelatedAppointmentsAsync(int id) =>
-        await _dbSet
-            .Where(s => s.Id == id)
-            .SelectMany(s => s.Appointments)
-            .ToArrayAsync();
-            
-    public async Task<bool> DeleteAsync(int id, int barberShopId, bool forceDelete = false)
+    public async Task<bool> DeleteAsync(int id)
     {
         var service = await _dbSet.FindAsync(id);
-
-        // if (service is null)
-        //     _errors.ThrowNotFoundException();
-
-        // if (service!.BarberShopId != barberShopId)
-        //     _errors.ThrowServiceNotBelongsToBarberShopException(barberShopId);
-
-        if (service?.BarberShopId != barberShopId)
-            return false;
-
-        var thereAreAppointments = !forceDelete && await CheckCorrelatedAppointmentsAsync(service.Id);
-
-        if (thereAreAppointments)
-        {
-            var appointments = await GetCorrelatedAppointmentsAsync(service.Id);
-            var dates = appointments.Select(a => a.Date);
-
-            // _errors.ThrowThereAreStillAppointmentsException([.. dates]);
-            return false;
-        }
         
+        if (service is null)
+            return false;
+            
         _dbSet.Remove(service);
         return await SaveChangesAsync();
     }

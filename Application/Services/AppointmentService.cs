@@ -28,13 +28,12 @@ public sealed class AppointmentService(
     public async Task<bool> AppointmentBelongsToClientAsync(int appointmentId, int? clientId = null)
     {
         _logger.LogDebug("Checking if Appointment with Id={Id} belongs to Client with Id={ClientId}", appointmentId, clientId);
-     
+        
         clientId ??= await _userService.GetMyUserIdAsync();
-
+        
         return await _dbSet
             .AsNoTracking()
-            .Where(a => a.Id == appointmentId)
-            .AnyAsync(a => a.ClientId == clientId);
+            .AnyAsync(x => x.Id == appointmentId && x.ClientId == clientId);
     }
 
     private async Task<Appointment?> FindEntityAsync(int id, Includes? includes = null)
@@ -140,7 +139,7 @@ public sealed class AppointmentService(
             )
         );
     }
-
+    
     private async Task UpdateAppointmentServicesAsync(Appointment appointment, AppointmentDtoRequest dto)
     {
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
@@ -166,7 +165,7 @@ public sealed class AppointmentService(
             return false;
         
         dto = dto with { ClientId = appointment.ClientId };
-
+        
         await UpdateAppointmentServicesAsync(appointment, dto);
         
         _logger.LogDebug("Updating Appointment with Id={Id}", id);

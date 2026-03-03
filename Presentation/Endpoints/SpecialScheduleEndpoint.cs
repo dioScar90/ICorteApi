@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,10 +93,11 @@ public static class SpecialScheduleEndpoint
                 Entity, date, barberShopId);
     }
     
-    public static async Task<Created<SpecialScheduleDtoResponse>> CreateSpecialScheduleAsync(
+    public static async Task<Results<Created<SpecialScheduleDtoResponse>, BadRequest<Error>>> CreateSpecialScheduleAsync(
         int barberShopId,
         SpecialScheduleDtoRequest dto,
         SpecialScheduleService service,
+        SpecialScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -105,14 +107,18 @@ public static class SpecialScheduleEndpoint
 
         var schedule = await service.CreateAsync(dto);
 
+        if (schedule is null)
+            return errors.Create();
+
         logger.Created(schedule.Date, schedule.BarberShopId);
         return TypedResults.Created(GetBaseEndpoint(schedule), schedule);
     }
 
-    public static async Task<Ok<SpecialScheduleDtoResponse>> GetSpecialScheduleAsync(
+    public static async Task<Results<Ok<SpecialScheduleDtoResponse>, NotFound<Error>>> GetSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
         SpecialScheduleService service,
+        SpecialScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -120,6 +126,10 @@ public static class SpecialScheduleEndpoint
         logger.GettingStart(date, barberShopId);
 
         var schedule = await service.GetByIdAsync(date, barberShopId);
+
+        if (schedule is null)
+            return errors.NotFound();
+        
         return TypedResults.Ok(schedule);
     }
 
@@ -128,6 +138,7 @@ public static class SpecialScheduleEndpoint
         [FromQuery] int? pageSize,
         int barberShopId,
         SpecialScheduleService service,
+        SpecialScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -138,11 +149,12 @@ public static class SpecialScheduleEndpoint
         return TypedResults.Ok(schedules);
     }
 
-    public static async Task<NoContent> UpdateSpecialScheduleAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
         SpecialScheduleDtoRequest dto,
         SpecialScheduleService service,
+        SpecialScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -150,24 +162,39 @@ public static class SpecialScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(date, barberShopId, dto);
 
-        await service.UpdateAsync(dto, date, barberShopId);
+        if (!await service.SpecialScheduleExists(date, barberShopId))
+            return errors.NotFound();
 
+        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId))
+            return errors.SpecialScheduleNotBelongsToBarberShop();
+
+        if (!await service.UpdateAsync(dto, date, barberShopId))
+            return errors.Update();
+            
         logger.Updated(date, barberShopId);
         return TypedResults.NoContent();
     }
 
-    public static async Task<NoContent> DeleteSpecialScheduleAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
         SpecialScheduleService service,
+        SpecialScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(date, barberShopId);
 
-        await service.DeleteAsync(date, barberShopId);
+        if (!await service.SpecialScheduleExists(date, barberShopId))
+            return errors.NotFound();
 
+        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId))
+            return errors.SpecialScheduleNotBelongsToBarberShop();
+
+        if (!await service.DeleteAsync(date, barberShopId))
+            return errors.Delete();
+            
         logger.Deleted(date, barberShopId);
         return TypedResults.NoContent();
     }

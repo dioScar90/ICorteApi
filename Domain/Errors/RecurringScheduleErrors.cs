@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class RecurringScheduleErrors : BaseErrors<RecurringSchedule>
 {
-    public void ThrowRecurringScheduleNotBelongsToBarberShopException(int barberShopId)
+    public Conflict<Error> RecurringScheduleNotBelongsToBarberShop()
     {
-        string message = $"{_entity} não pertence à barbearia \"{barberShopId}\" informada";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence à barbearia informada";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

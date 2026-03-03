@@ -1,15 +1,12 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
-    AppDbContext context,
-    ILogger<SpecialScheduleService> _logger,
-    SpecialScheduleErrors _errors)
+    AppDbContext context)
     : BaseService<SpecialSchedule>(context)
 {
-    public async Task<SpecialScheduleDtoResponse> CreateAsync(SpecialScheduleDtoRequest dto)
+    public async Task<SpecialScheduleDtoResponse?> CreateAsync(SpecialScheduleDtoRequest dto)
     {
         var schedule = new SpecialSchedule(dto);
 
@@ -19,9 +16,23 @@ public sealed class SpecialScheduleService(
         return await GetByIdAsync(schedule.Date, schedule.BarberShopId);
     }
 
-    public async Task<SpecialScheduleDtoResponse> GetByIdAsync(DateOnly date, int barberShopId)
+    public async Task<bool> SpecialScheduleExists(DateOnly date, int barberShopId)
     {
-        var schedule = await _dbSet
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+    }
+    
+    public async Task<bool> SpecialScheduleBelongsToBarberShop(DateOnly date, int barberShopId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+    }
+
+    public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(DateOnly date, int barberShopId)
+    {
+        return await _dbSet
             .AsNoTracking()
             .Where(s => s.Date == date && s.BarberShopId == barberShopId)
             .Select(s => new SpecialScheduleDtoResponse(
@@ -34,11 +45,6 @@ public sealed class SpecialScheduleService(
                 s.IsClosed
             ))
             .FirstOrDefaultAsync();
-
-        if (schedule is null)
-            _errors.ThrowNotFoundException();
-
-        return schedule!;
     }
     
     public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(
@@ -63,30 +69,25 @@ public sealed class SpecialScheduleService(
         );
     }
 
-    public async Task UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
+    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
     {
         var schedule = await _dbSet.FindAsync(date, barberShopId);
 
         if (schedule is null)
-            _errors.ThrowNotFoundException();
-
-        if (schedule!.BarberShopId != barberShopId)
-            _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
-
+            return false;
+            
         schedule.UpdateEntity(dto);
-        await SaveChangesAsync();
+        return await SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(DateOnly date, int barberShopId)
+    public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
     {
         var schedule = await _dbSet.FindAsync(date, barberShopId);
 
         if (schedule is null)
-            _errors.ThrowNotFoundException();
-
-        if (schedule!.BarberShopId != barberShopId)
-            _errors.ThrowSpecialScheduleNotBelongsToBarberShopException(barberShopId);
-        
-        await DeleteAsync(schedule);
+            return false;
+            
+        _dbSet.Remove(schedule);
+        return await SaveChangesAsync();
     }
 }

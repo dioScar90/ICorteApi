@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -80,10 +81,11 @@ public static class ReportEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<ReportDtoResponse>> CreateReportAsync(
+    public static async Task<Results<Created<ReportDtoResponse>, BadRequest<Error>>> CreateReportAsync(
         int barberShopId,
         ReportDtoRequest dto,
         ReportService service,
+        ReportErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -93,14 +95,18 @@ public static class ReportEndpoint
 
         var report = await service.CreateAsync(dto);
 
+        if (report is null)
+            return errors.Create();
+
         logger.Created(report.Id);
         return TypedResults.Created(GetBaseEndpoint(report), report);
     }
 
-    public static async Task<Ok<ReportDtoResponse>> GetReportAsync(
+    public static async Task<Results<Ok<ReportDtoResponse>, NotFound<Error>>> GetReportAsync(
         int id,
         int barberShopId,
         ReportService service,
+        ReportErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -108,6 +114,10 @@ public static class ReportEndpoint
         logger.GettingStart(id);
 
         var report = await service.GetByIdAsync(id, barberShopId);
+
+        if (report is null)
+            return errors.NotFound();
+
         return TypedResults.Ok(report);
     }
 
@@ -116,6 +126,7 @@ public static class ReportEndpoint
         [FromQuery] int? pageSize,
         int barberShopId,
         ReportService service,
+        ReportErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -126,35 +137,57 @@ public static class ReportEndpoint
         return TypedResults.Ok(reports);
     }
 
-    public static async Task<NoContent> UpdateReportAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
         int id,
         int barberShopId,
         ReportDtoRequest dto,
         ReportService service,
+        ReportErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.UpdatingStart(id, dto);
 
-        await service.UpdateAsync(dto, id, barberShopId);
+        if (!await service.ReportExists(id))
+            return errors.NotFound();
 
+        if (!await service.ReportBelongsToClient(id))
+            return errors.ReportNotBelongsToClient();
+
+        if (!await service.ReportBelongsToBarberShop(id, barberShopId))
+            return errors.ReportNotBelongsToBarberShop();
+
+        if (!await service.UpdateAsync(dto, id))
+            return errors.Update();
+            
         logger.Updated(id);
         return TypedResults.NoContent();
     }
 
-    public static async Task<NoContent> DeleteReportAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteReportAsync(
         int id,
         int barberShopId,
         ReportService service,
+        ReportErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
 
-        await service.DeleteAsync(id, barberShopId);
+        if (!await service.ReportExists(id))
+            return errors.NotFound();
 
+        if (!await service.ReportBelongsToClient(id))
+            return errors.ReportNotBelongsToClient();
+
+        if (!await service.ReportBelongsToBarberShop(id, barberShopId))
+            return errors.ReportNotBelongsToBarberShop();
+
+        if (!await service.DeleteAsync(id))
+            return errors.Delete();
+            
         logger.Deleted(id);
         return TypedResults.NoContent();
     }

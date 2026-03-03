@@ -1,16 +1,13 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class ProfileService(
     AppDbContext context,
-    ILogger<ProfileService> _logger,
-    UserService _userService,
-    ProfileErrors _errors)
+    UserService _userService)
     : BaseService<Profile>(context)
 {
-    public async Task<ProfileDtoResponse> CreateAsync(ProfileDtoRequest dto)
+    public async Task<ProfileDtoResponse?> CreateAsync(ProfileDtoRequest dto)
     {
         var userId = await _userService.GetMyUserIdAsync();
         var profile = new Profile(dto, userId);
@@ -34,11 +31,25 @@ public sealed class ProfileService(
         }
     }
 
-    public async Task<ProfileDtoResponse> GetByIdAsync(int id)
+    public async Task<bool> ProfileExistsAsync(int id)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == id);
+    }
+    
+    public async Task<bool> ProfileIsMineAsync(int id)
     {
         var userId = await _userService.GetMyUserIdAsync();
 
-        var profile = await _dbSet
+        return id == userId && await _dbSet
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == userId);
+    }
+    
+    public async Task<ProfileDtoResponse?> GetByIdAsync(int id)
+    {
+        return await _dbSet
             .AsNoTracking()
             .Where(p => p.Id == id)
             .Select(p => new ProfileDtoResponse(
@@ -50,37 +61,26 @@ public sealed class ProfileService(
                 p.ImageUrl
             ))
             .FirstOrDefaultAsync();
-
-        if (profile is null)
-            _errors.ThrowNotFoundException();
-
-        if (profile!.Id != userId)
-            _errors.ThrowProfileNotBelongsToUserException(userId);
-
-        return profile;
     }
     
-    public async Task UpdateAsync(ProfileDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(ProfileDtoRequest dto, int id)
     {
-        var userId = await _userService.GetMyUserIdAsync();
         var profile = await _dbSet.FindAsync(id);
 
         if (profile is null)
-            _errors.ThrowNotFoundException();
-
-        if (profile!.Id != userId)
-            _errors.ThrowProfileNotBelongsToUserException(userId);
-
+            return false;
+            
         profile.UpdateEntity(dto);
-
+        
         using var transaction = await BeginTransactionAsync();
-
+        
         try
         {
             _dbSet.Update(profile);
             await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
 
             await transaction.CommitAsync();
+            return true;
         }
         catch (Exception)
         {

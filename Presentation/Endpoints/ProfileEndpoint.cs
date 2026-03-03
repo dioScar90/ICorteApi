@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,46 +61,66 @@ public static class ProfileEndpoint
             Logger.LogInformation("{Entity} successfully updated with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<ProfileDtoResponse>> CreateProfileAsync(
+    public static async Task<Results<Created<ProfileDtoResponse>, BadRequest<Error>>> CreateProfileAsync(
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
+        ProfileErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
         logger.CreatingStart(dto);
-
+        
         var profile = await service.CreateAsync(dto);
-
+        
+        if (profile is null)
+            return errors.Create();
+            
         logger.Created(profile.Id);
         return TypedResults.Created(GetBaseEndpoint(profile), profile);
     }
 
-    public static async Task<Ok<ProfileDtoResponse>> GetProfileAsync(
+    public static async Task<Results<Ok<ProfileDtoResponse>, NotFound<Error>, Conflict<Error>>> GetProfileAsync(
         int id,
         ProfileService service,
+        ProfileErrors errors,
+        UserService userService,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingStart(id);
-
+        
         var profile = await service.GetByIdAsync(id);
+
+        if (profile is null)
+            return errors.NotFound();
+            
+        if (profile.Id != await userService.GetMyUserIdAsync())
+            return errors.ProfileNotBelongsToUser();
+
         return TypedResults.Ok(profile);
     }
 
-    public static async Task<NoContent> UpdateProfileAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateProfileAsync(
         int id,
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
+        ProfileErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.UpdatingStart(id, dto);
 
-        await service.UpdateAsync(dto, id);
+        if (!await service.ProfileExistsAsync(id))
+            return errors.NotFound();
 
+        if (!await service.ProfileIsMineAsync(id))
+            return errors.ProfileNotBelongsToUser();
+
+        if (!await service.UpdateAsync(dto, id))
+            return errors.Update();
+            
         logger.Updated(id);
         return TypedResults.NoContent();
     }

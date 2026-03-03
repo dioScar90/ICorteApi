@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -32,39 +33,39 @@ public static class BarberScheduleEndpoint
         return app;
     }
 
-    public static async Task<IResult> GetAvailableDatesForBarberAsync(
+    public static async Task<Ok<DateOnly[]>> GetAvailableDatesForBarberAsync(
         int barberShopId,
         DateOnly dateOfWeek,
         BarberScheduleService service)
     {
         var dates = await service.GetAvailableDatesForBarberAsync(barberShopId, dateOfWeek);
-        return Results.Ok(dates);
+        return TypedResults.Ok(dates);
     }
 
-    public static async Task<IResult> GetAvailableSlotsAsync(
+    public static async Task<Ok<TimeOnly[]>> GetAvailableSlotsAsync(
         int barberShopId,
         DateOnly date,
         [FromQuery] int[] serviceIds,
         BarberScheduleService service)
     {
         var slots = await service.GetAvailableSlotsAsync(barberShopId, date, serviceIds);
-        return Results.Ok(slots);
+        return TypedResults.Ok(slots);
     }
 
-    public static async Task<IResult> GetTopBarbersWithAvailabilityAsync(
+    public static async Task<Ok<TopBarberShopDtoResponse[]>> GetTopBarbersWithAvailabilityAsync(
         DateOnly dateOfWeek,
         [FromQuery] int? take,
         BarberScheduleService service)
     {
         var TopBarberShopDtos = await service.GetTopBarbersWithAvailabilityAsync(dateOfWeek, take);
-        return Results.Ok(TopBarberShopDtos);
+        return TypedResults.Ok(TopBarberShopDtos);
     }
     
-    public static async Task<IResult> SearchServicesByNameAsync(
+    public static async Task<Ok<PaginationResponse<ServiceByNameDtoResponse>>> SearchServicesByNameAsync(
         [FromQuery] string q,
         BarberScheduleService service)
     {
         var TopBarberShopDtos = await service.SearchServicesByName(q);
-        return Results.Ok(TopBarberShopDtos);
+        return TypedResults.Ok(TopBarberShopDtos);
     }
 }

@@ -118,7 +118,7 @@ public static class ServiceEndpoint
             return errors.NotFound();
             
         if (service!.BarberShopId != barberShopId)
-            return errors.ServiceNotBelongsToBarberShop(barberShopId);
+            return errors.ServiceNotBelongsToBarberShop();
             
         return TypedResults.Ok(service);
     }
@@ -138,7 +138,7 @@ public static class ServiceEndpoint
         return TypedResults.Ok(services);
     }
 
-    public static async Task<Results<NoContent, BadRequest<Error>>> UpdateServiceAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
         int serviceId,
         int barberShopId,
         ServiceDtoRequest dto,
@@ -150,6 +150,12 @@ public static class ServiceEndpoint
 
         logger.UpdatingStart(serviceId, dto);
 
+        if (!await serviceService.ServiceExists(serviceId))
+            return errors.NotFound();
+
+        if (!await serviceService.ServiceBelongsToBarberShop(serviceId))
+            return errors.ServiceNotBelongsToBarberShop();
+            
         if (!await serviceService.UpdateAsync(dto, serviceId, barberShopId))
             return errors.Update();
 
@@ -157,7 +163,7 @@ public static class ServiceEndpoint
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteServiceAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
         int serviceId,
         int barberShopId,
@@ -166,10 +172,21 @@ public static class ServiceEndpoint
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.DeletingStart(serviceId);
 
-        if (!await serviceService.DeleteAsync(serviceId, barberShopId, forceDelete is true))
+        if (!await serviceService.ServiceExists(serviceId))
+            return errors.NotFound();
+
+        if (!await serviceService.ServiceBelongsToBarberShop(serviceId))
+            return errors.ServiceNotBelongsToBarberShop();
+            
+        if (forceDelete is not true && await serviceService.CheckCorrelatedAppointmentsAsync(serviceId))
+        {
+            var dates = await serviceService.GetDatesFromCorrelatedAppointmentsAsync(serviceId);
+            return errors.ThereAreStillAppointments(dates);
+        }
+        
+        if (!await serviceService.DeleteAsync(serviceId))
             return errors.Delete();
 
         logger.Deleted(serviceId);

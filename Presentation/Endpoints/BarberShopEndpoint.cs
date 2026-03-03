@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -79,24 +80,28 @@ public static class BarberShopEndpoint
             Logger.LogInformation("{Entity} successfully deleted with Id={Id}", Entity, id);
     }
     
-    public static async Task<Created<BarberShopDtoResponse>> CreateBarberShopAsync(
+    public static async Task<Results<Created<BarberShopDtoResponse>, BadRequest<Error>>> CreateBarberShopAsync(
         BarberShopDtoRequest dto,
         BarberShopService service,
+        BarberShopErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.CreatingStart(dto);
 
         var barberShop = await service.CreateAsync(dto);
-
-        logger.Created(barberShop.Id);
+        
+        if (barberShop is null)
+            return errors.Create();
+            
+        logger.Created(barberShop!.Id);
         return TypedResults.Created(GetBaseEndpoint(barberShop), barberShop);
     }
     
-    public static async Task<Ok<BarberShopDtoResponse>> GetBarberShopAsync(
+    public static async Task<Results<Ok<BarberShopDtoResponse>, NotFound<Error>>> GetBarberShopAsync(
         int id,
         BarberShopService service,
+        BarberShopErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -104,6 +109,10 @@ public static class BarberShopEndpoint
         logger.GettingStart(id);
 
         var barberShop = await service.GetByIdAsync(id);
+
+        if (barberShop is null)
+            return errors.NotFound();
+
         return TypedResults.Ok(barberShop);
     }
     
@@ -112,42 +121,56 @@ public static class BarberShopEndpoint
         int? page,
         int? pageSize,
         BarberShopService service,
+        BarberShopErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingAppointmentsByBarbershopStart(barberShopId, page, pageSize);
 
         var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, page ?? 1, pageSize ?? 25);
         return TypedResults.Ok(barberShop);
     }
-
-    public static async Task<NoContent> UpdateBarberShopAsync(
+    
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateBarberShopAsync(
         int id,
         BarberShopDtoRequest dto,
         BarberShopService service,
+        BarberShopErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.UpdatingStart(id, dto);
+        
+        if (!await service.BarberShopExists(id))
+            return errors.NotFound();
+            
+        if (!await service.BarberShopBelongsToOwner(id))
+            return errors.BarberShopNotBelongsToOwner();
 
-        await service.UpdateAsync(dto, id);
+        if (!await service.UpdateAsync(dto, id))
+            return errors.Update();
 
         logger.Updated(id);
         return TypedResults.NoContent();
     }
 
-    public static async Task<NoContent> DeleteBarberShopAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteBarberShopAsync(
         int id,
         BarberShopService service,
+        BarberShopErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.DeletingStart(id);
+        
+        if (!await service.BarberShopExists(id))
+            return errors.NotFound();
+            
+        if (!await service.BarberShopBelongsToOwner(id))
+            return errors.BarberShopNotBelongsToOwner();
 
-        await service.DeleteAsync(id);
+        if (!await service.DeleteAsync(id))
+            return errors.Delete();
 
         logger.Deleted(id);
         return TypedResults.NoContent();

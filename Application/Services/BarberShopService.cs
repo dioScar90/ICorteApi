@@ -1,16 +1,13 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
-    ILogger<BarberShopService> _logger,
-    UserService _userService,
-    BarberShopErrors _errors)
+    UserService _userService)
     : BaseService<BarberShop>(context)
 {
-    public async Task<BarberShopDtoResponse> CreateAsync(BarberShopDtoRequest dto)
+    public async Task<BarberShopDtoResponse?> CreateAsync(BarberShopDtoRequest dto)
     {
         var ownerId = await _userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);
@@ -21,9 +18,25 @@ public sealed class BarberShopService(
         return await GetByIdAsync(barberShop.Id);
     }
 
+    public async Task<bool> BarberShopExists(int barberShopId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == barberShopId);
+    }
+    
+    public async Task<bool> BarberShopBelongsToOwner(int barberShopId, int? ownerId = null)
+    {
+        ownerId ??= await _userService.GetMyUserIdAsync();
+
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == barberShopId && x.OwnerId == ownerId);
+    }
+    
     public record Includes(bool Address = false, bool Collections = false);
     
-    public async Task<BarberShopDtoResponse> GetByIdAsync(int id, Includes? includes = null)
+    public async Task<BarberShopDtoResponse?> GetByIdAsync(int id, Includes? includes = null)
     {
         includes ??= new();
 
@@ -48,7 +61,7 @@ public sealed class BarberShopService(
                 .Include(b => b.Reports);
         }
 
-        var barberShop = await query
+        return await query
             .Select(b => new BarberShopDtoResponse(
                 b.Id,
                 b.OwnerId,
@@ -110,11 +123,6 @@ public sealed class BarberShopService(
                     )).ToArray()
             ))
             .FirstOrDefaultAsync();
-
-        if (barberShop is null)
-            _errors.ThrowNotFoundException();
-
-        return barberShop!;
     }
 
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
@@ -167,34 +175,25 @@ public sealed class BarberShopService(
         return new(entities ?? [], totalItems, totalPages, page, pageSize);
     }
     
-    public async Task UpdateAsync(BarberShopDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id)
     {
         var barberShop = await _dbSet.FindAsync(id);
 
         if (barberShop is null)
-            _errors.ThrowNotFoundException();
-
-        var ownerId = await _userService.GetMyUserIdAsync()!;
+            return false;
         
-        if (barberShop!.OwnerId != ownerId)
-            _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
-
         barberShop.UpdateEntity(dto);
-        await SaveChangesAsync();
+        return await SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var barberShop = await _dbSet.FindAsync(id);
 
         if (barberShop is null)
-            _errors.ThrowNotFoundException();
-
-        var ownerId = await _userService.GetMyUserIdAsync()!;
-
-        if (barberShop!.OwnerId != ownerId)
-            _errors.ThrowBarberShopNotBelongsToOwnerException(ownerId);
+            return false;
             
-        await DeleteAsync(barberShop);
+        _dbSet.Remove(barberShop);
+        return await SaveChangesAsync();
     }
 }

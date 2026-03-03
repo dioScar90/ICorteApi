@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,27 +93,32 @@ public static class RecurringScheduleEndpoint
                 Entity, dayOfWeek, barberShopId);
     }
     
-    public static async Task<Created<RecurringScheduleDtoResponse>> CreateRecurringScheduleAsync(
+    public static async Task<Results<Created<RecurringScheduleDtoResponse>, BadRequest<Error>>> CreateRecurringScheduleAsync(
         int barberShopId,
         RecurringScheduleDtoRequest dto,
         RecurringScheduleService service,
+        RecurringScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
         dto = dto with { BarberShopId = barberShopId };
         logger.CreatingStart(dto);
 
         var schedule = await service.CreateAsync(dto);
 
+        if (schedule is null)
+            return errors.Create();
+
         logger.Created(schedule.DayOfWeek, schedule.BarberShopId);
         return TypedResults.Created(GetBaseEndpoint(schedule), schedule);
     }
 
-    public static async Task<Ok<RecurringScheduleDtoResponse>> GetRecurringScheduleAsync(
+    public static async Task<Results<Ok<RecurringScheduleDtoResponse>, NotFound<Error>>> GetRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
+        RecurringScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -120,6 +126,10 @@ public static class RecurringScheduleEndpoint
         logger.GettingStart(dayOfWeek, barberShopId);
 
         var schedule = await service.GetByIdAsync(dayOfWeek, barberShopId);
+
+        if (schedule is null)
+            return errors.NotFound();
+
         return TypedResults.Ok(schedule);
     }
 
@@ -128,6 +138,7 @@ public static class RecurringScheduleEndpoint
         [FromQuery] int? pageSize,
         int barberShopId,
         RecurringScheduleService service,
+        RecurringScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -137,12 +148,13 @@ public static class RecurringScheduleEndpoint
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
         return TypedResults.Ok(schedules);
     }
-
-    public static async Task<NoContent> UpdateRecurringScheduleAsync(
+    
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoRequest dto,
         RecurringScheduleService service,
+        RecurringScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -150,23 +162,38 @@ public static class RecurringScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(dayOfWeek, barberShopId, dto);
 
-        await service.UpdateAsync(dto, dayOfWeek, barberShopId);
+        if (!await service.RecurringScheduleExists(dayOfWeek, barberShopId))
+            return errors.NotFound();
+
+        if (!await service.RecurringScheduleBelongsToBarberShop(dayOfWeek, barberShopId))
+            return errors.RecurringScheduleNotBelongsToBarberShop();
+            
+        if (!await service.UpdateAsync(dto, dayOfWeek, barberShopId))
+            return errors.Update();
 
         logger.Updated(dayOfWeek, barberShopId);
         return TypedResults.NoContent();
     }
 
-    public static async Task<NoContent> DeleteRecurringScheduleAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
+        RecurringScheduleErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(dayOfWeek, barberShopId);
 
-        await service.DeleteAsync(dayOfWeek, barberShopId);
+        if (!await service.RecurringScheduleExists(dayOfWeek, barberShopId))
+            return errors.NotFound();
+
+        if (!await service.RecurringScheduleBelongsToBarberShop(dayOfWeek, barberShopId))
+            return errors.RecurringScheduleNotBelongsToBarberShop();
+
+        if (!await service.DeleteAsync(dayOfWeek, barberShopId))
+            return errors.Delete();
 
         logger.Deleted(dayOfWeek, barberShopId);
         return TypedResults.NoContent();
