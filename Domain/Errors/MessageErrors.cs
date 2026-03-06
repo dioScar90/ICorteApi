@@ -1,22 +1,27 @@
+using System.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
+
 namespace ICorteApi.Domain.Errors;
 
 public sealed class MessageErrors : BaseErrors<Message>
 {
-    public void ThrowNotAllowedToSendMessageException(int senderId)
+    public ProblemHttpResult NotAllowedToSendMessage()
     {
-        string message = $"Não permitido enviar a mensagem pelo perfil \"{senderId}\" informado";
-        throw new ForbiddenException(message);
+        string message = $"Perfil não autorizado para enviar a mensagem";
+        // return TypedResults.Forbid(new Error("Forbid Error", message));
+        // return TypedResults.Forbid();
+        return TypedResults.Problem(message, statusCode: StatusCodes.Status403Forbidden);
     }
-
-    public void ThrowMessageNotBelongsToAppointmentException(int appointmentId)
+    
+    public Conflict<Error> MessageNotBelongsToAppointment()
     {
-        string message = $"{_entity} não pertence ao agendamento \"{appointmentId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao agendamento informado";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
-
-    public void ThrowMessageNotBelongsToSenderException(int senderId)
+    
+    public Conflict<Error> MessageNotBelongsToSender()
     {
-        string message = $"{_entity} não pertence ao remetente \"{senderId}\" informado";
-        throw new ConflictException(message);
+        string message = $"{_entity} não pertence ao remetente";
+        return TypedResults.Conflict(new Error("Conflict Error", message));
     }
 }

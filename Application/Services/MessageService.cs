@@ -1,30 +1,13 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
     AppDbContext context,
-    ILogger<MessageService> _logger,
-    UserService _userService,
-    MessageErrors _errors)
+    UserService _userService)
     : BaseService<Message>(context)
 {
-    public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
-    {
-        var userId = _userId ?? await _userService.GetMyUserIdAsync()!;
-        
-        return await _context.Appointments.AnyAsync(
-            a => a.Id == appointmentId && (
-                a.ClientId == userId || (
-                    a.BarberShop.OwnerId == userId
-                    && a.Messages.Any(m => m.AppointmentId == a.Id && m.SenderId == a.ClientId)
-                )
-            )
-        );
-    }
-
-    public async Task<MessageDtoResponse> CreateAsync(MessageDtoRequest dto)
+    public async Task<MessageDtoResponse?> CreateAsync(MessageDtoRequest dto)
     {
         var senderId = await _userService.GetMyUserIdAsync()!;
         var message = new Message(dto, dto.AppointmentId, senderId);
@@ -34,10 +17,46 @@ public sealed class MessageService(
 
         return await GetByIdAsync(message.Id, message.AppointmentId);
     }
-
+    
+    public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
+    {
+        var userId = _userId ?? await _userService.GetMyUserIdAsync()!;
+        
+        return await _context.Appointments.AnyAsync(
+            a => a.Id == appointmentId && (
+                // is the client
+                a.ClientId == userId
+                
+                // is the barber, and conversation already has at least one message from the client
+                || (
+                    a.BarberShopId == userId
+                    && a.Messages.Any(m => m.AppointmentId == a.Id && m.SenderId == a.ClientId)
+                )
+            )
+        );
+    }
+    
+    public async Task<bool> MessageBelongsToAppointmentAsync(int id, int appointmentId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(x => x.Id == id)
+            .AnyAsync(x => x.AppointmentId == appointmentId);
+    }
+    
+    public async Task<bool> MessageBelongsToSenderAsync(int id, int? senderId = null)
+    {
+        senderId ??= await _userService.GetMyUserIdAsync();
+        
+        return await _dbSet
+            .AsNoTracking()
+            .Where(x => x.Id == id)
+            .AnyAsync(x => x.SenderId == senderId);
+    }
+    
     public record Includes(bool Appointment = false);
 
-    public async Task<MessageDtoResponse> GetByIdAsync(int id, int appointmentId, Includes? includes = null)
+    public async Task<MessageDtoResponse?> GetByIdAsync(int id, int appointmentId, Includes? includes = null)
     {
         includes ??= new();
 
@@ -52,7 +71,7 @@ public sealed class MessageService(
                 .Include(m => m.Appointment);
         }
 
-        var message = await query
+        return await query
             .Select(m => new MessageDtoResponse(
                 m.Id,
                 m.AppointmentId,
@@ -64,14 +83,6 @@ public sealed class MessageService(
                 m.Sender.Profile.LastName
             ))
             .FirstOrDefaultAsync();
-
-        if (message is null)
-            _errors.ThrowNotFoundException();
-
-        if (message!.AppointmentId != appointmentId)
-            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
-
-        return message;
     }
 
     public async Task<PaginationResponse<MessageDtoResponse>> GetAllAsync(int? page, int? pageSize, int appointmentId)
@@ -95,21 +106,7 @@ public sealed class MessageService(
             )
         );
     }
-
-    public async Task<MessageDtoResponse> SendMessageAsync(MessageDtoRequest dto, int appointmentId, int senderId)
-    {
-        if (!await CanSendMessageAsync(appointmentId, senderId))
-            _errors.ThrowNotAllowedToSendMessageException(senderId);
-
-        dto = dto with
-        {
-            AppointmentId = appointmentId,
-            SenderId = senderId
-        };
-
-        return await CreateAsync(dto);
-    }
-
+    
     public async Task MarkMessageAsReadAsync(MessageDtoIsReadUpdateRequest[] dtos, int senderId)
     {
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
@@ -118,86 +115,121 @@ public sealed class MessageService(
             .Where(x => !x.IsRead && messageIds.Contains(x.Id) && x.SenderId == senderId)
             .ExecuteUpdateAsync(x => x.SetProperty(p => p.IsRead, true));
     }
-
-    public async Task DeleteAsync(int id, int appointmentId)
+    
+    public async Task<bool> DeleteAsync(int id, int appointmentId)
     {
         var message = await _dbSet.FindAsync(id);
 
         if (message is null)
-            _errors.ThrowNotFoundException();
+            return false;
 
         if (message!.AppointmentId != appointmentId)
-            _errors.ThrowMessageNotBelongsToAppointmentException(appointmentId);
-            
-        var senderId = await _userService.GetMyUserIdAsync()!;
-        
-        if (message.SenderId != senderId)
-            _errors.ThrowMessageNotBelongsToSenderException(senderId);
+            return false;
 
-        await DeleteAsync(message);
+        _dbSet.Remove(message);
+        return await SaveChangesAsync();
     }
-
+    
     public async Task<MessageDtoResponse[]> GetLastMessagesAsync(int appointmentId, int senderId, int? lastMessageId)
     {
         int take = lastMessageId is int ? 10 : 5;
-
-        return await _context.Database
-            .SqlQuery<MessageDtoResponse>(@$"
-                SELECT TOP ({take}) M.id AS Id
-                    ,M.content AS Content
-                    ,M.sent_at AS SentAt
-                    ,M.is_read AS IsRead
-                    ,M.sender_id AS SenderId
-                    ,P.first_name AS FirstName
-                    ,P.last_name AS LastName
-                FROM appointments A
-                    INNER JOIN messages M ON A.id = M.appointment_id
-                    INNER JOIN profiles P ON P.id = M.sender_id
-                WHERE A.is_deleted = CAST(0 AS BIT)
-                    AND A.id = {appointmentId}
-                    AND M.is_deleted = CAST(0 AS BIT)
-                    AND (
-                        A.client_id = {senderId}
-                        OR A.barber_shop_id = (
-                            SELECT BS.id
-                            FROM barber_shops BS
-                            WHERE BS.is_deleted = CAST(0 AS bit)
-                                AND BS.owner_id = {senderId}
-                        )
-                    )
-                    AND ({lastMessageId} IS NULL OR M.id > {lastMessageId})
-                ORDER BY M.sent_at DESC
-            ")
-            .AsNoTracking()
+        
+        return await _context.Messages
+            .Where(m => m.AppointmentId == appointmentId
+                && (lastMessageId == null || m.Id > lastMessageId)
+                && (m.Appointment.ClientId == senderId || m.Appointment.BarberShopId == senderId)
+                && !m.Appointment.IsDeleted
+                && !m.IsDeleted
+            )
+            .Select(m => new MessageDtoResponse(
+                m.Id,
+                m.AppointmentId,
+                m.SenderId,
+                m.Content,
+                m.SentAt,
+                m.IsRead,
+                m.Sender.Profile.FirstName,
+                m.Sender.Profile.LastName
+            ))
+            .Take(take)
             .ToArrayAsync();
+            
+        // return await _context.Database
+        //     .SqlQuery<MessageDtoResponse>(@$"
+        //         DECLARE @last_message_id INT = {lastMessageId};
+        //         SELECT TOP ({take}) M.id AS Id
+        //             ,M.content AS Content
+        //             ,M.sent_at AS SentAt
+        //             ,M.is_read AS IsRead
+        //             ,M.sender_id AS SenderId
+        //             ,P.first_name AS FirstName
+        //             ,P.last_name AS LastName
+        //         FROM appointments A
+        //             INNER JOIN messages M ON A.id = M.appointment_id
+        //             INNER JOIN profiles P ON P.id = M.sender_id
+        //         WHERE A.is_deleted = CAST(0 AS BIT)
+        //             AND A.id = {appointmentId}
+        //             AND M.is_deleted = CAST(0 AS BIT)
+        //             AND (
+        //                 A.client_id = {senderId}
+        //                 OR A.barber_shop_id = (
+        //                     SELECT TOP (1) BS.id
+        //                     FROM barber_shops BS
+        //                     WHERE BS.owner_id = {senderId}
+        //                         AND BS.is_deleted = CAST(0 AS bit)
+        //                 )
+        //             )
+        //             AND (@last_message_id IS NULL OR M.id > @last_message_id)
+        //         ORDER BY M.sent_at DESC
+        //     ")
+        //     .AsNoTracking()
+        //     .ToArrayAsync();
     }
 
     private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
     {
-        return await _context.Database
-            .SqlQuery<ChatWithMessagesDtoResponse>(@$"
-                SELECT A.id AS AppointmentId
-                    ,IIF(M.sender_id = {clientId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe
-                    ,M.content AS Content
-                    ,M.sent_at AS SentAt
-                    ,P.first_name AS FirstName
-                    ,M.is_read AS IsRead
-                FROM appointments A
-                    INNER JOIN messages M ON A.id == M.appointment_id
-                    INNER JOIN profiles P ON P.id = M.sender_id
-                WHERE A.is_deleted = CAST(0 AS BIT)
-                    AND M.is_deleted = CAST(0 AS BIT)
-                    AND A.client_id = {clientId}
-                    AND M.id = (
-                        SELECT TOP 1 id
-                        FROM messages MT
-                        WHERE MT.appointment_id = A.id
-                        ORDER BY M.sent_at DESC
-                    )
-                ORDER BY M.sent_at DESC
-            ")
-            .AsNoTracking()
+        return await _context.Appointments
+            .Where(a => a.ClientId == clientId && !a.IsDeleted)
+            .Select(a => a.Messages
+                .Where(m => !m.IsDeleted)
+                .OrderByDescending(m => m.SentAt)
+                .Select(m => new ChatWithMessagesDtoResponse(
+                    m.AppointmentId,
+                    m.SenderId == clientId,
+                    m.Content,
+                    m.SentAt,
+                    m.Sender.Profile.FirstName,
+                    m.IsRead
+                ))
+                .FirstOrDefault()!
+            )
+            .Where(dto => dto != null)
             .ToArrayAsync();
+
+        // return await _context.Database
+        //     .SqlQuery<ChatWithMessagesDtoResponse>(@$"
+        //         SELECT A.id AS AppointmentId
+        //             ,CAST(IIF(M.sender_id = {clientId}, 1, 0) AS BIT) AS IsMe
+        //             ,M.content AS Content
+        //             ,M.sent_at AS SentAt
+        //             ,P.first_name AS FirstName
+        //             ,M.is_read AS IsRead
+        //         FROM appointments A
+        //             INNER JOIN messages M ON A.id == M.appointment_id
+        //             INNER JOIN profiles P ON P.id = M.sender_id
+        //         WHERE A.is_deleted = CAST(0 AS BIT)
+        //             AND M.is_deleted = CAST(0 AS BIT)
+        //             AND A.client_id = {clientId}
+        //             AND M.id = (
+        //                 SELECT TOP 1 id
+        //                 FROM messages MT
+        //                 WHERE MT.appointment_id = A.id
+        //                 ORDER BY M.sent_at DESC
+        //             )
+        //         ORDER BY M.sent_at DESC
+        //     ")
+        //     .AsNoTracking()
+        //     .ToArrayAsync();
     }
 
     private async Task<ChatWithMessagesDtoResponse[]> GetBarberChatHistoryAsync(int ownerBarberShopId)

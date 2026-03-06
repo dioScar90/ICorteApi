@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -83,44 +84,58 @@ public static class MessageEndpoint
     public static async Task<Ok<bool>> IsAllowedCheckAsync(
         int appointmentId,
         MessageService service,
+        MessageErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.CheckingAllowingStart(appointmentId);
 
         var result = await service.CanSendMessageAsync(appointmentId);
         return TypedResults.Ok(result);
     }
 
-    public static async Task<Created<MessageDtoResponse>> CreateMessageAsync(
+    public static async Task<Results<Created<MessageDtoResponse>, BadRequest<Error>, ProblemHttpResult>> CreateMessageAsync(
         int appointmentId,
         MessageDtoRequest dto,
         MessageService service,
+        MessageErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
         dto = dto with { AppointmentId = appointmentId };
+        
+        logger.CheckingAllowingStart(dto.AppointmentId);
+
+        if (!await service.CanSendMessageAsync(dto.AppointmentId))
+            return errors.NotAllowedToSendMessage();
+
         logger.CreatingStart(dto);
 
         var message = await service.CreateAsync(dto);
 
+        if (message is null)
+            return errors.Create();
+
         logger.Created(message.Id);
         return TypedResults.Created(GetBaseEndpoint(message), message);
     }
-
-    public static async Task<Ok<MessageDtoResponse>> GetMessageAsync(
+    
+    public static async Task<Results<Ok<MessageDtoResponse>, NotFound<Error>>> GetMessageAsync(
         int id,
         int appointmentId,
         MessageService service,
+        MessageErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
         logger.GettingStart(id);
-
+        
         var message = await service.GetByIdAsync(id, appointmentId);
+
+        if (message is null)
+            return errors.NotFound();
+            
         return TypedResults.Ok(message);
     }
 
@@ -129,6 +144,7 @@ public static class MessageEndpoint
         [FromQuery] int? pageSize,
         int appointmentId,
         MessageService service,
+        MessageErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
@@ -139,18 +155,26 @@ public static class MessageEndpoint
         return TypedResults.Ok(messages);
     }
 
-    public static async Task<NoContent> DeleteMessageAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> DeleteMessageAsync(
         int appointmentId,
         int id,
         MessageService service,
+        MessageErrors errors,
         ILoggerFactory loggerFactory)
     {
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
+        if (!await service.MessageBelongsToAppointmentAsync(id, appointmentId))
+            return errors.MessageNotBelongsToAppointment();
+        
+        if (!await service.MessageBelongsToSenderAsync(id))
+            return errors.MessageNotBelongsToSender();
+            
         logger.DeletingStart(id);
-
-        await service.DeleteAsync(id, appointmentId);
-
+        
+        if (!await service.DeleteAsync(id, appointmentId))
+            return errors.Delete();
+            
         logger.Deleted(id);
         return TypedResults.NoContent();
     }
