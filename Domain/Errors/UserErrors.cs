@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Errors;
@@ -7,80 +8,67 @@ public sealed class UserErrors : BaseErrors<User>
     private static Error[] GetIdentityErrorIntoBasicError(IdentityError[] identityErrors)
         => [..identityErrors.Select(err => new Error(err.Code, err.Description))];
     
-    public void ThrowCreateException(params IdentityError[] identityErrors)
+    public BadRequest<Error> Create(params IdentityError[] identityErrors)
     {
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-        ThrowCreateException([..errors]);
+        return Create(GetIdentityErrorIntoBasicError(identityErrors));
     }
 
-    public void ThrowUpdateException(params IdentityError[] identityErrors)
+    public BadRequest<Error> Update(params IdentityError[] identityErrors)
     {
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-        ThrowUpdateException([..errors]);
+        return Update(GetIdentityErrorIntoBasicError(identityErrors));
     }
     
-    public void ThrowDeleteException(params IdentityError[] identityErrors)
+    public BadRequest<Error> Delete(params IdentityError[] identityErrors)
     {
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-        ThrowDeleteException([..errors]);
+        return Delete(GetIdentityErrorIntoBasicError(identityErrors));
     }
     
-    public void ThrowAddUserRoleException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> AddUserRole(params IdentityError[] identityErrors)
     {
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-        ThrowBadRequestException([..errors]);
+        return Error.UnprocessableEntity("Não foi possível atualizar as permissões", GetIdentityErrorIntoBasicError(identityErrors));
     }
     
-    public void ThrowRemoveUserRoleException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> RemoveUserRole(params IdentityError[] identityErrors)
     {
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-        ThrowBadRequestException([..errors]);
+        return Error.UnprocessableEntity("Não foi possível atualizar as permissões", GetIdentityErrorIntoBasicError(identityErrors));
     }
 
-    public void ThrowRegisterNotCompletedException()
+    public Conflict<Error> RegisterNotCompleted()
     {
-        throw new ConflictException($"{_entity} com alguns campos ainda pendentes para completar o cadastro");
+        return Error.Conflict($"{_entity} com alguns campos ainda pendentes para completar o cadastro");
     }
 
-    public void ThrowUserAlreadyCreatedException()
+    public Conflict<Error> UserAlreadyCreated()
     {
-        throw new ConflictException($"{_entity} já criado");
+        return Error.Conflict($"{_entity} já criado");
     }
 
-    public void ThrowWrongUserIdException(int id)
+    public ProblemHttpResult WrongUserId(int id)
     {
-        throw new ConflictException($"Id \"{id}\" informado não pertence ao {_entity}");
+        return Error.Forbidden($"Id \"{id}\" informado não pertence ao {_entity}");
     }
 
-    public void ThrowBasicUserException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> BasicUser(params IdentityError[] identityErrors)
     {
         string message = $"Algo errado aconteceu ao tentar atualizar o {_entity}";
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-
-        throw new ConflictException(message, [.. errors]);
+        return Error.UnprocessableEntity(message, GetIdentityErrorIntoBasicError(identityErrors));
     }
 
-    public void ThrowUpdateEmailException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> UpdateEmail(params IdentityError[] identityErrors)
     {
         string message = $"Não foi possível atualizar o email do {_entity}";
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-
-        throw new ConflictException(message, [.. errors]);
+        return Error.UnprocessableEntity(message, GetIdentityErrorIntoBasicError(identityErrors));
     }
 
-    public void ThrowUpdatePasswordException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> UpdatePassword(params IdentityError[] identityErrors)
     {
         string message = $"Não foi possível atualizar a senha do {_entity}";
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-
-        throw new ConflictException(message, [.. errors]);
+        return Error.UnprocessableEntity(message, GetIdentityErrorIntoBasicError(identityErrors));
     }
 
-    public void ThrowUpdatePhoneNumberException(params IdentityError[] identityErrors)
+    public UnprocessableEntity<Error> UpdatePhoneNumber(params IdentityError[] identityErrors)
     {
         string message = $"Não foi possível atualizar o número de telefone do {_entity}";
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-
-        throw new ConflictException(message, [.. errors]);
+        return Error.UnprocessableEntity(message, GetIdentityErrorIntoBasicError(identityErrors));
     }
 }

@@ -7,12 +7,12 @@ public sealed class ReportErrors : BaseErrors<Report>
     public Conflict<Error> ReportNotBelongsToClient()
     {
         string message = $"{_entity} não pertence ao cliente";
-        return TypedResults.Conflict(new Error("Conflict Error", message));
+        return Error.Conflict(message);
     }
     
-    public Conflict<Error> ReportNotBelongsToBarberShop()
+    public Conflict<Error> ReportNotBelongsToBarberShop(params Error[] errors)
     {
         string message = $"{_entity} não pertence à barbearia informada";
-        return TypedResults.Conflict(new Error("Conflict Error", message));
+        return Error.Conflict(message);
     }
 }

@@ -7,7 +7,7 @@ public sealed class ServiceErrors : BaseErrors<Service>
     public Conflict<Error> ServiceNotBelongsToBarberShop()
     {
         string message = $"{_entity} não pertence à barbearia informada";
-        return TypedResults.Conflict(new Error ("Conflict Error", message));
+        return Error.Conflict(message);
     }
     
     public Conflict<Error> ThereAreStillAppointments(DateOnly[] dates)
@@ -20,6 +20,6 @@ public sealed class ServiceErrors : BaseErrors<Service>
             message += $", com datas: {datesIntoString}";
         }
         
-        return TypedResults.Conflict(new Error ("Conflict Error", message));
+        return Error.Conflict(message);
     }
 }

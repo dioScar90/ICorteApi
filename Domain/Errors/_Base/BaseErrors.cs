@@ -12,7 +12,7 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
     protected BaseErrors()
     {
         (string entityName, bool isFemale) = GetEntityProps(typeof(TEntity));
-        _entity = UcWord(entityName);
+        _entity = entityName.UcWords();
         _isFemale = isFemale;
         _the = _isFemale ? 'a' : 'o';
     }
@@ -32,29 +32,22 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
             _ => ("error", false)
         };
         
-    private static string UcWord(string entity) =>
-        string.Join(' ', entity
-            .Split(' ')
-            .Where(a => !string.IsNullOrWhiteSpace(a) && a.Length > 1)
-            .Select(a => a.Length > 2 ? char.ToUpper(a[0]) + a[1..].ToLower() : a.ToLower())
-        );
-        
-    public BadRequest<Error> BadRequest(string? message = null)
+    public BadRequest<Error> BadRequest(string? message = null, params Error[] errors)
     {
         message ??= $"Não foi possível concluir a operação {_the} {_entity}";
-        return TypedResults.BadRequest<Error>(new("Bad Request Error", message));
+        return Error.BadRequest(message, errors);
     }
     
-    public BadRequest<Error> Create()
+    public BadRequest<Error> Create(params Error[] errors)
     {
         string message = $"Não foi possível criar {_the} {_entity}";
-        return BadRequest(message);
+        return BadRequest(message, errors);
     }
 
-    public BadRequest<Error> Update()
+    public BadRequest<Error> Update(params Error[] errors)
     {
         string message = $"Não foi possível atualizar {_the} {_entity}";
-        return BadRequest(message);
+        return BadRequest(message, errors);
     }
     
     public BadRequest<Error> Delete(params Error[] errors)
@@ -67,6 +60,7 @@ public abstract class BaseErrors<TEntity> : IBaseErrors<TEntity>
     {
         string encontrada = _isFemale ? "encontrada" : "encontrado";
         string message = $"{_entity} não {encontrada}";
-        return TypedResults.NotFound(new Error("Not Found Error", message));
+
+        return Error.NotFound(message);
     }
 }

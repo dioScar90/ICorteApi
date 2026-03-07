@@ -13,20 +13,25 @@ public sealed class UserService(
 {
     private readonly DbSet<User> _userDbSet = _context.Set<User>();
     
-    private async Task<User?> GetMyUserEntityAsync() =>
-        _httpCtx.HttpContext?.User is null ? null : await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
+    private async Task<User?> GetMyUserEntityAsync()
+    {
+        if (_httpCtx.HttpContext?.User is null)
+            return null;
+            
+        var user = await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
+        
+        return user;
+    }
+    
+    private async Task<UserDtoResponse?> GetMyUserDtoAsync() => (await GetMyUserEntityAsync())?.CreateDto();
     
     private async Task RegenerateUserCookieAsync(User? user = null) =>
         await _signInManager.RefreshSignInAsync(user ?? await GetMyUserEntityAsync());
         
-    public async Task<int> GetMyUserIdAsync()
+    public async Task<int?> GetMyUserIdAsync()
     {
-        var user = await GetMyUserEntityAsync();
-
-        if (user is null)
-            _userErrors.ThrowDeuRuimException();
-
-        return user!.Id;
+        var user = await GetMyUserDtoAsync();
+        return user?.Id;
     }
 
     public async Task<UserRole[]> GetUserRolesAsync()
@@ -59,7 +64,7 @@ public sealed class UserService(
         return roles;
     }
     
-    public async Task<User?> CreateAsync(UserDtoRegisterRequest dto)
+    public async Task<IdentityResult?> CreateAsync(UserDtoRegisterRequest dto)
     {
         var newUser = new User(dto);
         
@@ -67,18 +72,18 @@ public sealed class UserService(
 
         try
         {
-            var userIdentityResult = await _userManager.CreateAsync(newUser, newUser.GetPasswordToBeHashed());
+            var result = await _userManager.CreateAsync(newUser, newUser.GetPasswordToBeHashed());
 
-            if (!userIdentityResult.Succeeded)
-                _userErrors.ThrowCreateException([..userIdentityResult.Errors]);
+            if (!result.Succeeded)
+                return result;
                 
-            var roleIdentityResult = await _userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
+            result = await _userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
 
-            if (!roleIdentityResult.Succeeded)
-                _userErrors.ThrowBasicUserException([..roleIdentityResult.Errors]);
+            if (!result.Succeeded)
+                return result;
             
             await transaction.CommitAsync();
-            return newUser;
+            return result;
         }
         catch (Exception)
         {
@@ -87,127 +92,199 @@ public sealed class UserService(
         }
     }
 
-    public async Task<User?> GetMeAsync(bool? dispatchIncludes = false)
+    public async Task<UserDtoResponse?> GetMeAsync(bool? dispatchIncludes = false)
     {
         if (dispatchIncludes == true)
-            return await GetMyUserEntityAsync();
+            return await GetMyUserDtoAsync();
 
-        int userId = await GetMyUserIdAsync();
+        var userId = await GetMyUserIdAsync();
+
+        if (userId is null)
+            return null;
 
         var user = await _userDbSet
             .AsNoTracking()
             .Include(u => u.Profile)
             .Include(u => u.BarberShop)
             .AsSplitQuery()
+            .Select(u => new UserDtoResponse(
+                u.Id,
+                u.Email,
+                u.PhoneNumber,
+                Array.Empty<string>(),
+                new ProfileDtoResponse(
+                    u.Profile.Id,
+                    u.Profile.FirstName,
+                    u.Profile.LastName,
+                    u.Profile.FirstName + " " + u.Profile.LastName,
+                    u.Profile.Gender,
+                    u.Profile.ImageUrl
+                ),
+                new BarberShopDtoResponse(
+                    u.BarberShop.Id,
+                    u.BarberShop.OwnerId,
+                    u.BarberShop.Name,
+                    u.BarberShop.Description,
+                    u.BarberShop.ComercialNumber,
+                    u.BarberShop.ComercialEmail,
+                    null,
+                    Array.Empty<RecurringScheduleDtoResponse>(),
+                    Array.Empty<SpecialScheduleDtoResponse>(),
+                    Array.Empty<ServiceDtoResponse>(),
+                    Array.Empty<ReportDtoResponse>()
+                )
+            ))
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
             return null;
+            
+        var roles = await GetUserRolesAsync();
 
-        user.SetRoles(await GetUserRolesAsync());
-        return user;
-    }
-
-    public async Task<User> GetMyUserAsync() => (await GetMeAsync())!;
-
-    private async Task UpdatedUserEntityNow(User user)
-    {
-        user.UpdatedUserNow();
-        await _userManager.UpdateAsync(user);
+        if (roles is null)
+            return user;
+        
+        return user with { Roles = [..roles.Select(r => r.ToString())] };
     }
     
-    public async Task AddUserRoleAsync(UserRole role)
+    public async Task<IdentityResult?> AddUserRoleAsync(UserDtoAddRoleRequest dto)
     {
         var user = await GetMyUserEntityAsync();
-        var identityResult = await _userManager.AddToRoleAsync(user, role.ToString());
-
-        if (!identityResult.Succeeded)
-            _userErrors.ThrowAddUserRoleException([..identityResult.Errors]);
-
-        await UpdatedUserEntityNow(user);
-        await RegenerateUserCookieAsync();
-    }
-    
-    public async Task RemoveFromRoleAsync(UserRole role)
-    {
-        var user = await GetMyUserEntityAsync();
-        var identityResult = await _userManager.RemoveFromRoleAsync(user, role.ToString());
-
-        if (!identityResult.Succeeded)
-            _userErrors.ThrowRemoveUserRoleException([..identityResult.Errors]);
-
-        await UpdatedUserEntityNow(user);
-        await RegenerateUserCookieAsync();
-    }
-
-    public async Task<bool> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest)
-    {
-        var user = await GetMyUserEntityAsync();
-        var identityResult = await _userManager.SetEmailAsync(user, dtoRequest.Email);
-
-        if (!identityResult.Succeeded)
-            _userErrors.ThrowUpdateEmailException([..identityResult.Errors]);
-
-        await UpdatedUserEntityNow(user);
-        return true;
-    }
-
-    public async Task UpdatePasswordAsync(UserDtoPasswordUpdateRequest dtoRequest)
-    {
-        var user = await GetMyUserEntityAsync();
-        var identityResult = await _userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
-
-        if (!identityResult.Succeeded)
-            _userErrors.ThrowUpdatePasswordException([..identityResult.Errors]);
-
-        await UpdatedUserEntityNow(user);
-    }
-
-    public async Task UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
-    {
-        var user = await GetMyUserEntityAsync();
-        var identityResult = await _userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
-
-        if (!identityResult.Succeeded)
-            _userErrors.ThrowUpdatePhoneNumberException([..identityResult.Errors]);
-
-        await UpdatedUserEntityNow(user);
-    }
-
-    private async Task DeleteUserEntity(User user)
-    {
-        user.DeleteEntity();
-        await _userManager.UpdateAsync(user);
-    }
-    
-    public async Task DeleteAsync(int id)
-    {
-        var user = await GetMeAsync();
 
         if (user is null)
-            _userErrors.ThrowNotFoundException();
+            return null;
+        
+        var result = await _userManager.AddToRoleAsync(user, dto.Role.ToString());
+        
+        if (!result.Succeeded)
+            return result;
+            
+        await RegenerateUserCookieAsync();
+        return result;
+    }
+    
+    public async Task<IdentityResult?> RemoveFromRoleAsync(UserDtoRemoveRoleRequest dto)
+    {
+        var user = await GetMyUserEntityAsync();
+
+        if (user is null)
+            return null;
+        
+        var result = await _userManager.RemoveFromRoleAsync(user, dto.Role.ToString());
+
+        if (!result.Succeeded)
+            return result;
+            
+        if (!result.Succeeded)
+            return result;
+            
+        user.UpdatedUserNow();
+
+        result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+            return result;
+            
+        await RegenerateUserCookieAsync();
+        return result;
+    }
+    
+    public async Task<IdentityResult?> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest)
+    {
+        var user = await GetMyUserEntityAsync();
+
+        if (user is null)
+            return null;
+        
+        var result = await _userManager.SetEmailAsync(user, dtoRequest.Email);
+        
+        if (!result.Succeeded)
+            return result;
+            
+        user.UpdatedUserNow();
+
+        return await _userManager.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult?> UpdatePasswordAsync(UserDtoPasswordUpdateRequest dtoRequest)
+    {
+        var user = await GetMyUserEntityAsync();
+
+        if (user is null)
+            return null;
+
+        var result = await _userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
+
+        if (!result.Succeeded)
+            return result;
+            
+        user.UpdatedUserNow();
+
+        return await _userManager.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult?> UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
+    {
+        var user = await GetMyUserEntityAsync();
+
+        if (user is null)
+            return null;
+
+        var result = await _userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
+
+        if (!result.Succeeded)
+            return result;
+            
+        user.UpdatedUserNow();
+
+        return await _userManager.UpdateAsync(user);
+    }
+    
+    public async Task<bool> IsUserFromGivenId(int? id)
+    {
+        if (id is not > 0)
+            return false;
+
+        var realId = await GetMyUserIdAsync();
+
+        return realId == id;
+    }
+    
+    public async Task<IdentityResult?> DeleteAsync(int id)
+    {
+        var user = await GetMyUserEntityAsync();
+
+        if (user is null)
+            return null;
 
         if (user!.Id != id)
-            _userErrors.ThrowWrongUserIdException(id);
+            return null;
 
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             string[] roles = Enum.GetNames(typeof(UserRole));
-            var roleResult = await _userManager.RemoveFromRolesAsync(user, roles);
 
-            if (!roleResult.Succeeded)
-                _userErrors.ThrowBasicUserException([..roleResult.Errors]);
+            var result = await _userManager.RemoveFromRolesAsync(user, roles);
 
-            await DeleteUserEntity(user);
+            if (!result.Succeeded)
+                return result;
 
-            var identityResult = await _userManager.DeleteAsync(user);
+            user.DeleteEntity();
 
-            if (!identityResult.Succeeded)
-                _userErrors.ThrowBasicUserException([..identityResult.Errors]);
+            result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return result;
+                
+            result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return result;
 
             await transaction.CommitAsync();
+            return result;
         }
         catch (Exception)
         {

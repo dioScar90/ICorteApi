@@ -88,7 +88,7 @@ public static class AddressEndpoint
             return errors.Create();
         
         logger.Created(address.Id);
-        return TypedResults.Created(GetBaseEndpoint(address), address); ;
+        return TypedResults.Created(GetBaseEndpoint(address), address);
     }
     
     public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>>> GetAddressAsync(
@@ -107,7 +107,7 @@ public static class AddressEndpoint
             return errors.NotFound();
 
         if (address!.BarberShopId != barberShopId)
-            return errors.AddressNotBelongsToBarberShop(barberShopId);
+            return errors.AddressNotBelongsToBarberShop();
 
         return TypedResults.Ok(address);
     }

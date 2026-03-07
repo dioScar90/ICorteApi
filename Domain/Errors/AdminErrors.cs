@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 
 namespace ICorteApi.Domain.Errors;
@@ -7,61 +8,59 @@ public sealed class AdminErrors
     private static Error[] GetIdentityErrorIntoBasicError(IdentityError[] identityErrors)
         => [..identityErrors.Select(err => new Error(err.Code, err.Description))];
 
-    public void ThrowNotEqualEmailException()
+    public Conflict<Error> NotEqualEmail(params Error[] errors)
     {
-        throw new ConflictException("Esse email sequer existe, vai procurar o que fazer");
+        return Error.Conflict("Esse email sequer existe, vai procurar o que fazer", errors);
     }
 
-    public void ThrowNotEqualPassphaseException()
+    public Conflict<Error> NotEqualPassphase(params Error[] errors)
     {
-        throw new ConflictException("Frase totalmente diferente do que combinamos");
+        return Error.Conflict("Frase totalmente diferente do que combinamos", errors);
     }
 
-    public void ThrowNullEmailException()
+    public Conflict<Error> NullEmail(params Error[] errors)
     {
-        throw new ConflictException("Sem email, sem chance");
+        return Error.Conflict("Sem email, sem chance", errors);
     }
 
-    public void ThrowNullPassphaseException()
+    public Conflict<Error> NullPassphase(params Error[] errors)
     {
-        throw new ConflictException("Sem frase, sem chance");
+        return Error.Conflict("Sem frase, sem chance", errors);
     }
 
-    public void ThrowThereIsNobodyToBeDeletedException()
+    public BadRequest<Error> ThereIsNobodyToBeDeleted(params Error[] errors)
     {
-        throw new BadRequestException("Se excluir mais alguém nesse banco vai ficar com length negativo e abrir um buraco negro no espaço-tempo");
+        return Error.BadRequest("Se excluir mais alguém nesse banco vai ficar com length negativo e abrir um buraco negro no espaço-tempo", errors);
     }
 
-    public void ThrowThereAreTooManyPeopleHereException()
+    public BadRequest<Error> ThereAreTooManyPeopleHere(params Error[] errors)
     {
-        throw new BadRequestException("Já tem gente demais aqui");
+        return Error.BadRequest("Já tem gente demais aqui", errors);
     }
 
-    public void ThrowLimitDateIsLessThanStartDateException()
+    public BadRequest<Error> LimitDateIsLessThanStartDate(params Error[] errors)
     {
-        throw new BadRequestException("Data limite é menor que a data de início");
+        return Error.BadRequest("Data limite é menor que a data de início", errors);
     }
 
-    public void ThrowThereIsNobodyHereToSetAppointmentsException()
+    public BadRequest<Error> ThereIsNobodyHereToSetAppointments(params Error[] errors)
     {
-        throw new BadRequestException("Quer marcar horários para quem se nem mesmo possui algum cliente cadastrado?");
+        return Error.BadRequest("Quer marcar horários para quem se nem mesmo possui algum cliente cadastrado?", errors);
     }
 
-    public void ThrowThereAreTooManyAppointmentsHereException()
+    public BadRequest<Error> ThereAreTooManyAppointmentsHere(params Error[] errors)
     {
-        throw new BadRequestException("Já tem horários demais marcados aqui nesse sistema");
+        return Error.BadRequest("Já tem horários demais marcados aqui nesse sistema", errors);
     }
     
-    public void ThrowUserDoesNotExistException(string email)
+    public NotFound<Error> UserDoesNotExist(string email)
     {
-        throw new NotFoundException($"Isso non Ecziste => {email}");
+        return Error.NotFound($"Isso non Ecziste => {email}");
     }
     
-    public void ThrowResetPasswordException(string email, params IdentityError[] identityErrors)
+    public Conflict<Error> ResetPassword(string email, params IdentityError[] identityErrors)
     {
         string message = $"Não foi possível resetar a senha do Usuário => {email}";
-        var errors = GetIdentityErrorIntoBasicError(identityErrors);
-
-        throw new ConflictException(message, [.. errors]);
+        return Error.Conflict(message, GetIdentityErrorIntoBasicError(identityErrors));
     }
 }

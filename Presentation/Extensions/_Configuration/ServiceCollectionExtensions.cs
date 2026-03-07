@@ -92,7 +92,7 @@ public static class ServiceCollectionExtensions
                         context.ProblemDetails.Type  = "https://example.com/problems/validation";
                         context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
                         
-                        context.ProblemDetails.Extensions["validationErrors"] = validation.Errors.ToDictionary(
+                        context.ProblemDetails.Extensions["errors"] = validation.Errors.ToDictionary(
                             kvp => kvp.Key,
                             kvp => (object)kvp.Value
                         );

@@ -6,9 +6,17 @@ namespace ICorteApi.Presentation.Endpoints;
 
 public static class UserEndpoint
 {
+    private static string GetBaseEndpoint(UserDtoResponse? user = null) => user is null
+        ? "user"
+        : $"user/{user.Id}";
+
     public static IEndpointRouteBuilder MapUserEndpoint(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("user").WithTags("User");
+        var group = app.MapGroup(GetBaseEndpoint()).WithTags("User");
+        
+        group.MapPost("", CreateUserAsync)
+            .WithSummary("Create User")
+            .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.");
         
         group.MapGet("me", GetMeAsync)
             .WithSummary("Get Me")
@@ -25,60 +33,170 @@ public static class UserEndpoint
         group.MapPatch("changePhoneNumber", UpdateUserPhoneNumberAsync)
             .WithSummary("Update User's PhoneNumber")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
+        group.MapPut("roles", AddUserRoleAsync)
+            .WithSummary("Add User To Role")
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+            
+        group.MapDelete("roles", RemoveFromRoleAsync)
+            .WithSummary("Remove From Role")
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapDelete("", DeleteUserAsync)
+        group.MapDelete("{id}", DeleteUserAsync)
             .WithSummary("Delete User")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
     }
     
-    public static async Task<Ok<UserDtoResponse>> GetMeAsync(UserService service, UserErrors errors)
+    public static async Task<Results<Created<UserDtoResponse>, BadRequest<Error>>> CreateUserAsync(
+        UserDtoRegisterRequest dto,
+        UserService service,
+        UserErrors errors,
+        ILoggerFactory loggerFactory)
+    {
+        // var logger = LoggerActions.FactoryCreate(loggerFactory);
+        // logger.CreatingStart(dto);
+        
+        // dto = dto with { BarberShopId = barberShopId };
+        var result = await service.CreateAsync(dto);
+
+        if (result is null)
+            return errors.Create();
+
+        if (!result.Succeeded)
+            return errors.Create([..result.Errors]);
+
+        var user = await service.GetMeAsync();
+
+        if (user is null)
+            return errors.Create();
+        
+        // logger.Created(address.Id);
+        return TypedResults.Created(GetBaseEndpoint(user), user);
+    }
+    
+    public static async Task<Results<Ok<UserDtoResponse>, NotFound<Error>>> GetMeAsync(UserService service, UserErrors errors)
     {
         var user = await service.GetMeAsync();
 
         if (user is null)
-            errors.ThrowNotFoundException();
-
-        return TypedResults.Ok(user!.CreateDto());
+            return errors.NotFound();
+            
+        return TypedResults.Ok(user);
     }
 
-    public static async Task<IResult> UpdateUserEmailAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> UpdateUserEmailAsync(
         UserDtoEmailUpdate dto,
         UserService service,
         UserErrors errors)
     {
+        if (!await service.IsUserFromGivenId(dto.Id))
+            return errors.WrongUserId(dto.Id);
+
         var result = await service.UpdateEmailAsync(dto);
 
-        if (!result)
-            errors.ThrowUpdateException();
-
-        return Results.NoContent();
+        if (result is null)
+            return errors.Update();
+            
+        if (!result.Succeeded)
+            return errors.UpdateEmail([..result.Errors]);
+            
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> UpdateUserPasswordAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> UpdateUserPasswordAsync(
         UserDtoPasswordUpdateRequest dto,
         UserService service,
         UserErrors errors)
     {
-        await service.UpdatePasswordAsync(dto);
-        return Results.NoContent();
+        if (!await service.IsUserFromGivenId(dto.Id))
+            return errors.WrongUserId(dto.Id);
+
+        var result = await service.UpdatePasswordAsync(dto);
+
+        if (result is null)
+            return errors.Update();
+            
+        if (!result.Succeeded)
+            return errors.UpdatePassword([..result.Errors]);
+            
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> UpdateUserPhoneNumberAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> UpdateUserPhoneNumberAsync(
         UserDtoPhoneNumberUpdate dto,
         UserService service,
         UserErrors errors)
     {
-        await service.UpdatePhoneNumberAsync(dto);
-        return Results.NoContent();
+        if (!await service.IsUserFromGivenId(dto.Id))
+            return errors.WrongUserId(dto.Id);
+
+        var result = await service.UpdatePhoneNumberAsync(dto);
+
+        if (result is null)
+            return errors.Update();
+            
+        if (!result.Succeeded)
+            return errors.UpdatePhoneNumber([..result.Errors]);
+            
+        return TypedResults.NoContent();
     }
 
-    public static async Task<IResult> DeleteUserAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> AddUserRoleAsync(
+        UserDtoAddRoleRequest dto,
         UserService service,
         UserErrors errors)
     {
-        await service.DeleteAsync(await service.GetMyUserIdAsync());
-        return Results.NoContent();
+        if (!await service.IsUserFromGivenId(dto.Id))
+            return errors.WrongUserId(dto.Id);
+
+        var result = await service.AddUserRoleAsync(dto);
+
+        if (result is null)
+            return errors.Update();
+            
+        if (!result.Succeeded)
+            return errors.AddUserRole([..result.Errors]);
+            
+        return TypedResults.NoContent();
+    }
+
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> RemoveFromRoleAsync(
+        UserDtoRemoveRoleRequest dto,
+        UserService service,
+        UserErrors errors)
+    {
+        if (!await service.IsUserFromGivenId(dto.Id))
+            return errors.WrongUserId(dto.Id);
+            
+        var result = await service.RemoveFromRoleAsync(dto);
+
+        if (result is null)
+            return errors.Update();
+            
+        if (!result.Succeeded)
+            return errors.RemoveUserRole([..result.Errors]);
+            
+        return TypedResults.NoContent();
+    }
+    
+    public static async Task<Results<NoContent, BadRequest<Error>, UnprocessableEntity<Error>, ProblemHttpResult>> DeleteUserAsync(
+        int id,
+        UserService service,
+        UserErrors errors)
+    {
+        if (!await service.IsUserFromGivenId(id))
+            return errors.WrongUserId(id);
+
+        var result = await service.DeleteAsync(id);
+
+        if (result is null)
+            return errors.Delete();
+
+        if (!result.Succeeded)
+            return errors.BasicUser([..result.Errors]);
+
+        return TypedResults.NoContent();
     }
 }

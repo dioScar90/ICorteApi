@@ -14,10 +14,12 @@ public record UserDtoResponse(
 ) : IDtoResponse<User>;
 
 public record UserDtoEmailUpdate(
+    int Id,
     string Email
 ) : IDtoRequest<User>;
 
 public record UserDtoPhoneNumberUpdate(
+    int Id,
     string PhoneNumber
 ) : IDtoRequest<User>;
 
@@ -53,6 +55,8 @@ public record UserDtoForgotPasswordRequest(
 ) : IDtoRequest<User>;
 
 public record UserDtoPasswordUpdateRequest(
+    int Id,
+
     [Required(ErrorMessage = "Senha atual obrigatória")]
     string CurrentPassword,
 
@@ -96,6 +100,22 @@ public record UserDtoConfirmEmailRequest(
 
     string Token
 ) : IDtoRequest<User>;
+
+public record UserDtoAddRoleRequest(
+    int Id,
+    
+    [Required(ErrorMessage = "Tipo de perfil obrigatório")]
+    [EnumDataType(typeof(UserRole), ErrorMessage = "Tipo de perfil inválido")]
+    UserRole Role
+) : IDtoResponse<User>;
+
+public record UserDtoRemoveRoleRequest(
+    int Id,
+    
+    [Required(ErrorMessage = "Tipo de perfil obrigatório")]
+    [EnumDataType(typeof(UserRole), ErrorMessage = "Tipo de perfil inválido")]
+    UserRole Role
+) : IDtoResponse<User>;
 
 public record FoundUserByAdmin(
     int Id,

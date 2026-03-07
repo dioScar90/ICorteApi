@@ -4,8 +4,8 @@ public static partial class StringExtensions
 {
     extension(string value)
     {
-        public string UcFirst() => char.ToUpper(value[0]) + value[..1].ToLower();
-
+        public string UcFirst() => char.ToUpper(value[0]) + (value.Length > 1 ? value[..1].ToLower() : "");
+        
         public string UcWords() => string.Join("", WhitespacesRegex()
             .Split(value)
             .Select(txt => string.IsNullOrWhiteSpace(txt) ? txt : txt.UcFirst())

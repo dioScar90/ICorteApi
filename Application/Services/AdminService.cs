@@ -126,7 +126,7 @@ public sealed class AdminService(
     private static User[] GetAllUsersToMock() => DataSeeder.GetAllUsersToMock();
     private static HashSet<string> GetUserRolesToBeSetted(User user) => DataSeeder.GetUserRolesToBeSetted(user);
     
-    private async Task<bool> IsThereAnyUserHere(bool? evenMasterAdmin = null) =>
+    public async Task<bool> IsThereAnyUserHere(bool? evenMasterAdmin = null) =>
         await _context.Users.AnyAsync(x => evenMasterAdmin == true || x.Email != "diogols@live.com");
     
     private async Task<bool> IsThereAnyAppointmentHere(DateOnly startDate, DateOnly limitDate) =>

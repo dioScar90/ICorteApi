@@ -1,4 +1,5 @@
 ﻿using ICorteApi.Application.Services;
+using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -49,18 +50,23 @@ public static class AdminEndpoint
         return app;
     }
     
-    private static async Task<string> GetCurrentUserEmail(this UserService userService) => (await userService.GetMeAsync())?.Email ?? string.Empty;
+    private static async Task<string> GetCurrentUserEmail(this UserService userService) =>
+        (await userService.GetMeAsync())?.Email ?? string.Empty;
     
     public static async Task<IResult> RemoveAllRowsAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
         [FromQuery] bool? evenMasterAdmin,
         AdminService service,
+        AdminErrors errors,
         UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
+        if (!await service.IsThereAnyUserHere(evenMasterAdmin))
+            errors.ThrowThereIsNobodyToBeDeletedException();
+        
         await service.RemoveAllRows(passphrase, userEmail, evenMasterAdmin);
-
+        
         return Results.NoContent();
     }
     

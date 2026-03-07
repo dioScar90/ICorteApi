@@ -7,6 +7,6 @@ public sealed class BarberShopErrors : BaseErrors<BarberShop>
     public Conflict<Error> BarberShopNotBelongsToOwner()
     {
         string message = $"{_entity} não pertence ao proprietário informado";
-        return TypedResults.Conflict(new Error("Conflict Error", message));
+        return Error.Conflict(message);
     }
 }

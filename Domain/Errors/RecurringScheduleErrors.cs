@@ -7,6 +7,6 @@ public sealed class RecurringScheduleErrors : BaseErrors<RecurringSchedule>
     public Conflict<Error> RecurringScheduleNotBelongsToBarberShop()
     {
         string message = $"{_entity} não pertence à barbearia informada";
-        return TypedResults.Conflict(new Error("Conflict Error", message));
+        return Error.Conflict(message);
     }
 }
