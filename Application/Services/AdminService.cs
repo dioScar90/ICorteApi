@@ -21,27 +21,23 @@ public sealed class AdminService(
     private readonly IConfiguration _configuration = configuration;
     
     private string? GetEnvironmentValue(string key) => Environment.GetEnvironmentVariable(key) ?? _configuration[key];
-
-    private void CheckEmail(string userEmail)
+    
+    public bool IsAllowableAdminEmail(string? email)
     {
+        if (string.IsNullOrEmpty(email))
+            return false;
+            
         var emailHardDelete = GetEnvironmentValue("EMAIL_TO_HARD_DELETE");
-
-        if (string.IsNullOrEmpty(emailHardDelete))
-            _errors.ThrowNullEmailException();
-
-        if (userEmail != emailHardDelete)
-            _errors.ThrowNotEqualEmailException();
+        return email == emailHardDelete;
     }
 
-    private void CheckPassphrase(string passphrase)
+    public bool IsCorrectAdminPassphrase(string? passphrase)
     {
-        var passphraseHardDelete = GetEnvironmentValue("PASSPHRASE_TO_HARD_DELETE");
-        
-        if (string.IsNullOrEmpty(passphraseHardDelete))
-            _errors.ThrowNullPassphaseException();
+        if (string.IsNullOrEmpty(passphrase))
+            return false;
 
-        if (passphrase != passphraseHardDelete)
-            _errors.ThrowNotEqualPassphaseException();
+        var passphraseHardDelete = GetEnvironmentValue("PASSPHRASE_TO_HARD_DELETE");
+        return passphrase == passphraseHardDelete;
     }
     
     private void CheckPassphraseAndEmail(string userEmail, string passphrase)
@@ -82,13 +78,8 @@ public sealed class AdminService(
         }
     }
 
-    public async Task RemoveAllRows(string passphrase, string userEmail, bool? evenMasterAdmin = null)
+    public async Task RemoveAllRows(string userEmail, bool? evenMasterAdmin = null)
     {
-        CheckPassphraseAndEmail(userEmail, passphrase);
-
-        if (!await IsThereAnyUserHere(evenMasterAdmin))
-            _errors.ThrowThereIsNobodyToBeDeletedException();
-            
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try

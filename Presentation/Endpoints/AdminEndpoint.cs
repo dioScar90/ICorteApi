@@ -1,5 +1,8 @@
-﻿using ICorteApi.Application.Services;
+﻿using System.ComponentModel.DataAnnotations;
+using ICorteApi.Application.Services;
+using ICorteApi.Application.Validators;
 using ICorteApi.Domain.Errors;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ICorteApi.Presentation.Endpoints;
@@ -53,25 +56,41 @@ public static class AdminEndpoint
     private static async Task<string> GetCurrentUserEmail(this UserService userService) =>
         (await userService.GetMeAsync())?.Email ?? string.Empty;
     
-    public static async Task<IResult> RemoveAllRowsAsync(
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
-        [FromQuery] bool? evenMasterAdmin,
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> RemoveAllRowsAsync(
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
+        [Required]
+        [AdminPassPhrase]
+        string passphrase,
+        
+        [FromQuery]
+        bool? evenMasterAdmin,
+        
         AdminService service,
         AdminErrors errors,
         UserService userService)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        if (!service.IsCorrectAdminPassphrase(passphrase))
+            return errors.NotEqualPassphase();
+            
         if (!await service.IsThereAnyUserHere(evenMasterAdmin))
-            errors.ThrowThereIsNobodyToBeDeletedException();
+            return errors.ThereIsNobodyToBeDeleted();
+            
+        await service.RemoveAllRows(userEmail, evenMasterAdmin);
         
-        await service.RemoveAllRows(passphrase, userEmail, evenMasterAdmin);
-        
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public static async Task<IResult> DeleteServiceAndRemoveFromAllAppointmentsAsync(
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteServiceAndRemoveFromAllAppointmentsAsync(
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
+        [Required]
+        [AdminPassPhrase]
+        string passphrase,
+
         [FromQuery] int serviceId,
         AdminService service,
         UserService userService)
@@ -80,11 +99,15 @@ public static class AdminEndpoint
 
         await service.DeleteServiceAndRemoveFromAllAppointments(passphrase, userEmail, serviceId);
 
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public static async Task<IResult> PopulateAllInitialTablesAsync(
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+    public static async Task<Results<NoContent, BadRequest<Error>>> PopulateAllInitialTablesAsync(
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
+        [Required]
+        [AdminPassPhrase]
+        string passphrase,
+
         AdminService service,
         UserService userService)
     {
@@ -92,13 +115,18 @@ public static class AdminEndpoint
 
         await service.PopulateAllInitialTables(passphrase, userEmail);
 
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public static async Task<IResult> PopulateWithAppointmentsAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> PopulateWithAppointmentsAsync(
         [FromQuery] DateOnly? firstDate,
         [FromQuery] DateOnly? limitDate,
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
+        [Required]
+        [AdminPassPhrase]
+        string passphrase,
+
         AdminService service,
         UserService userService)
     {
@@ -106,12 +134,17 @@ public static class AdminEndpoint
 
         await service.PopulateWithAppointments(passphrase, userEmail, firstDate, limitDate);
 
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public static async Task<IResult> ResetPasswordForSomeUserAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> ResetPasswordForSomeUserAsync(
         ResetPasswordDto dto,
-        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)] string passphrase,
+
+        [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
+        [Required]
+        [AdminPassPhrase]
+        string passphrase,
+
         AdminService service,
         UserService userService)
     {
@@ -119,14 +152,10 @@ public static class AdminEndpoint
 
         await service.ResetPasswordForSomeUser(passphrase, userEmail, dto.Email);
 
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
     
-    public record ResetPasswordDto(
-        string Email
-    );
-    
-    public static async Task<IResult> SearchForUsersByNameAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> SearchForUsersByNameAsync(
         [FromQuery] string? q,
         AdminService service,
         UserService userService)
@@ -135,10 +164,10 @@ public static class AdminEndpoint
         
         var result = await service.SearchForUsersByName(userEmail, q);
         
-        return Results.Ok(result);
+        return TypedResults.Ok(result);
     }
     
-    public static async Task<IResult> GetLastUsersAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>>> GetLastUsersAsync(
         [FromQuery] int? take,
         AdminService service,
         UserService userService)
@@ -147,6 +176,6 @@ public static class AdminEndpoint
         
         var result = await service.GetLastUsers(userEmail, take);
         
-        return Results.Ok(result);
+        return TypedResults.Ok(result);
     }
 }
