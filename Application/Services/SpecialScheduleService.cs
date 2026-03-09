@@ -11,9 +11,11 @@ public sealed class SpecialScheduleService(
         var schedule = new SpecialSchedule(dto);
 
         _dbSet.Add(schedule);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(schedule.Date, schedule.BarberShopId);
+        return schedule.CreateDto();
     }
 
     public async Task<bool> SpecialScheduleExists(DateOnly date, int barberShopId)

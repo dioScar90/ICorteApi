@@ -12,10 +12,12 @@ public sealed class AddressService(
         var address = new Address(dto, dto.BarberShopId);
 
         _dbSet.Add(address);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
         
         _logger.LogInformation("Address persisted in database with Id={Id}", address.Id);
-        return await GetByIdAsync(address.Id, address.BarberShopId);
+        return address.CreateDto();
     }
     
     private async Task<Address?> FindEntityAsync(int id, int barberShopId)

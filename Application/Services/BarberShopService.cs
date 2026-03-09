@@ -13,9 +13,11 @@ public sealed class BarberShopService(
         var barberShop = new BarberShop(dto, ownerId);
 
         _dbSet.Add(barberShop);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(barberShop.Id);
+        return barberShop.CreateDto();
     }
 
     public async Task<bool> BarberShopExists(int barberShopId)

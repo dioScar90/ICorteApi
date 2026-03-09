@@ -9,18 +9,24 @@ public sealed class AppointmentService(
     ServiceService _serviceService)
     : BaseService<Appointment>(context)
 {
-    public async Task<AppointmentDtoResponse?> CreateAsync(AppointmentDtoRequest dto)
+    public async Task<AppointmentDtoResponse?> CreateAsync(AppointmentDtoRequest dto, int? clientId = null)
     {
         var services = await _serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
-        
-        dto = dto with { ClientId = await _userService.GetMyUserIdAsync() };
+        clientId ??= await _userService.GetMyUserIdAsync();
+
+        if (clientId is null)
+            return null;
+            
+        dto = dto with { ClientId = clientId.Value };
         var appointment = new Appointment(dto, services);
         
         _dbSet.Add(appointment);
-        await _context.SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
         _logger.LogInformation("Appointment persisted in database with Id={Id}", appointment.Id);
-        return await GetByIdAsync(appointment.Id);
+        return appointment.CreateDto();
     }
     
     public record Includes(bool Collections = false);

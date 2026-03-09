@@ -7,15 +7,21 @@ public sealed class ReportService(
     UserService _userService)
     : BaseService<Report>(context)
 {
-    public async Task<ReportDtoResponse?> CreateAsync(ReportDtoRequest dto)
+    public async Task<ReportDtoResponse?> CreateAsync(ReportDtoRequest dto, int? clientId = null)
     {
-        var clientId = await _userService.GetMyUserIdAsync()!;
-        var report = new Report(dto, clientId, dto.BarberShopId);
-
+        clientId ??= await _userService.GetMyUserIdAsync()!;
+        
+        if (clientId is null)
+            return null;
+            
+        var report = new Report(dto, clientId.Value, dto.BarberShopId);
+        
         _dbSet.Add(report);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(report.Id, report.BarberShopId);
+        return report.CreateDto();
     }
     
     public async Task<bool> ReportExists(int id)

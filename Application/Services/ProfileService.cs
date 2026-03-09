@@ -13,16 +13,16 @@ public sealed class ProfileService(
         var profile = new Profile(dto, userId);
         
         using var transaction = await BeginTransactionAsync();
-
+        
         try
         {
             _dbSet.Add(profile);
             
-            await _userService.AddUserRoleAsync(UserRole.Client);
-            await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
-
+            await _userService.AddUserRoleAsync(new(profile.User.Id, UserRole.Client));
+            await _userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!));
+            
             await transaction.CommitAsync();
-            return await GetByIdAsync(profile.Id);
+            return profile.CreateDto();
         }
         catch (Exception)
         {
@@ -77,7 +77,7 @@ public sealed class ProfileService(
         try
         {
             _dbSet.Update(profile);
-            await _userService.UpdatePhoneNumberAsync(new(profile.User.PhoneNumber!));
+            await _userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!));
 
             await transaction.CommitAsync();
             return true;

@@ -13,9 +13,11 @@ public sealed class MessageService(
         var message = new Message(dto, dto.AppointmentId, senderId);
         
         _dbSet.Add(message);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(message.Id, message.AppointmentId);
+        return message.CreateDto();
     }
     
     public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)

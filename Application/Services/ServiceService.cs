@@ -10,11 +10,13 @@ public sealed class ServiceService(
     public async Task<ServiceDtoResponse?> CreateAsync(ServiceDtoRequest dto)
     {
         var service = new Service(dto, dto.BarberShopId);
-
+        
         _dbSet.Add(service);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(service.Id, service.BarberShopId);
+        return service.CreateDto();
     }
     
     public async Task<bool> ServiceExists(int id)

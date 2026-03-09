@@ -11,9 +11,11 @@ public sealed class RecurringScheduleService(
         var schedule = new RecurringSchedule(dto, dto.BarberShopId);
 
         _dbSet.Add(schedule);
-        await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync())
+            return null;
 
-        return await GetByIdAsync(schedule.DayOfWeek, schedule.BarberShopId);
+        return schedule.CreateDto();
     }
 
     public async Task<bool> RecurringScheduleExists(DayOfWeek dayOfWeek, int barberShopId)
