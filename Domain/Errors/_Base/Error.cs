@@ -16,6 +16,9 @@ public sealed record Error(string Code, string Description, params Error[] Error
     public static UnprocessableEntity<Error> UnprocessableEntity(string message, params Error[] errors)
         => TypedResults.UnprocessableEntity(new Error(nameof(UnprocessableEntity), message, errors));
 
+    public static UnauthorizedHttpResult Unauthorized()
+        => TypedResults.Unauthorized();
+
     public static ProblemHttpResult Forbidden(string message)
         => TypedResults.Problem(message, statusCode: StatusCodes.Status403Forbidden);
 }

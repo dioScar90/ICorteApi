@@ -1,87 +1,87 @@
-using System.Diagnostics.CodeAnalysis;
-using ICorteApi.Domain.Errors;
+// using System.Diagnostics.CodeAnalysis;
+// using ICorteApi.Domain.Errors;
 
-namespace ICorteApi.Domain.Utils;
+// namespace ICorteApi.Domain.Utils;
 
-public abstract record Response
-{
-    public bool IsSuccess;
+// public abstract record Response
+// {
+//     public bool IsSuccess;
 
-    public Error[] Error;
+//     public Error[] Error;
 
-    protected Response(bool isSuccess, params Error[] error)
-    {
-        if (!IsValidResponseConstruction(isSuccess, error))
-            throw new ArgumentException("Invalid error", nameof(error));
+//     protected Response(bool isSuccess, params Error[] error)
+//     {
+//         if (!IsValidResponseConstruction(isSuccess, error))
+//             throw new ArgumentException("Invalid error", nameof(error));
 
-        IsSuccess = isSuccess;
-        Error = error;
-    }
+//         IsSuccess = isSuccess;
+//         Error = error;
+//     }
 
-    private static bool IsValidResponseConstruction(bool isSuccess, Error[] error)
-    {
-        if (isSuccess && error.Length > 0)
-            return false;
+//     private static bool IsValidResponseConstruction(bool isSuccess, Error[] error)
+//     {
+//         if (isSuccess && error.Length > 0)
+//             return false;
 
-        if (!isSuccess && error.Length == 0)
-            return false;
+//         if (!isSuccess && error.Length == 0)
+//             return false;
 
-        return true;
-    }
+//         return true;
+//     }
 
-    public static Response Success() => new SuccessResponse();
+//     public static Response Success() => new SuccessResponse();
 
-    public static SingleResponse<TValue> Success<TValue>(TValue value)
-        where TValue : class, IBaseTableEntity => new(value, true);
+//     public static SingleResponse<TValue> Success<TValue>(TValue value)
+//         where TValue : class, IBaseTableEntity => new(value, true);
 
-    public static CollectionResponse<TValue> Success<TValue>(ICollection<TValue> values)
-        where TValue : class, IBaseTableEntity => new(values, true);
+//     public static CollectionResponse<TValue> Success<TValue>(ICollection<TValue> values)
+//         where TValue : class, IBaseTableEntity => new(values, true);
     
-    public static CollectionResponseWithPagination<TValue> Success<TValue>(
-        ICollection<TValue> values, ResponsePagination? pagination)
-        where TValue : class, IBaseTableEntity => new(values, true, pagination);
+//     public static CollectionResponseWithPagination<TValue> Success<TValue>(
+//         ICollection<TValue> values, ResponsePagination? pagination)
+//         where TValue : class, IBaseTableEntity => new(values, true, pagination);
 
-    public static Response Failure(params Error[] error) => new FailureResponse(error);
+//     public static Response Failure(params Error[] error) => new FailureResponse(error);
 
-    public static SingleResponse<TValue> Failure<TValue>(params Error[] error)
-        where TValue : class, IBaseTableEntity => new(default, false, error);
+//     public static SingleResponse<TValue> Failure<TValue>(params Error[] error)
+//         where TValue : class, IBaseTableEntity => new(default, false, error);
 
-    public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[] error)
-        where TValue : class, IBaseTableEntity => new(default, false, error);
-}
+//     public static CollectionResponse<TValue> FailureCollection<TValue>(params Error[] error)
+//         where TValue : class, IBaseTableEntity => new(default, false, error);
+// }
 
-public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[] Error)
-    : Response(IsSuccess, Error), ISingleResponse<TValue> where TValue : class, IBaseTableEntity
-{
-    [NotNull]
-    public TValue Value { get; init; } = Value;
-}
+// public record SingleResponse<TValue>(TValue Value, bool IsSuccess, params Error[] Error)
+//     : Response(IsSuccess, Error), ISingleResponse<TValue> where TValue : class, IBaseTableEntity
+// {
+//     [NotNull]
+//     public TValue Value { get; init; } = Value;
+// }
 
-public record CollectionResponse<TValue>(ICollection<TValue> Values, bool IsSuccess, params Error[] Error)
-    : Response(IsSuccess, Error), ICollectionResponse<TValue> where TValue : class, IBaseTableEntity
-{
-    [NotNull]
-    public ICollection<TValue> Values { get; init; } = Values;
-}
+// public record CollectionResponse<TValue>(ICollection<TValue> Values, bool IsSuccess, params Error[] Error)
+//     : Response(IsSuccess, Error), ICollectionResponse<TValue> where TValue : class, IBaseTableEntity
+// {
+//     [NotNull]
+//     public ICollection<TValue> Values { get; init; } = Values;
+// }
 
-public record CollectionResponseWithPagination<TValue>(
-    ICollection<TValue> Values,
-    bool IsSuccess,
-    IResponsePagination? Pagination)
-    : Response(IsSuccess), ICollectionResponseWithPagination<TValue> where TValue : class, IBaseTableEntity
-{
-    [NotNull]
-    public ICollection<TValue> Values => Values;
-    public IResponsePagination? Pagination => Pagination ?? default;
-}
+// public record CollectionResponseWithPagination<TValue>(
+//     ICollection<TValue> Values,
+//     bool IsSuccess,
+//     IResponsePagination? Pagination)
+//     : Response(IsSuccess), ICollectionResponseWithPagination<TValue> where TValue : class, IBaseTableEntity
+// {
+//     [NotNull]
+//     public ICollection<TValue> Values => Values;
+//     public IResponsePagination? Pagination => Pagination ?? default;
+// }
 
-public record SuccessResponse() : Response(true);
+// public record SuccessResponse() : Response(true);
 
-public record FailureResponse(params Error[] Error) : Response(false, Error);
+// public record FailureResponse(params Error[] Error) : Response(false, Error);
 
-public record ResponsePagination(
-    int TotalItems,
-    int TotalPages,
-    int CurrentPage,
-    int PageSize
-) : IResponsePagination;
+// public record ResponsePagination(
+//     int TotalItems,
+//     int TotalPages,
+//     int CurrentPage,
+//     int PageSize
+// ) : IResponsePagination;

@@ -14,10 +14,6 @@ public static class UserEndpoint
     {
         var group = app.MapGroup(GetBaseEndpoint()).WithTags("User");
         
-        group.MapPost("", CreateUserAsync)
-            .WithSummary("Create User")
-            .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.");
-        
         group.MapGet("me", GetMeAsync)
             .WithSummary("Get Me")
             .WithDescription("If authenticated, you can get all basic information about your own user, such as user itself, profile, barber shop and roles.");
@@ -47,33 +43,6 @@ public static class UserEndpoint
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
         return app;
-    }
-    
-    public static async Task<Results<Created<UserDtoResponse>, BadRequest<Error>>> CreateUserAsync(
-        UserDtoRegisterRequest dto,
-        UserService service,
-        UserErrors errors,
-        ILoggerFactory loggerFactory)
-    {
-        // var logger = LoggerActions.FactoryCreate(loggerFactory);
-        // logger.CreatingStart(dto);
-        
-        // dto = dto with { BarberShopId = barberShopId };
-        var result = await service.CreateAsync(dto);
-
-        if (result is null)
-            return errors.Create();
-
-        if (!result.Succeeded)
-            return errors.Create([..result.Errors]);
-
-        var user = await service.GetMeAsync();
-
-        if (user is null)
-            return errors.Create();
-        
-        // logger.Created(address.Id);
-        return TypedResults.Created(GetBaseEndpoint(user), user);
     }
     
     public static async Task<Results<Ok<UserDtoResponse>, NotFound<Error>>> GetMeAsync(UserService service, UserErrors errors)

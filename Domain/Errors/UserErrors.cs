@@ -8,6 +8,11 @@ public sealed class UserErrors : BaseErrors<User>
     private static Error[] GetIdentityErrorIntoBasicError(IdentityError[] identityErrors)
         => [..identityErrors.Select(err => new Error(err.Code, err.Description))];
     
+    public UnauthorizedHttpResult Unauthorized()
+    {
+        return Error.Unauthorized();
+    }
+    
     public BadRequest<Error> Create(params IdentityError[] identityErrors)
     {
         return Create(GetIdentityErrorIntoBasicError(identityErrors));
