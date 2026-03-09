@@ -59,7 +59,6 @@ public static class AdminEndpoint
     public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> RemoveAllRowsAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
         [Required]
-        [AdminPassPhrase]
         string passphrase,
         
         [FromQuery]
@@ -85,96 +84,153 @@ public static class AdminEndpoint
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteServiceAndRemoveFromAllAppointmentsAsync(
+    public static async Task<Results<NoContent, Conflict<Error>>> DeleteServiceAndRemoveFromAllAppointmentsAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
         [Required]
-        [AdminPassPhrase]
         string passphrase,
 
         [FromQuery] int serviceId,
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
-        await service.DeleteServiceAndRemoveFromAllAppointments(passphrase, userEmail, serviceId);
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        if (!service.IsCorrectAdminPassphrase(passphrase))
+            return errors.NotEqualPassphase();
+
+        await service.DeleteServiceAndRemoveFromAllAppointments(serviceId);
 
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> PopulateAllInitialTablesAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> PopulateAllInitialTablesAsync(
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
         [Required]
-        [AdminPassPhrase]
         string passphrase,
 
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
-        await service.PopulateAllInitialTables(passphrase, userEmail);
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        if (!service.IsCorrectAdminPassphrase(passphrase))
+            return errors.NotEqualPassphase();
+            
+        if (!await service.IsThereAnyUserHere())
+            return errors.ThereAreTooManyPeopleHere();
+
+        await service.PopulateAllInitialTables();
 
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> PopulateWithAppointmentsAsync(
-        [FromQuery] DateOnly? firstDate,
-        [FromQuery] DateOnly? limitDate,
-
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> PopulateWithAppointmentsAsync(
+        [FromQuery]
+        DateOnly? firstDate,
+        [FromQuery]
+        DateOnly? limitDate,
+        
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
         [Required]
-        [AdminPassPhrase]
         string passphrase,
 
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
-        await service.PopulateWithAppointments(passphrase, userEmail, firstDate, limitDate);
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        if (!service.IsCorrectAdminPassphrase(passphrase))
+            return errors.NotEqualPassphase();
+            
+        PeriodToPopulateDto dto = new(firstDate, limitDate);
+        
+        if (dto.DayToPopulate > dto.VeryLimitDate)
+            return errors.LimitDateIsLessThanStartDate();
+            
+        if (!await service.IsThereAnyUserHere())
+            return errors.ThereAreTooManyPeopleHere();
+            
+        if (await service.IsThereAnyAppointmentHere(dto))
+            return errors.ThereAreTooManyAppointmentsHere();
+            
+        await service.PopulateWithAppointments(dto);
 
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> ResetPasswordForSomeUserAsync(
+    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>, NotFound<Error>>> ResetPasswordForSomeUserAsync(
         ResetPasswordDto dto,
 
         [FromHeader(Name = CUSTOMIZED_HEADER_PASSPHRASE_NAME)]
         [Required]
-        [AdminPassPhrase]
         string passphrase,
 
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
 
-        await service.ResetPasswordForSomeUser(passphrase, userEmail, dto.Email);
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        if (!service.IsCorrectAdminPassphrase(passphrase))
+            return errors.NotEqualPassphase();
+            
+        if (!await service.UserExists(dto.Email))
+            return errors.UserDoesNotExist(dto.Email);
+            
+        var identityResult = await service.ResetPasswordForSomeUser(dto.Email);
+
+        if (identityResult is null)
+            return errors.UserDoesNotExist(dto.Email);
+        
+        if (!identityResult.Succeeded)
+            return errors.ResetPassword(dto.Email, [..identityResult.Errors]);
 
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> SearchForUsersByNameAsync(
+    public static async Task<Results<Ok<FoundUserByAdmin[]>, Conflict<Error>>> SearchForUsersByNameAsync(
         [FromQuery] string? q,
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
-        
-        var result = await service.SearchForUsersByName(userEmail, q);
+
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+            
+        var result = await service.SearchForUsersByName(q);
         
         return TypedResults.Ok(result);
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> GetLastUsersAsync(
+    public static async Task<Results<Ok<FoundUserByAdmin[]>, Conflict<Error>>> GetLastUsersAsync(
         [FromQuery] int? take,
         AdminService service,
-        UserService userService)
+        UserService userService,
+        AdminErrors errors)
     {
         var userEmail = await userService.GetCurrentUserEmail();
         
-        var result = await service.GetLastUsers(userEmail, take);
+        if (!service.IsAllowableAdminEmail(userEmail))
+            return errors.NotEqualEmail();
+        
+        var result = await service.GetLastUsers(take);
         
         return TypedResults.Ok(result);
     }

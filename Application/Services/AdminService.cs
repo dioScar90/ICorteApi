@@ -48,28 +48,30 @@ public sealed class AdminService(
 
     private bool IsPostgres() => _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
 
+    public async Task<bool> UserExists(string email) => await _context
+        .Users
+        .AnyAsync(x => x.Email == email);
+        
     private async Task<User?> GetUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
-    public async Task ResetPasswordForSomeUser(string passphrase, string userEmail, string emailToBeReseted)
+    public async Task<IdentityResult?> ResetPasswordForSomeUser(string emailToBeReseted)
     {
-        CheckPassphraseAndEmail(userEmail, passphrase);
-        
         var user = await GetUserByEmail(emailToBeReseted);
-        
-        if (user is null)
-            _errors.ThrowUserDoesNotExistException(emailToBeReseted);
-            
-        using var transaction = await _context.Database.BeginTransactionAsync();
 
+        if (user is null)
+            return null;
+        
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        
         try
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user!);
             var identityResult = await _userManager.ResetPasswordAsync(user!, token, "Senha@123");
 
-            if (!identityResult.Succeeded)
-                _errors.ThrowResetPasswordException(emailToBeReseted, [..identityResult.Errors]);
-            
-            await transaction.CommitAsync();
+            if (identityResult.Succeeded)
+                await transaction.CommitAsync();
+                
+            return identityResult;
         }
         catch (Exception)
         {
@@ -120,16 +122,11 @@ public sealed class AdminService(
     public async Task<bool> IsThereAnyUserHere(bool? evenMasterAdmin = null) =>
         await _context.Users.AnyAsync(x => evenMasterAdmin == true || x.Email != "diogols@live.com");
     
-    private async Task<bool> IsThereAnyAppointmentHere(DateOnly startDate, DateOnly limitDate) =>
-        await _context.Appointments.AnyAsync(x => x.Date >= startDate && x.Date <= limitDate);
+    public async Task<bool> IsThereAnyAppointmentHere(PeriodToPopulateDto dto) =>
+        await _context.Appointments.AnyAsync(x => x.Date >= dto.DayToPopulate && x.Date <= dto.VeryLimitDate);
     
-    public async Task PopulateAllInitialTables(string passphrase, string userEmail)
+    public async Task PopulateAllInitialTables()
     {
-        CheckPassphraseAndEmail(userEmail, passphrase);
-        
-        if (await IsThereAnyUserHere())
-            _errors.ThrowThereAreTooManyPeopleHereException();
-        
         using var transaction = await _context.Database.BeginTransactionAsync();
         
         try
@@ -185,22 +182,8 @@ public sealed class AdminService(
 			.ToArrayAsync();
     }
     
-    public async Task PopulateWithAppointments(string passphrase, string userEmail, DateOnly? firstDate, DateOnly? limitDate)
+    public async Task PopulateWithAppointments(PeriodToPopulateDto dto)
     {
-        CheckPassphraseAndEmail(userEmail, passphrase);
-
-        DateOnly dayToPopulate = firstDate ?? DateOnly.FromDateTime(DateTime.Now);
-        DateOnly VERY_LIMIT_DATE = limitDate ?? dayToPopulate.AddDays(30);
-
-        if (dayToPopulate > VERY_LIMIT_DATE)
-            _errors.ThrowLimitDateIsLessThanStartDateException();
-
-        if (!await IsThereAnyUserHere())
-            _errors.ThrowThereIsNobodyHereToSetAppointmentsException();
-        
-        if (await IsThereAnyAppointmentHere(dayToPopulate, VERY_LIMIT_DATE))
-            _errors.ThrowThereAreTooManyAppointmentsHereException();
-        
         var barberIds = await GetAllBarberIds();
         var clientIds = await GetAllClientIds();
         
@@ -210,11 +193,11 @@ public sealed class AdminService(
         
         try
         {
-            while (dayToPopulate <= VERY_LIMIT_DATE)
+            while (dto.DayToPopulate <= dto.VeryLimitDate)
             {
                 var lastOneAdded = new Dictionary<int, TimeOnly>();
-                var dayOfWeek = (int)dayToPopulate.DayOfWeek;
-                var firstDateThisWeek = dayToPopulate.AddDays(dayOfWeek * -1);
+                var dayOfWeek = (int)dto.DayToPopulate.DayOfWeek;
+                var firstDateThisWeek = dto.DayToPopulate.AddDays(dayOfWeek * -1);
 
                 foreach (int clientIdToAdd in clientIds)
                 {
@@ -223,7 +206,7 @@ public sealed class AdminService(
                     var services = await _context.Services.Where(x => x.BarberShopId == barberIdToAdd).ToArrayAsync();
                     var serviceIds = services.Select(x => x.Id).ToArray();
                     
-                    var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dayToPopulate, firstDateThisWeek, serviceIds);
+                    var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dto.DayToPopulate, firstDateThisWeek, serviceIds);
 
                     if (slots.Length < 3)
                         continue;
@@ -233,7 +216,7 @@ public sealed class AdminService(
                         : slots[0];
                     var payment = clientIdToAdd % 3 == 0 ? PaymentType.Card : clientIdToAdd % 2 == 0 ? PaymentType.Transfer : PaymentType.Cash;
                     
-                    var newAppoint = new Appointment(new(dayToPopulate, startTime, null, payment, []), services, clientIdToAdd);
+                    var newAppoint = new Appointment(new(dto.DayToPopulate, startTime, null, payment, []), services, clientIdToAdd);
 
                     await _context.Appointments.AddAsync(newAppoint);
                     await _context.SaveChangesAsync();
@@ -241,7 +224,7 @@ public sealed class AdminService(
                     lastOneAdded[barberIdToAdd] = startTime;
                 }
                 
-                dayToPopulate = dayToPopulate.AddDays(1);
+                dto = dto with { DayToPopulate = dto.DayToPopulate.AddDays(1) };
             }
             
             await transaction.CommitAsync();
@@ -253,10 +236,8 @@ public sealed class AdminService(
         }
     }
     
-    public async Task DeleteServiceAndRemoveFromAllAppointments(string passphrase, string userEmail, int serviceId)
+    public async Task DeleteServiceAndRemoveFromAllAppointments(int serviceId)
     {
-        CheckPassphraseAndEmail(userEmail, passphrase);
-        
         using var transaction = await _context.Database.BeginTransactionAsync();
         
         try
@@ -273,10 +254,8 @@ public sealed class AdminService(
         }
     }
     
-    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string userEmail, string? name)
+    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string? name)
     {
-        CheckEmail(userEmail);
-
         if (name is null)
             return [];
         
@@ -307,10 +286,8 @@ public sealed class AdminService(
             .ToArrayAsync();
     }
     
-    public async Task<FoundUserByAdmin[]> GetLastUsers(string userEmail, int? take = null)
+    public async Task<FoundUserByAdmin[]> GetLastUsers(int? take = null)
     {
-        CheckEmail(userEmail);
-        
         take ??= 15;
         int count = Math.Clamp((int)take!, 1, 50);
         
