@@ -7,21 +7,19 @@ namespace ICorteApi.Domain.Utils;
 public record LoggerActions<TBaseEntity>
     where TBaseEntity : class, IBaseTableEntity
 {
-    private string Entity;
-    private ILogger Logger;
+    private string Entity { get; init; }
+    private ILogger Logger { get; init; }
     
-    private LoggerActions() { }
-    
-    public static LoggerActions<TBaseEntity> FactoryCreate<TBaseEntity>(ILoggerFactory loggerFactory)
-        where TBaseEntity : class, IBaseTableEntity
+    private LoggerActions(string entity, ILoggerFactory loggerFactory)
     {
-        string entity = typeof(TBaseEntity).GetType().Name;
-        
-        return new()
-        {
-            Entity = entity,
-            Logger = loggerFactory.CreateLogger($"{entity}Endpoint"),
-        };
+        Entity = entity;
+        Logger = loggerFactory.CreateLogger($"{Entity}Endpoint");
+    }
+    
+    public static LoggerActions<T> FactoryCreate<T>(ILoggerFactory loggerFactory)
+        where T : class, IBaseTableEntity
+    {
+        return new(typeof(T).GetType().Name, loggerFactory);
     }
 
     public void CreatingStart(IDtoRequest<TBaseEntity> dto) =>
