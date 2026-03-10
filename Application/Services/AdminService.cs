@@ -40,12 +40,6 @@ public sealed class AdminService(
         return passphrase == passphraseHardDelete;
     }
     
-    private void CheckPassphraseAndEmail(string userEmail, string passphrase)
-    {
-        CheckEmail(userEmail);
-        CheckPassphrase(passphrase);
-    }
-
     private bool IsPostgres() => _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
 
     public async Task<bool> UserExists(string email) => await _context
@@ -197,8 +191,7 @@ public sealed class AdminService(
             {
                 var lastOneAdded = new Dictionary<int, TimeOnly>();
                 var dayOfWeek = (int)dto.DayToPopulate.DayOfWeek;
-                var firstDateThisWeek = dto.DayToPopulate.AddDays(dayOfWeek * -1);
-
+                
                 foreach (int clientIdToAdd in clientIds)
                 {
                     int barberIdToAdd = barberIds[random.Next(barberIds.Length)];
@@ -206,7 +199,7 @@ public sealed class AdminService(
                     var services = await _context.Services.Where(x => x.BarberShopId == barberIdToAdd).ToArrayAsync();
                     var serviceIds = services.Select(x => x.Id).ToArray();
                     
-                    var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dto.DayToPopulate, firstDateThisWeek, serviceIds);
+                    var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dto.DayToPopulate, serviceIds);
 
                     if (slots.Length < 3)
                         continue;
@@ -214,10 +207,22 @@ public sealed class AdminService(
                     var startTime = lastOneAdded.TryGetValue(barberIdToAdd, out TimeOnly last)
                         ? slots[1..^1].First(s => s > last.AddMinutes(47))
                         : slots[0];
+
                     var payment = clientIdToAdd % 3 == 0 ? PaymentType.Card : clientIdToAdd % 2 == 0 ? PaymentType.Transfer : PaymentType.Cash;
                     
-                    var newAppoint = new Appointment(new(dto.DayToPopulate, startTime, null, payment, []), services, clientIdToAdd);
-
+                    var newAppoint = new Appointment(
+                        new(
+                            clientIdToAdd,
+                            barberIdToAdd,
+                            dto.DayToPopulate,
+                            startTime,
+                            TimeSpan.Zero,
+                            null,
+                            payment,
+                            0M,
+                            [..services.Select(s => new ServiceForUpdateAppointmentDtoRequest(s.Id))]
+                        ), services);
+                        
                     await _context.Appointments.AddAsync(newAppoint);
                     await _context.SaveChangesAsync();
                     
@@ -260,20 +265,23 @@ public sealed class AdminService(
             return [];
         
         bool isPostgre = IsPostgres();
-        
-        return await _context.Users
-            .AsNoTracking()
-            .Where(u => isPostgre
-            ? (
-                EF.Functions.ILike(u.Profile.FirstName, "%" + name + "%")
+
+        var query = _context.Users.AsNoTracking();
+            
+        if (IsPostgres())
+        {
+            query = query.Where(u => EF.Functions.ILike(u.Profile.FirstName, "%" + name + "%")
                 || EF.Functions.ILike(u.Profile.LastName, "%" + name + "%")
-                || EF.Functions.ILike(u.Email!, "%" + name + "%")
-            )
-            : (
-                EF.Functions.Like(u.Profile.FirstName, "%" + name + "%")
+                || EF.Functions.ILike(u.Email!, "%" + name + "%"));
+        }
+        else
+        {
+            query = query.Where(u => EF.Functions.Like(u.Profile.FirstName, "%" + name + "%")
                 || EF.Functions.Like(u.Profile.LastName, "%" + name + "%")
-                || EF.Functions.Like(u.Email!, "%" + name + "%")
-            ))
+                || EF.Functions.Like(u.Email!, "%" + name + "%"));
+        }
+        
+        return await query
             .OrderBy(u => u.Profile.FirstName)
             .Select(u => new FoundUserByAdmin(
                 u.Id,

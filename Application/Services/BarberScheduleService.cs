@@ -87,7 +87,7 @@ public class BarberScheduleService(AppDbContext context)
             ))
             .ToArrayAsync();
     }
-
+    
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
         if (serviceIds.Length == 0)
@@ -97,13 +97,17 @@ public class BarberScheduleService(AppDbContext context)
         
         var schedule = await _context.RecurringSchedules
             .AsNoTracking()
-            .GroupJoin(_context.SpecialSchedules, // Left Join
+            // .GroupJoin(_context.SpecialSchedules, // Left Join
+            //     rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
+            //     ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
+            //     (rs, ss) => new { rs, ss })
+            // .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
+            //     (ssrs, ss) => new { ssrs.rs, ss }
+            // )
+            .LeftJoin(_context.SpecialSchedules,
                 rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
                 (rs, ss) => new { rs, ss })
-            .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
-                (ssrs, ss) => new { ssrs.rs, ss }
-            )
             .Where(x => x.rs.BarberShopId == barberShopId
                 && x.rs.DayOfWeek == date.DayOfWeek
                 && (x.ss == null || !x.ss.IsClosed))

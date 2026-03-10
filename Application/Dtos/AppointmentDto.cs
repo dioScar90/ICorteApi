@@ -33,8 +33,10 @@ public record AppointmentDtoRequest(
     string? Notes,
     PaymentType PaymentType,
     decimal TotalPrice,
+
     ServiceForUpdateAppointmentDtoRequest[] Services,
-    AppointmentStatus Status
+    
+    AppointmentStatus Status = AppointmentStatus.Pending
 ) : IDtoRequest<Appointment>;
 
 public record AppointmentPaymentTypeDtoUpdateRequest(
