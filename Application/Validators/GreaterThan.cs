@@ -47,7 +47,7 @@ public abstract class ComparisonAttributeBase : ValidationAttribute
 
 public class GreaterThanAttribute(object? valueToCompare) : ComparisonAttributeBase
 {
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         return AwesomeComparator(valueToCompare, value, validationContext);
     }
@@ -55,7 +55,7 @@ public class GreaterThanAttribute(object? valueToCompare) : ComparisonAttributeB
 
 public class GreaterThanOrEqualAttribute(object? valueToCompare) : ComparisonAttributeBase
 {
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         return AwesomeComparator(valueToCompare, value, validationContext, true);
     }
@@ -67,7 +67,7 @@ public class GreaterThanOrEqualTodayAttribute() : GreaterThanOrEqualAttribute(Da
 
 public class GreaterThanPropAttribute(string propName, bool skipIfNull = false) : ComparisonAttributeBase
 {
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         var comparisonPropertyInfo = validationContext.ObjectType.GetProperty(propName);
 
@@ -85,7 +85,7 @@ public class GreaterThanPropAttribute(string propName, bool skipIfNull = false) 
 
 public class GreaterThanOrEqualPropAttribute(string propName, bool skipIfNull = false) : ComparisonAttributeBase
 {
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
         var comparisonPropertyInfo = validationContext.ObjectType.GetProperty(propName);
 
