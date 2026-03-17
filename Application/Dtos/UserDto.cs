@@ -39,6 +39,19 @@ public record UserDtoRegisterRequest(
     BarberShopDtoRequest? BarberShop = null
 ) : IDtoRequest<User>;
 
+public record UserDtoRegisterForDataSeederRequest(
+    [Required(ErrorMessage = "Email obrigatório")]
+    [Email]
+    string Email,
+    
+    [Required(ErrorMessage = "Senha obrigatória")]
+    [Password]
+    string Password,
+    
+    ProfileDtoForDataSeederRequest? Profile = null,
+    BarberShopDtoForDataSeederRequest? BarberShop = null
+) : IDtoRequest<User>;
+
 public record UserDtoLoginRequest(
     [Required(ErrorMessage = "Email obrigatório")]
     [Email]

@@ -5,51 +5,51 @@ namespace ICorteApi.Settings;
 
 public static class DataSeeder
 {
-    // public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
-    // {
-    //     var context = serviceProvider.GetRequiredService<AppDbContext>();
-    //     using var transaction = await context.Database.BeginTransactionAsync();
+    public static async Task ClearAllRowsBeforeSeedAsync(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<AppDbContext>();
+        using var transaction = await context.Database.BeginTransactionAsync();
 
-    //     try
-    //     {
-    //         await context.Messages
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
-    //         await context.Reports
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
+        try
+        {
+            await context.Messages
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Reports
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
 
-    //         await context.Appointments
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
-    //         await context.Services
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Appointments
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Services
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
             
-    //         await context.SpecialSchedules
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
-    //         await context.RecurringSchedules
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
-    //         await context.Addresses
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
-    //         await context.BarberShops
-    //             .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.SpecialSchedules
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.RecurringSchedules
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.Addresses
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
+            await context.BarberShops
+                .IgnoreQueryFilters().ExecuteDeleteAsync();
             
-    //         await context.Profiles
-    //             .IgnoreQueryFilters()
-    //             // .Where(p => p.User.Email != "diogols@live.com")
-    //             .ExecuteDeleteAsync();
+            await context.Profiles
+                .IgnoreQueryFilters()
+                // .Where(p => p.User.Email != "diogols@live.com")
+                .ExecuteDeleteAsync();
 
-    //         await context.Users
-    //             .IgnoreQueryFilters()
-    //             // .Where(u => u.Email != "diogols@live.com")
-    //             .ExecuteDeleteAsync();
+            await context.Users
+                .IgnoreQueryFilters()
+                // .Where(u => u.Email != "diogols@live.com")
+                .ExecuteDeleteAsync();
                 
-    //         await transaction.CommitAsync();
-    //     }
-    //     catch (Exception)
-    //     {
-    //         // Rollback em caso de falha
-    //         await transaction.RollbackAsync();
-    //         throw;
-    //     }
-    // }
+            await transaction.CommitAsync();
+        }
+        catch (Exception)
+        {
+            // Rollback em caso de falha
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
     
     public static async Task SeedData(IServiceProvider serviceProvider)
     {
@@ -81,7 +81,7 @@ public static class DataSeeder
             await userManager.AddToRolesAsync(user, [..GetUserRolesToBeSetted(user)]);
         }
 
-        // await UpdateImageUrlsForFirstTime(serviceProvider);
+        await UpdateImageUrlsForFirstTime(serviceProvider);
     }
     
     private static async Task UpdateImageUrlsForFirstTime(IServiceProvider serviceProvider)
@@ -132,13 +132,13 @@ public static class DataSeeder
     private static User[] GetAdminUsers() =>
         [
             new(
-                new(
+                new UserDtoRegisterForDataSeederRequest(
                     "diogols@live.com", "Dunno#2024",
                     new("Diogo", "Scarmagnani", Gender.Male, "19912354698")
                 )
             ),
             new(
-                new(
+                new UserDtoRegisterForDataSeederRequest(
                     "admin_2@gmail.com", "Dunno#2024",
                     new("Admin", "Dois", Gender.Male, "18995632564")
                 )
@@ -177,7 +177,7 @@ public static class DataSeeder
         
     private static User GetBarberShopLionelMessi() =>
         new(
-            new(
+            new UserDtoRegisterForDataSeederRequest(
                 "messi@barbershop.com", "Goat#2024",
                 new(
                     "Lionel", "Messi", Gender.Male, "11998765432"
@@ -708,7 +708,7 @@ public static class DataSeeder
     private static User GetClientMaria() =>
         new(
             new(
-                "maria.oliveira@gmail.com", "Password123!",
+                "maria.oliveira@gmail.com", "Password123!", "Password123!",
                 new("Maria", "Oliveira", Gender.Female, "11976543210")
             )
         );

@@ -25,5 +25,23 @@ public record ProfileDtoRequest(
 
     [Required(ErrorMessage = "Gênero não pode estar vazio")]
     [EnumDataType(typeof(Gender), ErrorMessage = "Gênero inválido")]
-    Gender Gender
+    Gender Gender,
+
+    string PhoneNumber
+) : IDtoRequest<Profile>;
+
+public record ProfileDtoForDataSeederRequest(
+    [Required(ErrorMessage = "Nome obrigatório")]
+    [MinLength(3, ErrorMessage = "Nome precisa ter pelo menos 3 caracteres")]
+    string FirstName,
+
+    [Required(ErrorMessage = "Sobrenome obrigatório")]
+    [MinLength(3, ErrorMessage = "Sobrenome precisa ter pelo menos 3 caracteres")]
+    string LastName,
+
+    [Required(ErrorMessage = "Gênero não pode estar vazio")]
+    [EnumDataType(typeof(Gender), ErrorMessage = "Gênero inválido")]
+    Gender Gender,
+
+    string PhoneNumber
 ) : IDtoRequest<Profile>;
