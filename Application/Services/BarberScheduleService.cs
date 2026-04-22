@@ -4,15 +4,11 @@ namespace ICorteApi.Application.Services;
 
 public class BarberScheduleService(AppDbContext context)
 {
-    private readonly AppDbContext _context = context;
-    private readonly DbSet<Service> _dbSetService = context.Set<Service>();
-    private readonly DbSet<Appointment> _dbSetAppointment = context.Set<Appointment>();
-
     private static int GetCorrectTakeNumber(int? take) => take is int and > 0 ? (int)take : 10;
     
     private async Task<TimeSpan> CalculateTotalServiceDuration(int barberShopId, int[] serviceIds)
     {
-        var services = await _dbSetService
+        var services = await context.Services
             .AsNoTracking()
             .Where(x => x.BarberShopId == barberShopId && serviceIds.Contains(x.Id))
             .Select(x => new ServiceDuration(x.Id, x.Duration))
@@ -23,7 +19,7 @@ public class BarberScheduleService(AppDbContext context)
     
     private async Task<BasicAppointment> GetNewAppointmentWithServiceDuration(int appointmentId, TimeOnly startTime)
     {
-        var services = await _dbSetService
+        var services = await context.Services
             .AsNoTracking()
             .Where(x => x.Appointments.Any(a => a.Id == appointmentId))
             .Select(x => new ServiceDuration(x.Id, x.Duration))
@@ -71,7 +67,7 @@ public class BarberScheduleService(AppDbContext context)
 
     private async Task<BasicAppointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
     {
-        return await _dbSetAppointment
+        return await context.Appointments
             .AsNoTracking()
             .Include(a => a.Services)
             .Where(a => a.BarberShopId == barberShopId && a.Date == date)
@@ -95,16 +91,16 @@ public class BarberScheduleService(AppDbContext context)
         
         var (firstDateThisWeek, _) = GetFirstAndLastDatesOfWeek(date);
         
-        var schedule = await _context.RecurringSchedules
+        var schedule = await context.RecurringSchedules
             .AsNoTracking()
-            // .GroupJoin(_context.SpecialSchedules, // Left Join
+            // .GroupJoin(context.SpecialSchedules, // Left Join
             //     rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
             //     ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
             //     (rs, ss) => new { rs, ss })
             // .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
             //     (ssrs, ss) => new { ssrs.rs, ss }
             // )
-            .LeftJoin(_context.SpecialSchedules,
+            .LeftJoin(context.SpecialSchedules,
                 rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
                 (rs, ss) => new { rs, ss })
@@ -137,9 +133,9 @@ public class BarberScheduleService(AppDbContext context)
 
         int take = GetCorrectTakeNumber(_take);
 
-        return await _context.BarberShops
+        return await context.BarberShops
             .AsNoTracking()
-            .Join(_context.RecurringSchedules,
+            .Join(context.RecurringSchedules,
                 b => b.Id,
                 rs => rs.BarberShopId,
                 (b, rs) => new { b, rs })
@@ -165,9 +161,9 @@ public class BarberScheduleService(AppDbContext context)
     {
         var (firstDateThisWeek, _) = GetFirstAndLastDatesOfWeek(randomDate);
         
-        return await _context.RecurringSchedules
+        return await context.RecurringSchedules
             .AsNoTracking()
-            .GroupJoin(_context.SpecialSchedules, // Left Join
+            .GroupJoin(context.SpecialSchedules, // Left Join
                 rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
                 (rs, ss) => new { rs, ss })
@@ -192,9 +188,9 @@ public class BarberScheduleService(AppDbContext context)
         if (keywords.Length == 0)
             return GetEmptyPagination();
             
-        bool isPostgre = _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
+        bool isPostgre = context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
         
-        var services = await _context.Services
+        var services = await context.Services
             .AsNoTracking()
             .Where(x => keywords.All(keyword => isPostgre
                 ? EF.Functions.ILike(x.Name, "%" + keyword + "%")

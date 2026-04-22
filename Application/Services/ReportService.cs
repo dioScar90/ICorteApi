@@ -4,19 +4,19 @@ namespace ICorteApi.Application.Services;
 
 public sealed class ReportService(
     AppDbContext context,
-    UserService _userService)
+    UserService userService)
     : BaseService<Report>(context)
 {
     public async Task<ReportDtoResponse?> CreateAsync(ReportDtoRequest dto, int? clientId = null)
     {
-        clientId ??= await _userService.GetMyUserIdAsync()!;
+        clientId ??= await userService.GetMyUserIdAsync()!;
         
         if (clientId is null)
             return null;
             
         var report = new Report(dto, clientId.Value, dto.BarberShopId);
         
-        _dbSet.Add(report);
+        dbSet.Add(report);
         
         if (!await SaveChangesAsync())
             return null;
@@ -26,30 +26,30 @@ public sealed class ReportService(
     
     public async Task<bool> ReportExists(int id)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == id);
     }
     
     public async Task<bool> ReportBelongsToBarberShop(int id, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == id && x.BarberShopId == barberShopId);
     }
     
     public async Task<bool> ReportBelongsToClient(int id, int? clientId = null)
     {
-        clientId ??= await _userService.GetMyUserIdAsync();
+        clientId ??= await userService.GetMyUserIdAsync();
 
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == id && x.ClientId == clientId);
     }
 
     public async Task<ReportDtoResponse?> GetByIdAsync(int id, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(r => r.Id == id)
             .Select(r => new ReportDtoResponse(
@@ -84,7 +84,7 @@ public sealed class ReportService(
     
     public async Task<bool> UpdateAsync(ReportDtoRequest dto, int id)
     {
-        var report = await _dbSet.FindAsync(id);
+        var report = await dbSet.FindAsync(id);
 
         if (report is null)
             return false;
@@ -95,12 +95,12 @@ public sealed class ReportService(
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var report = await _dbSet.FindAsync(id);
+        var report = await dbSet.FindAsync(id);
         
         if (report is null)
             return false;
         
-        _dbSet.Remove(report);
+        dbSet.Remove(report);
         return await SaveChangesAsync();
     }
 }

@@ -4,15 +4,15 @@ namespace ICorteApi.Application.Services;
 
 public sealed class BarberShopService(
     AppDbContext context,
-    UserService _userService)
+    UserService userService)
     : BaseService<BarberShop>(context)
 {
     public async Task<BarberShopDtoResponse?> CreateAsync(BarberShopDtoRequest dto)
     {
-        var ownerId = await _userService.GetMyUserIdAsync()!;
+        var ownerId = await userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);
 
-        _dbSet.Add(barberShop);
+        dbSet.Add(barberShop);
         
         if (!await SaveChangesAsync())
             return null;
@@ -22,16 +22,16 @@ public sealed class BarberShopService(
 
     public async Task<bool> BarberShopExists(int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == barberShopId);
     }
     
     public async Task<bool> BarberShopBelongsToOwner(int barberShopId, int? ownerId = null)
     {
-        ownerId ??= await _userService.GetMyUserIdAsync();
+        ownerId ??= await userService.GetMyUserIdAsync();
 
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == barberShopId && x.OwnerId == ownerId);
     }
@@ -42,7 +42,7 @@ public sealed class BarberShopService(
     {
         includes ??= new();
 
-        var query = _dbSet
+        var query = dbSet
             .AsNoTracking()
             .Where(b => b.Id == id);
 
@@ -130,9 +130,9 @@ public sealed class BarberShopService(
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
         int barberShopId, int page, int pageSize)
     {
-        var ownerId = await _userService.GetMyUserIdAsync()!;
+        var ownerId = await userService.GetMyUserIdAsync()!;
         
-        var query = _context.Appointments
+        var query = context.Appointments
             .AsNoTracking()
             .AsSplitQuery()
             .Where(a => a.BarberShopId == barberShopId && a.BarberShop.OwnerId == ownerId)
@@ -179,7 +179,7 @@ public sealed class BarberShopService(
     
     public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id)
     {
-        var barberShop = await _dbSet.FindAsync(id);
+        var barberShop = await dbSet.FindAsync(id);
 
         if (barberShop is null)
             return false;
@@ -190,12 +190,12 @@ public sealed class BarberShopService(
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var barberShop = await _dbSet.FindAsync(id);
+        var barberShop = await dbSet.FindAsync(id);
 
         if (barberShop is null)
             return false;
             
-        _dbSet.Remove(barberShop);
+        dbSet.Remove(barberShop);
         return await SaveChangesAsync();
     }
 }

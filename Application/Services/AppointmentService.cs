@@ -20,7 +20,7 @@ public sealed class AppointmentService(
         dto = dto with { ClientId = clientId.Value };
         var appointment = new Appointment(dto, services);
         
-        _dbSet.Add(appointment);
+        dbSet.Add(appointment);
         
         if (!await SaveChangesAsync())
             return null;
@@ -37,7 +37,7 @@ public sealed class AppointmentService(
         
         clientId ??= await _userService.GetMyUserIdAsync();
         
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Id == appointmentId && x.ClientId == clientId);
     }
@@ -48,7 +48,7 @@ public sealed class AppointmentService(
         
         includes ??= new();
 
-        var query = _dbSet
+        var query = dbSet
             .Where(a => a.Id == id);
             
         if (includes.Collections)
@@ -68,7 +68,7 @@ public sealed class AppointmentService(
         
         includes ??= new();
 
-        var query = _dbSet
+        var query = dbSet
             .AsNoTracking()
             .Where(a => a.Id == id);
 
@@ -202,7 +202,7 @@ public sealed class AppointmentService(
         
         _logger.LogDebug("Deleting Appointment with Id={Id}", id);
 
-        _dbSet.Remove(appointment);
+        dbSet.Remove(appointment);
         return await SaveChangesAsync();
     }
 }

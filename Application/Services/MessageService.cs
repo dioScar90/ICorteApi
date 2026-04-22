@@ -4,15 +4,15 @@ namespace ICorteApi.Application.Services;
 
 public sealed class MessageService(
     AppDbContext context,
-    UserService _userService)
+    UserService userService)
     : BaseService<Message>(context)
 {
     public async Task<MessageDtoResponse?> CreateAsync(MessageDtoRequest dto)
     {
-        var senderId = await _userService.GetMyUserIdAsync()!;
+        var senderId = await userService.GetMyUserIdAsync()!;
         var message = new Message(dto, dto.AppointmentId, senderId);
         
-        _dbSet.Add(message);
+        dbSet.Add(message);
         
         if (!await SaveChangesAsync())
             return null;
@@ -22,9 +22,9 @@ public sealed class MessageService(
     
     public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
     {
-        var userId = _userId ?? await _userService.GetMyUserIdAsync()!;
+        var userId = _userId ?? await userService.GetMyUserIdAsync()!;
         
-        return await _context.Appointments.AnyAsync(
+        return await context.Appointments.AnyAsync(
             a => a.Id == appointmentId && (
                 // is the client
                 a.ClientId == userId
@@ -40,7 +40,7 @@ public sealed class MessageService(
     
     public async Task<bool> MessageBelongsToAppointmentAsync(int id, int appointmentId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(x => x.Id == id)
             .AnyAsync(x => x.AppointmentId == appointmentId);
@@ -48,9 +48,9 @@ public sealed class MessageService(
     
     public async Task<bool> MessageBelongsToSenderAsync(int id, int? senderId = null)
     {
-        senderId ??= await _userService.GetMyUserIdAsync();
+        senderId ??= await userService.GetMyUserIdAsync();
         
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(x => x.Id == id)
             .AnyAsync(x => x.SenderId == senderId);
@@ -62,7 +62,7 @@ public sealed class MessageService(
     {
         includes ??= new();
 
-        var query = _dbSet
+        var query = dbSet
             .AsNoTracking()
             .Where(m => m.Id == id);
 
@@ -113,14 +113,14 @@ public sealed class MessageService(
     {
         var messageIds = dtos.Where(dto => dto.IsRead).Select(dto => dto.Id).ToArray();
 
-        await _dbSet
+        await dbSet
             .Where(x => !x.IsRead && messageIds.Contains(x.Id) && x.SenderId == senderId)
             .ExecuteUpdateAsync(x => x.SetProperty(p => p.IsRead, true));
     }
     
     public async Task<bool> DeleteAsync(int id, int appointmentId)
     {
-        var message = await _dbSet.FindAsync(id);
+        var message = await dbSet.FindAsync(id);
 
         if (message is null)
             return false;
@@ -128,7 +128,7 @@ public sealed class MessageService(
         if (message!.AppointmentId != appointmentId)
             return false;
 
-        _dbSet.Remove(message);
+        dbSet.Remove(message);
         return await SaveChangesAsync();
     }
     
@@ -136,7 +136,7 @@ public sealed class MessageService(
     {
         int take = lastMessageId is int ? 10 : 5;
         
-        return await _context.Messages
+        return await context.Messages
             .Where(m => m.AppointmentId == appointmentId
                 && (lastMessageId == null || m.Id > lastMessageId)
                 && (m.Appointment.ClientId == senderId || m.Appointment.BarberShopId == senderId)
@@ -156,7 +156,7 @@ public sealed class MessageService(
             .Take(take)
             .ToArrayAsync();
             
-        // return await _context.Database
+        // return await context.Database
         //     .SqlQuery<MessageDtoResponse>(@$"
         //         DECLARE @last_message_id INT = {lastMessageId};
         //         SELECT TOP ({take}) M.id AS Id
@@ -190,7 +190,7 @@ public sealed class MessageService(
 
     private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
     {
-        return await _context.Appointments
+        return await context.Appointments
             .Where(a => a.ClientId == clientId && !a.IsDeleted)
             .Select(a => a.Messages
                 .Where(m => !m.IsDeleted)
@@ -208,7 +208,7 @@ public sealed class MessageService(
             .Where(dto => dto != null)
             .ToArrayAsync();
 
-        // return await _context.Database
+        // return await context.Database
         //     .SqlQuery<ChatWithMessagesDtoResponse>(@$"
         //         SELECT A.id AS AppointmentId
         //             ,CAST(IIF(M.sender_id = {clientId}, 1, 0) AS BIT) AS IsMe
@@ -236,7 +236,7 @@ public sealed class MessageService(
 
     private async Task<ChatWithMessagesDtoResponse[]> GetBarberChatHistoryAsync(int ownerBarberShopId)
     {
-        return await _context.Database
+        return await context.Database
             .SqlQuery<ChatWithMessagesDtoResponse>(@$"
                 SELECT A.id AS AppointmentId
                     ,IIF(M.sender_id = {ownerBarberShopId}, CAST(1 AS BIT), CAST(0 AS BIT)) AS IsMe

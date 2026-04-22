@@ -10,7 +10,7 @@ public sealed class SpecialScheduleService(
     {
         var schedule = new SpecialSchedule(dto);
 
-        _dbSet.Add(schedule);
+        dbSet.Add(schedule);
         
         if (!await SaveChangesAsync())
             return null;
@@ -20,21 +20,21 @@ public sealed class SpecialScheduleService(
 
     public async Task<bool> SpecialScheduleExists(DateOnly date, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
     }
     
     public async Task<bool> SpecialScheduleBelongsToBarberShop(DateOnly date, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
     }
 
     public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(DateOnly date, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(s => s.Date == date && s.BarberShopId == barberShopId)
             .Select(s => new SpecialScheduleDtoResponse(
@@ -73,7 +73,7 @@ public sealed class SpecialScheduleService(
 
     public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
     {
-        var schedule = await _dbSet.FindAsync(date, barberShopId);
+        var schedule = await dbSet.FindAsync(date, barberShopId);
 
         if (schedule is null)
             return false;
@@ -84,12 +84,12 @@ public sealed class SpecialScheduleService(
 
     public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
     {
-        var schedule = await _dbSet.FindAsync(date, barberShopId);
+        var schedule = await dbSet.FindAsync(date, barberShopId);
 
         if (schedule is null)
             return false;
             
-        _dbSet.Remove(schedule);
+        dbSet.Remove(schedule);
         return await SaveChangesAsync();
     }
 }

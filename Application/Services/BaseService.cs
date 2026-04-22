@@ -7,17 +7,16 @@ namespace ICorteApi.Application.Services;
 public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEntity>
     where TEntity : class, IBaseTableEntity
 {
-    protected readonly AppDbContext _context = context;
-    protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
+    protected readonly DbSet<TEntity> dbSet = context.Set<TEntity>();
     
-    protected async Task<IDbContextTransaction> BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
-    protected async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
+    protected async Task<IDbContextTransaction> BeginTransactionAsync() => await context.Database.BeginTransactionAsync();
+    protected async Task<bool> SaveChangesAsync() => await context.SaveChangesAsync() > 0;
     
     public virtual async Task<PaginationResponse<TDtoResponse>> GetAllAsync<TDtoResponse>(
         PaginationProperties<TEntity, TDtoResponse> props)
             where TDtoResponse : class, IDtoResponse<TEntity>
     {
-        IQueryable<TEntity> query = _dbSet.AsNoTracking();
+        IQueryable<TEntity> query = dbSet.AsNoTracking();
 
         foreach (var inlcude in props.Includes)
         {

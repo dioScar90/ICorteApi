@@ -10,7 +10,7 @@ public sealed class RecurringScheduleService(
     {
         var schedule = new RecurringSchedule(dto, dto.BarberShopId);
 
-        _dbSet.Add(schedule);
+        dbSet.Add(schedule);
         
         if (!await SaveChangesAsync())
             return null;
@@ -20,21 +20,21 @@ public sealed class RecurringScheduleService(
 
     public async Task<bool> RecurringScheduleExists(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
     }
     
     public async Task<bool> RecurringScheduleBelongsToBarberShop(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .AnyAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId);
     }
 
     public async Task<RecurringScheduleDtoResponse?> GetByIdAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(s => s.DayOfWeek == dayOfWeek && s.BarberShopId == barberShopId)
             .Select(s => new RecurringScheduleDtoResponse(
@@ -69,7 +69,7 @@ public sealed class RecurringScheduleService(
     
     public async Task<bool> UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId)
     {
-        var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
+        var schedule = await dbSet.FindAsync(dayOfWeek, barberShopId);
 
         if (schedule is null)
             return false;
@@ -80,12 +80,12 @@ public sealed class RecurringScheduleService(
     
     public async Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId)
     {
-        var schedule = await _dbSet.FindAsync(dayOfWeek, barberShopId);
+        var schedule = await dbSet.FindAsync(dayOfWeek, barberShopId);
 
         if (schedule is null)
             return false;
             
-        _dbSet.Remove(schedule);
+        dbSet.Remove(schedule);
         return await SaveChangesAsync();
     }
 }

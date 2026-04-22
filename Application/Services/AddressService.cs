@@ -11,7 +11,7 @@ public sealed class AddressService(
     {
         var address = new Address(dto, dto.BarberShopId);
 
-        _dbSet.Add(address);
+        dbSet.Add(address);
         
         if (!await SaveChangesAsync())
             return null;
@@ -24,14 +24,14 @@ public sealed class AddressService(
     {
         _logger.LogDebug("Fetching Address with Id={Id} from database", id);
         
-        return await _dbSet.FindAsync(id);
+        return await dbSet.FindAsync(id);
     }
     
     public async Task<AddressDtoResponse?> GetByIdAsync(int id, int barberShopId)
     {
         _logger.LogDebug("Fetching Address with Id={Id} from database", id);
 
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Select(a => new AddressDtoResponse(
                 a.Id,
@@ -71,7 +71,7 @@ public sealed class AddressService(
         
         _logger.LogDebug("Deleting Address with Id={Id}", id);
         
-        _dbSet.Remove(address);
+        dbSet.Remove(address);
         return await SaveChangesAsync();
     }
 }
