@@ -139,6 +139,7 @@ public sealed class BarberShopService(
             .OrderByDescending(a => a.CreatedAt)
             .Select(a => new AppointmentsByBarberShopDtoResponse(
                 a.Id,
+                a.ClientId,
                 new(
                     a.ClientId,
                     a.Client.Profile.FirstName,
