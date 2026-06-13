@@ -7,28 +7,29 @@ public sealed class AddressService(
     ILogger<AddressService> _logger)
     : BaseService<Address>(context)
 {
-    public async Task<AddressDtoResponse?> CreateAsync(AddressDtoRequest dto)
+    public async Task<AddressDtoResponse?> CreateAsync(
+        AddressDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var address = new Address(dto, dto.BarberShopId);
 
         dbSet.Add(address);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
         
         _logger.LogInformation("Address persisted in database with Id={Id}", address.Id);
         return address.CreateDto();
     }
     
-    private async Task<Address?> FindEntityAsync(int id, int barberShopId)
+    public async Task<AddressDtoResponse?> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Fetching Address with Id={Id} from database", id);
-        
-        return await dbSet.FindAsync(id);
-    }
-    
-    public async Task<AddressDtoResponse?> GetByIdAsync(int id, int barberShopId)
-    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         _logger.LogDebug("Fetching Address with Id={Id} from database", id);
 
         return await dbSet
@@ -45,13 +46,17 @@ public sealed class AddressService(
                 a.PostalCode,
                 a.Country
             ))
-            .Where(a => a.Id == id && a.BarberShopId == barberShopId)
-            .FirstOrDefaultAsync();
+            .Where(a => a.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
     
-    public async Task<bool> UpdateAsync(AddressDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(
+        AddressDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var address = await FindEntityAsync(id, dto.BarberShopId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var address = await dbSet.FindAsync([id], cancellationToken);
 
         if (address is null)
             return false;
@@ -59,12 +64,16 @@ public sealed class AddressService(
         _logger.LogDebug("Updating Address with Id={Id}", id);
 
         address.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(int id, int barberShopId)
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var address = await FindEntityAsync(id, barberShopId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var address = await dbSet.FindAsync([id], cancellationToken);
 
         if (address is null)
             return false;
@@ -72,6 +81,6 @@ public sealed class AddressService(
         _logger.LogDebug("Deleting Address with Id={Id}", id);
         
         dbSet.Remove(address);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 }

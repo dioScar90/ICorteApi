@@ -9,13 +9,18 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEnt
 {
     protected readonly DbSet<TEntity> dbSet = context.Set<TEntity>();
     
-    protected async Task<IDbContextTransaction> BeginTransactionAsync() => await context.Database.BeginTransactionAsync();
-    protected async Task<bool> SaveChangesAsync() => await context.SaveChangesAsync() > 0;
+    protected async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) =>
+        await context.Database.BeginTransactionAsync(cancellationToken);
+    protected async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default) =>
+        await context.SaveChangesAsync(cancellationToken) > 0;
     
     public virtual async Task<PaginationResponse<TDtoResponse>> GetAllAsync<TDtoResponse>(
-        PaginationProperties<TEntity, TDtoResponse> props)
+        PaginationProperties<TEntity, TDtoResponse> props,
+        CancellationToken cancellationToken = default)
             where TDtoResponse : class, IDtoResponse<TEntity>
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         IQueryable<TEntity> query = dbSet.AsNoTracking();
 
         foreach (var inlcude in props.Includes)
@@ -29,7 +34,7 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEnt
             ? query.OrderByDescending(props.OrderBy.KeySelector)
             : query.OrderBy(props.OrderBy.KeySelector);
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(cancellationToken);
         var totalPages = (int)Math.Ceiling(totalItems / (double)props.PageSize);
 
         int page = props.Page > 0 && totalPages > 0 ? Math.Clamp(props.Page, 1, totalPages) : 0;
@@ -38,7 +43,7 @@ public abstract class BaseService<TEntity>(AppDbContext context) : IService<TEnt
             .Skip((page - 1) * props.PageSize)
             .Take(props.PageSize)
             .Select(props.Select)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
 
         return new(entities ?? [], totalItems, totalPages, page, props.PageSize);
     }

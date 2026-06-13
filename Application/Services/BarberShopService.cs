@@ -128,8 +128,11 @@ public sealed class BarberShopService(
     }
 
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
-        int barberShopId, int page, int pageSize)
+        int barberShopId, int page, int pageSize,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var ownerId = await userService.GetMyUserIdAsync()!;
         
         var query = context.Appointments
@@ -165,7 +168,7 @@ public sealed class BarberShopService(
                 a.Status
             ));
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(cancellationToken);
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
         page = page > 0 && totalPages > 0 ? Math.Clamp(page, 1, totalPages) : 1;
@@ -173,7 +176,7 @@ public sealed class BarberShopService(
         var entities = totalItems == 0 ? [] : await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
 
         return new(entities ?? [], totalItems, totalPages, page, pageSize);
     }

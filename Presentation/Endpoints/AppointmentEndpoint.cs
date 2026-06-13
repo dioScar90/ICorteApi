@@ -96,8 +96,11 @@ public static class AppointmentEndpoint
         AppointmentService service,
         AppointmentErrors errors,
         ServiceService serviceService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         if (dto.Services.Length == 0)
@@ -108,7 +111,7 @@ public static class AppointmentEndpoint
             
         logger.CreatingStart(dto);
         
-        var appointment = await service.CreateAsync(dto);
+        var appointment = await service.CreateAsync(dto, cancellationToken);
         
         if (appointment is null)
             return errors.Create();
@@ -123,19 +126,19 @@ public static class AppointmentEndpoint
         AppointmentService service,
         AppointmentErrors errors,
         UserService userService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingStart(id);
 
-        var appointment = await service.GetByIdAsync(id, new(services is true));
+        var appointment = await service.GetByIdAsync(id, services is true, cancellationToken);
 
         if (appointment is null)
             return errors.NotFound();
             
-        if (!await service.AppointmentBelongsToClientAsync(id))
-            return errors.AppointmentNotBelongsToClient();
-        
         return TypedResults.Ok(appointment);
     }
     
@@ -144,12 +147,15 @@ public static class AppointmentEndpoint
         [FromQuery] int? pageSize,
         AppointmentService service,
         AppointmentErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingAllStart(page, pageSize);
 
-        var appointments = await service.GetAllAsync(page, pageSize);
+        var appointments = await service.GetAllAsync(page, pageSize, cancellationToken);
         return TypedResults.Ok(appointments);
     }
 
@@ -159,18 +165,21 @@ public static class AppointmentEndpoint
         AppointmentService service,
         AppointmentErrors errors,
         ServiceService serviceService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
         
         if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services))
             return errors.NotBarberShopIdsUniqueFromServices();
             
-        if (!await service.AppointmentBelongsToClientAsync(id))
-            return errors.AppointmentNotBelongsToClient();
+        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+            return errors.AppointmentBelongsToAnotherClient();
             
-        if (!await service.UpdateAsync(dto, id))
+        if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
 
         logger.Updated(id);
@@ -182,15 +191,18 @@ public static class AppointmentEndpoint
         AppointmentPaymentTypeDtoUpdateRequest dto,
         AppointmentService service,
         AppointmentErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingPaymentStart(id, dto);
             
-        if (!await service.AppointmentBelongsToClientAsync(id))
-            return errors.AppointmentNotBelongsToClient();
+        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+            return errors.AppointmentBelongsToAnotherClient();
 
-        if (!await service.UpdatePaymentTypeAsync(dto, id))
+        if (!await service.UpdatePaymentTypeAsync(dto, id, cancellationToken))
             return errors.Update();
 
         logger.UpdatedPayment(id);
@@ -201,15 +213,18 @@ public static class AppointmentEndpoint
         int id,
         AppointmentService service,
         AppointmentErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
             
-        if (!await service.AppointmentBelongsToClientAsync(id))
-            return errors.AppointmentNotBelongsToClient();
+        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+            return errors.AppointmentBelongsToAnotherClient();
 
-        if (!await service.DeleteAsync(id))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
             
         logger.Deleted(id);

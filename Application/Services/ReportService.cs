@@ -7,9 +7,13 @@ public sealed class ReportService(
     UserService userService)
     : BaseService<Report>(context)
 {
-    public async Task<ReportDtoResponse?> CreateAsync(ReportDtoRequest dto, int? clientId = null)
+    public async Task<ReportDtoResponse?> CreateAsync(
+        ReportDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
-        clientId ??= await userService.GetMyUserIdAsync()!;
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var clientId = await userService.GetMyUserIdAsync()!;
         
         if (clientId is null)
             return null;
@@ -18,37 +22,47 @@ public sealed class ReportService(
         
         dbSet.Add(report);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
 
         return report.CreateDto();
     }
-    
-    public async Task<bool> ReportExists(int id)
-    {
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == id);
-    }
-    
-    public async Task<bool> ReportBelongsToBarberShop(int id, int barberShopId)
-    {
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == id && x.BarberShopId == barberShopId);
-    }
-    
-    public async Task<bool> ReportBelongsToClient(int id, int? clientId = null)
-    {
-        clientId ??= await userService.GetMyUserIdAsync();
 
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == id && x.ClientId == clientId);
-    }
-
-    public async Task<ReportDtoResponse?> GetByIdAsync(int id, int barberShopId)
+    public record Infos(
+        bool Exists = false,
+        bool IsDeleted = false,
+        bool BelongsToMe = false,
+        bool BelongsToBarberShop = false
+    );
+    
+    public async Task<Infos> GetReportInfos(
+        int id,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
+            .AsNoTracking()
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(r => new Infos(
+                true,
+                r.IsDeleted,
+                currentUserId != null && r.ClientId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        return infos ?? new();
+    }
+    
+    public async Task<ReportDtoResponse?> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         return await dbSet
             .AsNoTracking()
             .Where(r => r.Id == id)
@@ -59,12 +73,15 @@ public sealed class ReportService(
                 r.Content,
                 r.Rating
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
     
     public async Task<PaginationResponse<ReportDtoResponse>> GetAllAsync(
-        int? page, int? pageSize, int barberShopId)
+        int? page, int? pageSize, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         return await GetAllAsync<ReportDtoResponse>(
             new(
                 page,
@@ -78,29 +95,38 @@ public sealed class ReportService(
                     r.Content,
                     r.Rating
                 )
-            )
+            ),
+            cancellationToken
         );
     }
     
-    public async Task<bool> UpdateAsync(ReportDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(
+        ReportDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var report = await dbSet.FindAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var report = await dbSet.FindAsync([id], cancellationToken);
 
         if (report is null)
             return false;
 
         report.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var report = await dbSet.FindAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var report = await dbSet.FindAsync([id], cancellationToken);
         
         if (report is null)
             return false;
         
         dbSet.Remove(report);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 }

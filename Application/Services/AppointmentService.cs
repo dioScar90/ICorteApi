@@ -9,70 +9,58 @@ public sealed class AppointmentService(
     ServiceService _serviceService)
     : BaseService<Appointment>(context)
 {
-    public async Task<AppointmentDtoResponse?> CreateAsync(AppointmentDtoRequest dto, int? clientId = null)
+    public async Task<AppointmentDtoResponse?> CreateAsync(
+        AppointmentDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
-        var services = await _serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
-        clientId ??= await _userService.GetMyUserIdAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var clientId = await _userService.GetMyUserIdAsync();
 
         if (clientId is null)
             return null;
             
+        var services = await _serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)], cancellationToken);
         dto = dto with { ClientId = clientId.Value };
+
         var appointment = new Appointment(dto, services);
         
         dbSet.Add(appointment);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
 
         _logger.LogInformation("Appointment persisted in database with Id={Id}", appointment.Id);
         return appointment.CreateDto();
     }
     
-    public record Includes(bool Collections = false);
-    
-    public async Task<bool> AppointmentBelongsToClientAsync(int appointmentId, int? clientId = null)
+    public async Task<bool> AppointmentBelongsToCurrentUserAsync(
+        int appointmentId,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Checking if Appointment with Id={Id} belongs to Client with Id={ClientId}", appointmentId, clientId);
+        cancellationToken.ThrowIfCancellationRequested();
         
-        clientId ??= await _userService.GetMyUserIdAsync();
+        var currentUserId = await _userService.GetMyUserIdAsync();
+        _logger.LogDebug("Checking if Appointment with Id={Id} belongs to Current User with Id={currentUserId}", appointmentId, currentUserId);
         
         return await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Id == appointmentId && x.ClientId == clientId);
+            .AnyAsync(x => x.Id == appointmentId && x.ClientId == currentUserId, cancellationToken);
     }
-
-    private async Task<Appointment?> FindEntityAsync(int id, Includes? includes = null)
+    
+    public async Task<AppointmentDtoResponse?> GetByIdAsync(
+        int id, bool withServices = false,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
         
-        includes ??= new();
-
-        var query = dbSet
-            .Where(a => a.Id == id);
-            
-        if (includes.Collections)
-        {
-            query = query
-                .AsSplitQuery()
-                .Include(a => a.Services);
-        }
-        
-        return await query
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<AppointmentDtoResponse?> GetByIdAsync(int id, Includes? includes = null)
-    {
-        _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
-        
-        includes ??= new();
-
         var query = dbSet
             .AsNoTracking()
             .Where(a => a.Id == id);
-
-        if (includes.Collections)
+            
+        if (withServices)
         {
             query = query
                 .AsSplitQuery()
@@ -90,8 +78,9 @@ public sealed class AppointmentService(
                 a.Notes,
                 a.PaymentType,
                 a.TotalPrice,
+                a.Status,
                 a.Services
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withServices)
                     .Select(s => new ServiceDtoResponse(
                         s.Id,
                         s.BarberShopId,
@@ -101,15 +90,17 @@ public sealed class AppointmentService(
                         s.Price,
                         s.Duration
                     ))
-                    .ToArray(),
-                a.Status
+                    .ToArray()
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(
-        int? page, int? pageSize)
+        int? page, int? pageSize,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var clientId = await _userService.GetMyUserIdAsync()!;
 
         return await GetAllAsync<AppointmentDtoResponse>(
@@ -128,6 +119,7 @@ public sealed class AppointmentService(
                     a.Notes,
                     a.PaymentType,
                     a.TotalPrice,
+                    a.Status,
                     a.Services
                         .Select(s => new ServiceDtoResponse(
                             s.Id,
@@ -138,23 +130,27 @@ public sealed class AppointmentService(
                             s.Price,
                             s.Duration
                         ))
-                        .ToArray(),
-                    a.Status
+                        .ToArray()
                 ),
                 a => a.Services
-            )
+            ),
+            cancellationToken
         );
     }
     
-    private async Task UpdateAppointmentServicesAsync(Appointment appointment, AppointmentDtoRequest dto)
+    private async Task UpdateAppointmentServicesAsync(
+        Appointment appointment, AppointmentDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
         int[] serviceIds = [.. dto.Services.Select(s => s.Id)];
         
         var serviceIdsToRemove = currentServiceIds.Except(serviceIds).ToArray();
         
         var serviceIdsToAdd = serviceIds.Except(currentServiceIds).ToArray();
-        var servicesToAdd = await _serviceService.GetSpecificServicesByIdsAsync(serviceIdsToAdd);
+        var servicesToAdd = await _serviceService.GetSpecificServicesByIdsAsync(serviceIdsToAdd, cancellationToken);
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
@@ -163,26 +159,34 @@ public sealed class AppointmentService(
             appointment.AddServices(servicesToAdd);
     }
 
-    public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(
+        AppointmentDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
             return false;
         
         dto = dto with { ClientId = appointment.ClientId };
         
-        await UpdateAppointmentServicesAsync(appointment, dto);
+        await UpdateAppointmentServicesAsync(appointment, dto, cancellationToken);
         
         _logger.LogDebug("Updating Appointment with Id={Id}", id);
 
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
+    public async Task<bool> UpdatePaymentTypeAsync(
+        AppointmentPaymentTypeDtoUpdateRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
             return false;
@@ -190,12 +194,16 @@ public sealed class AppointmentService(
         dto = dto with { ClientId = appointment.ClientId };
 
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
     
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
             return false;
@@ -203,6 +211,6 @@ public sealed class AppointmentService(
         _logger.LogDebug("Deleting Appointment with Id={Id}", id);
 
         dbSet.Remove(appointment);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 }

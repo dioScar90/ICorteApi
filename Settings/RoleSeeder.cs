@@ -8,7 +8,7 @@ public static class RoleSeeder
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         
-        foreach (var role in Enum.GetNames(typeof(UserRole)))
+        foreach (var role in Enum.GetNames<UserRole>())
         {
             if (!await roleManager.RoleExistsAsync(role))
             {

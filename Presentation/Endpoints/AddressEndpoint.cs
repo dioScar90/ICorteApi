@@ -76,13 +76,16 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.CreatingStart(dto);
         
         dto = dto with { BarberShopId = barberShopId };
-        var address = await service.CreateAsync(dto);
+        var address = await service.CreateAsync(dto, cancellationToken);
 
         if (address is null)
             return errors.Create();
@@ -96,12 +99,15 @@ public static class AddressEndpoint
         int id,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingStart(id);
         
-        var address = await service.GetByIdAsync(id, barberShopId);
+        var address = await service.GetByIdAsync(id, cancellationToken);
         
         if (address is null)
             return errors.NotFound();
@@ -118,14 +124,17 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
 
         dto = dto with { BarberShopId = barberShopId };
 
-        if (!await service.UpdateAsync(dto, id))
+        if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
         
         logger.Updated(id);
@@ -137,13 +146,16 @@ public static class AddressEndpoint
         int id,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
         
-        if (!await service.DeleteAsync(id, barberShopId))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
         
         logger.Deleted(id);

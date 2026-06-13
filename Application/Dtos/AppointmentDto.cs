@@ -14,9 +14,12 @@ public record AppointmentDtoResponse(
     string? Notes,
     PaymentType PaymentType,
     decimal TotalPrice,
-    ServiceDtoResponse[] Services,
-    AppointmentStatus Status
-) : IDtoResponse<Appointment>;
+    AppointmentStatus Status,
+    ServiceDtoResponse[]? Services = null
+) : IDtoResponse<Appointment>
+{
+    public ServiceDtoResponse[] Services { get; init; } = Services ?? [];
+};
 
 public record AppointmentDtoRequest(
     int ClientId,
