@@ -23,30 +23,27 @@ public sealed class ServiceService(
         return service.CreateDto();
     }
     
-    public async Task<bool> ServiceExists(
+    public async Task<EntityInfos> GetInfosAsync(
         int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await dbSet
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Id == id, cancellationToken);
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(s => new EntityInfos(
+                !s.IsDeleted,
+                currentUserId != null && s.BarberShopId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        return infos ?? new();
     }
     
-    public async Task<bool> ServiceBelongsToBarberShop(
-        int id,
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var barberShopId = await userService.GetMyUserIdAsync();
-
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == id && x.BarberShopId == barberShopId, cancellationToken);
-    }
-
     public async Task<bool> CheckCorrelatedAppointmentsAsync(int id, CancellationToken cancellationToken = default) =>
         await dbSet
             .AsNoTracking()

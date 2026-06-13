@@ -27,15 +27,8 @@ public sealed class ReportService(
 
         return report.CreateDto();
     }
-
-    public record Infos(
-        bool Exists = false,
-        bool IsDeleted = false,
-        bool BelongsToMe = false,
-        bool BelongsToBarberShop = false
-    );
     
-    public async Task<Infos> GetReportInfos(
+    public async Task<EntityInfos> GetInfosAsync(
         int id,
         CancellationToken cancellationToken = default)
     {
@@ -47,9 +40,8 @@ public sealed class ReportService(
             .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
-            .Select(r => new Infos(
-                true,
-                r.IsDeleted,
+            .Select(r => new EntityInfos(
+                !r.IsDeleted,
                 currentUserId != null && r.ClientId == currentUserId
             ))
             .FirstOrDefaultAsync(cancellationToken);

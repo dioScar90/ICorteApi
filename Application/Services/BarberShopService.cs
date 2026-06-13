@@ -7,53 +7,62 @@ public sealed class BarberShopService(
     UserService userService)
     : BaseService<BarberShop>(context)
 {
-    public async Task<BarberShopDtoResponse?> CreateAsync(BarberShopDtoRequest dto)
+    public async Task<BarberShopDtoResponse?> CreateAsync(
+        BarberShopDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var ownerId = await userService.GetMyUserIdAsync()!;
         var barberShop = new BarberShop(dto, ownerId);
 
         dbSet.Add(barberShop);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
 
         return barberShop.CreateDto();
     }
-
-    public async Task<bool> BarberShopExists(int barberShopId)
+    
+    public async Task<EntityInfos> GetInfosAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        return await dbSet
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Id == barberShopId);
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(b => new EntityInfos(
+                !b.IsDeleted,
+                currentUserId != null && b.OwnerId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return infos ?? new();
     }
     
-    public async Task<bool> BarberShopBelongsToOwner(int barberShopId, int? ownerId = null)
+    public async Task<BarberShopDtoResponse?> GetByIdAsync(
+        int id, bool withAddress = false, bool withOtherItems = false,
+        CancellationToken cancellationToken = default)
     {
-        ownerId ??= await userService.GetMyUserIdAsync();
-
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Id == barberShopId && x.OwnerId == ownerId);
-    }
-    
-    public record Includes(bool Address = false, bool Collections = false);
-    
-    public async Task<BarberShopDtoResponse?> GetByIdAsync(int id, Includes? includes = null)
-    {
-        includes ??= new();
-
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var query = dbSet
             .AsNoTracking()
             .Where(b => b.Id == id);
 
-        if (includes.Address)
+        if (withAddress)
         {
             query = query
                 .AsSplitQuery()
                 .Include(b => b.Address);
         }
 
-        if (includes.Collections)
+        if (withOtherItems)
         {
             query = query
                 .AsSplitQuery()
@@ -71,7 +80,7 @@ public sealed class BarberShopService(
                 b.Description,
                 b.ComercialNumber,
                 b.ComercialEmail,
-                !includes.Address ? null : new(
+                !withAddress ? null : new(
                     b.Address.Id,
                     b.Address.BarberShopId,
                     b.Address.Street,
@@ -84,7 +93,7 @@ public sealed class BarberShopService(
                     b.Address.Country
                 ),
                 b.RecurringSchedules
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withOtherItems)
                     .Select(rs => new RecurringScheduleDtoResponse(
                         rs.DayOfWeek,
                         rs.BarberShopId,
@@ -93,7 +102,7 @@ public sealed class BarberShopService(
                         rs.IsActive
                     )).ToArray(),
                 b.SpecialSchedules
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withOtherItems)
                     .Select(ss => new SpecialScheduleDtoResponse(
                         ss.Date,
                         ss.BarberShopId,
@@ -104,7 +113,7 @@ public sealed class BarberShopService(
                         ss.IsClosed
                     )).ToArray(),
                 b.Services
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withOtherItems)
                     .Select(s => new ServiceDtoResponse(
                         s.Id,
                         s.BarberShopId,
@@ -115,7 +124,7 @@ public sealed class BarberShopService(
                         s.Duration
                     )).ToArray(),
                 b.Reports
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withOtherItems)
                     .Select(r => new ReportDtoResponse(
                         r.Id,
                         r.BarberShopId,
@@ -124,7 +133,7 @@ public sealed class BarberShopService(
                         r.Rating
                     )).ToArray()
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<PaginationResponse<AppointmentsByBarberShopDtoResponse>> GetAppointmentsByBarberShopAsync(
@@ -181,25 +190,33 @@ public sealed class BarberShopService(
         return new(entities ?? [], totalItems, totalPages, page, pageSize);
     }
     
-    public async Task<bool> UpdateAsync(BarberShopDtoRequest dto, int id)
+    public async Task<bool> UpdateAsync(
+        BarberShopDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var barberShop = await dbSet.FindAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var barberShop = await dbSet.FindAsync([id], cancellationToken);
 
         if (barberShop is null)
             return false;
         
         barberShop.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var barberShop = await dbSet.FindAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var barberShop = await dbSet.FindAsync([id], cancellationToken);
 
         if (barberShop is null)
             return false;
             
         dbSet.Remove(barberShop);
-        return await SaveChangesAsync();
+        return await SaveChangesAsync(cancellationToken);
     }
 }

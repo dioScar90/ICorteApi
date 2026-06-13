@@ -84,12 +84,15 @@ public static class BarberShopEndpoint
         BarberShopDtoRequest dto,
         BarberShopService service,
         BarberShopErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.CreatingStart(dto);
 
-        var barberShop = await service.CreateAsync(dto);
+        var barberShop = await service.CreateAsync(dto, cancellationToken);
         
         if (barberShop is null)
             return errors.Create();
@@ -102,13 +105,16 @@ public static class BarberShopEndpoint
         int id,
         BarberShopService service,
         BarberShopErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingStart(id);
 
-        var barberShop = await service.GetByIdAsync(id);
+        var barberShop = await service.GetByIdAsync(id, false, false, cancellationToken);
 
         if (barberShop is null)
             return errors.NotFound();
@@ -122,12 +128,15 @@ public static class BarberShopEndpoint
         int? pageSize,
         BarberShopService service,
         BarberShopErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingAppointmentsByBarbershopStart(barberShopId, page, pageSize);
 
-        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, page ?? 1, pageSize ?? 25);
+        var barberShop = await service.GetAppointmentsByBarberShopAsync(barberShopId, page ?? 1, pageSize ?? 25, cancellationToken);
         return TypedResults.Ok(barberShop);
     }
     
@@ -136,18 +145,23 @@ public static class BarberShopEndpoint
         BarberShopDtoRequest dto,
         BarberShopService service,
         BarberShopErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
         
-        if (!await service.BarberShopExists(id))
+        var infos = await service.GetInfosAsync(id, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
             
-        if (!await service.BarberShopBelongsToOwner(id))
-            return errors.BarberShopNotBelongsToOwner();
+        if (!infos.BelongsToMe)
+            return errors.BarberShopBelongsToAnotherOwner();
 
-        if (!await service.UpdateAsync(dto, id))
+        if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
 
         logger.Updated(id);
@@ -158,18 +172,23 @@ public static class BarberShopEndpoint
         int id,
         BarberShopService service,
         BarberShopErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
+
+        var infos = await service.GetInfosAsync(id, cancellationToken);
         
-        if (!await service.BarberShopExists(id))
+        if (!infos.Exists)
             return errors.NotFound();
             
-        if (!await service.BarberShopBelongsToOwner(id))
-            return errors.BarberShopNotBelongsToOwner();
+        if (!infos.BelongsToMe)
+            return errors.BarberShopBelongsToAnotherOwner();
 
-        if (!await service.DeleteAsync(id))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
 
         logger.Deleted(id);

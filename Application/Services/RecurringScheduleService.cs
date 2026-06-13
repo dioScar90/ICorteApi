@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 namespace ICorteApi.Application.Services;
 
 public sealed class RecurringScheduleService(
-    AppDbContext context)
+    AppDbContext context,
+    UserService userService)
     : BaseService<RecurringSchedule>(context)
 {
     public async Task<RecurringScheduleDtoResponse?> CreateAsync(
@@ -21,29 +22,28 @@ public sealed class RecurringScheduleService(
 
         return schedule.CreateDto();
     }
-
-    public async Task<bool> RecurringScheduleExists(
+    
+    public async Task<EntityInfos> GetInfosAsync(
         DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await dbSet
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId, cancellationToken);
+            .IgnoreQueryFilters()
+            .Where(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId)
+            .Select(r => new EntityInfos(
+                true,
+                currentUserId != null && r.BarberShopId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        return infos ?? new();
     }
     
-    public async Task<bool> RecurringScheduleBelongsToBarberShop(
-        DayOfWeek dayOfWeek, int barberShopId,
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId, cancellationToken);
-    }
-
     public async Task<RecurringScheduleDtoResponse?> GetByIdAsync(
         DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)

@@ -4,9 +4,9 @@ namespace ICorteApi.Domain.Errors;
 
 public sealed class AddressErrors : BaseErrors<Address>
 {
-    public Conflict<Error> AddressNotBelongsToBarberShop()
+    public Conflict<Error> AddressBelongsToAnotherBarberShop()
     {
-        string message = $"{_entity} não pertence à barbearia";
+        string message = $"{_entity} pertence a outra barbearia";
         return Error.Conflict(message);
     }
 }

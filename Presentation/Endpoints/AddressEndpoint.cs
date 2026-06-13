@@ -95,7 +95,6 @@ public static class AddressEndpoint
     }
     
     public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>>> GetAddressAsync(
-        int barberShopId,
         int id,
         AddressService service,
         AddressErrors errors,
@@ -111,15 +110,11 @@ public static class AddressEndpoint
         
         if (address is null)
             return errors.NotFound();
-
-        if (address!.BarberShopId != barberShopId)
-            return errors.AddressNotBelongsToBarberShop();
-
+            
         return TypedResults.Ok(address);
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> UpdateAddressAsync(
-        int barberShopId,
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateAddressAsync(
         int id,
         AddressDtoRequest dto,
         AddressService service,
@@ -132,8 +127,14 @@ public static class AddressEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
 
-        dto = dto with { BarberShopId = barberShopId };
+        var infos = await service.GetInfosAsync(id, cancellationToken);
 
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToMe)
+            return errors.AddressBelongsToAnotherBarberShop();
+            
         if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
         
@@ -141,8 +142,7 @@ public static class AddressEndpoint
         return TypedResults.NoContent();
     }
 
-    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteAddressAsync(
-        int barberShopId,
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteAddressAsync(
         int id,
         AddressService service,
         AddressErrors errors,
@@ -154,6 +154,14 @@ public static class AddressEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
+
+        var infos = await service.GetInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToMe)
+            return errors.AddressBelongsToAnotherBarberShop();
         
         if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();

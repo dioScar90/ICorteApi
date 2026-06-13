@@ -159,16 +159,13 @@ public static class ReportEndpoint
 
         logger.UpdatingStart(id, dto);
 
-        var infos = await service.GetReportInfos(id, cancellationToken);
+        var infos = await service.GetInfosAsync(id, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
         if (!infos.BelongsToMe)
             return errors.ReportBelongsToAnotherClient();
-
-        // if (!infos.BelongsToBarberShop)
-        //     return errors.ReportBelongsToAnotherBarberShop();
             
         if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
@@ -190,16 +187,13 @@ public static class ReportEndpoint
 
         logger.DeletingStart(id);
 
-        var infos = await service.GetReportInfos(id, cancellationToken);
+        var infos = await service.GetInfosAsync(id, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
         if (!infos.BelongsToMe)
             return errors.ReportBelongsToAnotherClient();
-
-        // if (!infos.BelongsToBarberShop)
-        //     return errors.ReportBelongsToAnotherBarberShop();
             
         if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();

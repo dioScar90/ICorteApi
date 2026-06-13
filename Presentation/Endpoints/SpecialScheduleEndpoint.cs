@@ -174,10 +174,12 @@ public static class SpecialScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(date, barberShopId, dto);
 
-        if (!await service.SpecialScheduleExists(date, barberShopId, cancellationToken))
+        var infos = await service.GetInfosAsync(date, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId, cancellationToken))
+        if (!infos.BelongsToMe)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
 
         if (!await service.UpdateAsync(dto, date, barberShopId, cancellationToken))
@@ -196,17 +198,19 @@ public static class SpecialScheduleEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
+        
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
         logger.DeletingStart(date, barberShopId);
-
-        if (!await service.SpecialScheduleExists(date, barberShopId, cancellationToken))
+        
+        var infos = await service.GetInfosAsync(date, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
-
-        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId, cancellationToken))
+            
+        if (!infos.BelongsToMe)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
-
+            
         if (!await service.DeleteAsync(date, barberShopId, cancellationToken))
             return errors.Delete();
             

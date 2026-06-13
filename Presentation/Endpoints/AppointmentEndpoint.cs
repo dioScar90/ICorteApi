@@ -159,7 +159,7 @@ public static class AppointmentEndpoint
         return TypedResults.Ok(appointments);
     }
 
-    public static async Task<Results<NoContent, UnprocessableEntity<Error>, BadRequest<Error>, Conflict<Error>>> UpdateAppointmentAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, UnprocessableEntity<Error>, BadRequest<Error>, Conflict<Error>>> UpdateAppointmentAsync(
         int id,
         AppointmentDtoRequest dto,
         AppointmentService service,
@@ -172,12 +172,17 @@ public static class AppointmentEndpoint
 
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
-        
-        if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services))
-            return errors.NotBarberShopIdsUniqueFromServices();
-            
-        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+
+        var infos = await service.GetInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToMe)
             return errors.AppointmentBelongsToAnotherClient();
+        
+        if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services, cancellationToken))
+            return errors.NotBarberShopIdsUniqueFromServices();
             
         if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
@@ -186,7 +191,7 @@ public static class AppointmentEndpoint
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> UpdatePaymentTypeAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> UpdatePaymentTypeAsync(
         int id,
         AppointmentPaymentTypeDtoUpdateRequest dto,
         AppointmentService service,
@@ -198,8 +203,13 @@ public static class AppointmentEndpoint
 
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingPaymentStart(id, dto);
-            
-        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+
+        var infos = await service.GetInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToMe)
             return errors.AppointmentBelongsToAnotherClient();
 
         if (!await service.UpdatePaymentTypeAsync(dto, id, cancellationToken))
@@ -209,7 +219,7 @@ public static class AppointmentEndpoint
         return TypedResults.NoContent();
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> DeleteAppointmentAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> DeleteAppointmentAsync(
         int id,
         AppointmentService service,
         AppointmentErrors errors,
@@ -220,8 +230,13 @@ public static class AppointmentEndpoint
 
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
-            
-        if (!await service.AppointmentBelongsToCurrentUserAsync(id, cancellationToken))
+
+        var infos = await service.GetInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToMe)
             return errors.AppointmentBelongsToAnotherClient();
 
         if (!await service.DeleteAsync(id, cancellationToken))

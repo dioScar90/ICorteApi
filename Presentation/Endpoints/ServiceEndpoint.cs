@@ -157,10 +157,12 @@ public static class ServiceEndpoint
 
         logger.UpdatingStart(id, dto);
 
-        if (!await serviceService.ServiceExists(id, cancellationToken))
+        var infos = await serviceService.GetInfosAsync(id, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await serviceService.ServiceBelongsToBarberShop(id, cancellationToken))
+        if (!infos.BelongsToMe)
             return errors.ServiceBelongsToAnotherBarberShop();
             
         if (!await serviceService.UpdateAsync(dto, id, cancellationToken))
@@ -183,17 +185,29 @@ public static class ServiceEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
 
-        if (!await serviceService.ServiceExists(id))
+        var infos = await serviceService.GetInfosAsync(id, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await serviceService.ServiceBelongsToBarberShop(id))
+        if (!infos.BelongsToMe)
             return errors.ServiceBelongsToAnotherBarberShop();
             
-        if (forceDelete is not true && await serviceService.CheckCorrelatedAppointmentsAsync(id, cancellationToken))
+        async Task<DateOnly[]> GetCorrelatedDates()
         {
-            var dates = await serviceService.GetDatesFromCorrelatedAppointmentsAsync(id, cancellationToken);
-            return errors.ThereAreStillAppointments(dates);
+            if (forceDelete is true)
+                return [];
+            
+            if (!await serviceService.CheckCorrelatedAppointmentsAsync(id, cancellationToken))
+                return [];
+
+            return await serviceService.GetDatesFromCorrelatedAppointmentsAsync(id, cancellationToken);
         }
+        
+        var dates = await GetCorrelatedDates();
+        
+        if (dates.Length > 0)
+            return errors.ThereAreStillAppointments(dates);
         
         if (!await serviceService.DeleteAsync(id, cancellationToken))
             return errors.Delete();

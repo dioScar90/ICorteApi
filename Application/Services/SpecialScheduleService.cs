@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
-    AppDbContext context)
+    AppDbContext context,
+    UserService userService)
     : BaseService<SpecialSchedule>(context)
 {
-    public async Task<SpecialScheduleDtoResponse?> CreateAsync(SpecialScheduleDtoRequest dto,
+    public async Task<SpecialScheduleDtoResponse?> CreateAsync(
+        SpecialScheduleDtoRequest dto,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -20,28 +22,30 @@ public sealed class SpecialScheduleService(
 
         return schedule.CreateDto();
     }
-
-    public async Task<bool> SpecialScheduleExists(DateOnly date, int barberShopId,
+    
+    public async Task<EntityInfos> GetInfosAsync(
+        DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        return await dbSet
+        
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId, cancellationToken);
+            .IgnoreQueryFilters()
+            .Where(x => x.Date == date && x.BarberShopId == barberShopId)
+            .Select(s => new EntityInfos(
+                true,
+                currentUserId != null && s.BarberShopId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        return infos ?? new();
     }
     
-    public async Task<bool> SpecialScheduleBelongsToBarberShop(DateOnly date, int barberShopId,
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return await dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId, cancellationToken);
-    }
-
-    public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(DateOnly date, int barberShopId,
+    public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(
+        DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -87,7 +91,8 @@ public sealed class SpecialScheduleService(
         );
     }
 
-    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId,
+    public async Task<bool> UpdateAsync(
+        SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -101,7 +106,8 @@ public sealed class SpecialScheduleService(
         return await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(DateOnly date, int barberShopId,
+    public async Task<bool> DeleteAsync(
+        DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

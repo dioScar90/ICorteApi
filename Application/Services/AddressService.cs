@@ -4,6 +4,7 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AddressService(
     AppDbContext context,
+    UserService userService,
     ILogger<AddressService> _logger)
     : BaseService<Address>(context)
 {
@@ -22,6 +23,27 @@ public sealed class AddressService(
         
         _logger.LogInformation("Address persisted in database with Id={Id}", address.Id);
         return address.CreateDto();
+    }
+
+    public async Task<EntityInfos> GetInfosAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
+            .AsNoTracking()
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(a => new EntityInfos(
+                !a.IsDeleted,
+                currentUserId != null && a.BarberShopId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return infos ?? new();
     }
     
     public async Task<AddressDtoResponse?> GetByIdAsync(
