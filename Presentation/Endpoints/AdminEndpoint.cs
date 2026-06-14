@@ -70,7 +70,7 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -79,10 +79,10 @@ public static class AdminEndpoint
         if (!service.IsCorrectAdminPassphrase(passphrase))
             return errors.NotEqualPassphase();
             
-        if (!await service.IsThereAnyUserHere(evenMasterAdmin))
+        if (!await service.IsThereAnyUserHere(evenMasterAdmin is true, cancellationToken))
             return errors.ThereIsNobodyToBeDeleted();
             
-        await service.RemoveAllRows(userEmail, evenMasterAdmin);
+        await service.RemoveAllRows(userEmail, evenMasterAdmin is true, cancellationToken);
         
         return TypedResults.NoContent();
     }
@@ -99,7 +99,7 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -108,7 +108,7 @@ public static class AdminEndpoint
         if (!service.IsCorrectAdminPassphrase(passphrase))
             return errors.NotEqualPassphase();
 
-        await service.DeleteServiceAndRemoveFromAllAppointments(serviceId);
+        await service.DeleteServiceAndRemoveFromAllAppointments(serviceId, cancellationToken);
 
         return TypedResults.NoContent();
     }
@@ -124,7 +124,7 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -133,10 +133,10 @@ public static class AdminEndpoint
         if (!service.IsCorrectAdminPassphrase(passphrase))
             return errors.NotEqualPassphase();
             
-        if (!await service.IsThereAnyUserHere())
+        if (!await service.IsThereAnyUserHere(false, cancellationToken))
             return errors.ThereAreTooManyPeopleHere();
 
-        await service.PopulateAllInitialTables();
+        await service.PopulateAllInitialTables(cancellationToken);
 
         return TypedResults.NoContent();
     }
@@ -157,7 +157,7 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -171,13 +171,13 @@ public static class AdminEndpoint
         if (dto.DayToPopulate > dto.VeryLimitDate)
             return errors.LimitDateIsLessThanStartDate();
             
-        if (!await service.IsThereAnyUserHere())
+        if (!await service.IsThereAnyUserHere(false, cancellationToken))
             return errors.ThereAreTooManyPeopleHere();
             
-        if (await service.IsThereAnyAppointmentHere(dto))
+        if (await service.IsThereAnyAppointmentHere(dto, cancellationToken))
             return errors.ThereAreTooManyAppointmentsHere();
             
-        await service.PopulateWithAppointments(dto);
+        await service.PopulateWithAppointments(dto, cancellationToken);
 
         return TypedResults.NoContent();
     }
@@ -195,7 +195,7 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -204,10 +204,10 @@ public static class AdminEndpoint
         if (!service.IsCorrectAdminPassphrase(passphrase))
             return errors.NotEqualPassphase();
             
-        if (!await service.UserExists(dto.Email))
+        if (!await service.UserExists(dto.Email, cancellationToken))
             return errors.UserDoesNotExist(dto.Email);
             
-        var identityResult = await service.ResetPasswordForSomeUser(dto.Email);
+        var identityResult = await service.ResetPasswordForSomeUser(dto.Email, cancellationToken);
 
         if (identityResult is null)
             return errors.UserDoesNotExist(dto.Email);
@@ -226,13 +226,13 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
             return errors.NotEqualEmail();
             
-        var result = await service.SearchForUsersByName(q);
+        var result = await service.SearchForUsersByName(q, cancellationToken);
         
         return TypedResults.Ok(result);
     }
@@ -245,13 +245,13 @@ public static class AdminEndpoint
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         var userEmail = await userService.GetCurrentUserEmail();
         
         if (!service.IsAllowableAdminEmail(userEmail))
             return errors.NotEqualEmail();
         
-        var result = await service.GetLastUsers(take);
+        var result = await service.GetLastUsers(take, cancellationToken);
         
         return TypedResults.Ok(result);
     }
