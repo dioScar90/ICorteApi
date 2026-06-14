@@ -88,7 +88,8 @@ public sealed class RecurringScheduleService(
         );
     }
     
-    public async Task<bool> UpdateAsync(RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId,
+    public async Task<RecurringScheduleDtoResponse?> UpdateAsync(
+        RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -96,13 +97,18 @@ public sealed class RecurringScheduleService(
         var schedule = await dbSet.FindAsync([dayOfWeek, barberShopId], cancellationToken);
 
         if (schedule is null)
-            return false;
+            return null;
             
         schedule.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return schedule.CreateDto();
     }
     
-    public async Task<bool> DeleteAsync(DayOfWeek dayOfWeek, int barberShopId,
+    public async Task<bool> DeleteAsync(
+        DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

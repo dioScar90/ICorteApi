@@ -155,7 +155,7 @@ public sealed class ServiceService(
         );
     }
     
-    public async Task<bool> UpdateAsync(
+    public async Task<ServiceDtoResponse?> UpdateAsync(
         ServiceDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -164,10 +164,14 @@ public sealed class ServiceService(
         var service = await dbSet.FindAsync([id], cancellationToken);
         
         if (service is null)
-            return false;
+            return null;
 
         service.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return service.CreateDto();
     }
     
     public async Task<bool> DeleteAsync(

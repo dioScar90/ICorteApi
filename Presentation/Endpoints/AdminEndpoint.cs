@@ -65,9 +65,12 @@ public static class AdminEndpoint
         bool? evenMasterAdmin,
         
         AdminService service,
+        UserService userService,
         AdminErrors errors,
-        UserService userService)
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -92,8 +95,11 @@ public static class AdminEndpoint
         [FromQuery] int serviceId,
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -114,8 +120,11 @@ public static class AdminEndpoint
 
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -144,8 +153,11 @@ public static class AdminEndpoint
 
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -179,8 +191,11 @@ public static class AdminEndpoint
 
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -207,8 +222,11 @@ public static class AdminEndpoint
         [FromQuery] string? q,
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
 
         if (!service.IsAllowableAdminEmail(userEmail))
@@ -223,8 +241,11 @@ public static class AdminEndpoint
         [FromQuery] int? take,
         AdminService service,
         UserService userService,
-        AdminErrors errors)
+        AdminErrors errors,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var userEmail = await userService.GetCurrentUserEmail();
         
         if (!service.IsAllowableAdminEmail(userEmail))

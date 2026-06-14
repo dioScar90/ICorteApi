@@ -190,7 +190,7 @@ public sealed class BarberShopService(
         return new(entities ?? [], totalItems, totalPages, page, pageSize);
     }
     
-    public async Task<bool> UpdateAsync(
+    public async Task<BarberShopDtoResponse?> UpdateAsync(
         BarberShopDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -199,10 +199,14 @@ public sealed class BarberShopService(
         var barberShop = await dbSet.FindAsync([id], cancellationToken);
 
         if (barberShop is null)
-            return false;
+            return null;
         
         barberShop.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return barberShop.CreateDto();
     }
 
     public async Task<bool> DeleteAsync(

@@ -73,7 +73,7 @@ public sealed class AddressService(
             .FirstOrDefaultAsync(cancellationToken);
     }
     
-    public async Task<bool> UpdateAsync(
+    public async Task<AddressDtoResponse?> UpdateAsync(
         AddressDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -82,12 +82,16 @@ public sealed class AddressService(
         var address = await dbSet.FindAsync([id], cancellationToken);
 
         if (address is null)
-            return false;
+            return null;
             
         _logger.LogDebug("Updating Address with Id={Id}", id);
 
         address.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return address.CreateDto();
     }
 
     public async Task<bool> DeleteAsync(

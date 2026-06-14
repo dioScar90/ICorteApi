@@ -158,7 +158,7 @@ public static class RecurringScheduleEndpoint
         return TypedResults.Ok(schedules);
     }
     
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateRecurringScheduleAsync(
+    public static async Task<Results<Ok<RecurringScheduleDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateRecurringScheduleAsync(
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoRequest dto,
@@ -185,11 +185,13 @@ public static class RecurringScheduleEndpoint
         if (!infos.BelongsToBarberShop)
             return errors.RecurringScheduleBelongsToAnotherBarberShop();
             
-        if (!await service.UpdateAsync(dto, dayOfWeek, barberShopId, cancellationToken))
+        var schedule = await service.UpdateAsync(dto, dayOfWeek, barberShopId, cancellationToken);
+
+        if (schedule is null)
             return errors.Update();
 
         logger.Updated(dayOfWeek, barberShopId);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(schedule);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteRecurringScheduleAsync(

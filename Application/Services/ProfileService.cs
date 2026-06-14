@@ -7,48 +7,61 @@ public sealed class ProfileService(
     UserService userService)
     : BaseService<Profile>(context)
 {
-    public async Task<ProfileDtoResponse?> CreateAsync(ProfileDtoRequest dto)
+    public async Task<ProfileDtoResponse?> CreateAsync(
+        ProfileDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var userId = await userService.GetMyUserIdAsync();
         var profile = new Profile(dto, userId);
         
-        using var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync(cancellationToken);
         
         try
         {
             dbSet.Add(profile);
             
             await userService.AddUserRoleAsync(new(profile.User.Id, UserRole.Client));
-            await userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!));
+            await userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!), cancellationToken);
             
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
             return profile.CreateDto();
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
-
-    public async Task<bool> ProfileExistsAsync(int id)
+    
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        return await dbSet
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(p => p.Id == id);
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(p => new EntityInfos(
+                !p.IsDeleted,
+                currentUserId != null && p.Id == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return infos ?? new();
     }
     
-    public async Task<bool> ProfileIsMineAsync(int id)
+    public async Task<ProfileDtoResponse?> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var userId = await userService.GetMyUserIdAsync();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        return id == userId && await dbSet
-            .AsNoTracking()
-            .AnyAsync(p => p.Id == userId);
-    }
-    
-    public async Task<ProfileDtoResponse?> GetByIdAsync(int id)
-    {
         return await dbSet
             .AsNoTracking()
             .Where(p => p.Id == id)
@@ -60,31 +73,35 @@ public sealed class ProfileService(
                 p.Gender,
                 p.ImageUrl
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
     
-    public async Task<bool> UpdateAsync(ProfileDtoRequest dto, int id)
+    public async Task<ProfileDtoResponse?> UpdateAsync(
+        ProfileDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var profile = await dbSet.FindAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var profile = await dbSet.FindAsync([id], cancellationToken);
 
         if (profile is null)
-            return false;
+            return null;
             
         profile.UpdateEntity(dto);
         
-        using var transaction = await BeginTransactionAsync();
+        using var transaction = await BeginTransactionAsync(cancellationToken);
         
         try
         {
             dbSet.Update(profile);
-            await userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!));
+            await userService.UpdatePhoneNumberAsync(new(profile.User.Id, profile.User.PhoneNumber!), cancellationToken);
 
-            await transaction.CommitAsync();
-            return true;
+            await transaction.CommitAsync(cancellationToken);
+            return profile.CreateDto();
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }

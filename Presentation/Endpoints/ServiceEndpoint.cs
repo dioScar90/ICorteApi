@@ -147,7 +147,7 @@ public static class ServiceEndpoint
         return TypedResults.Ok(services);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
+    public static async Task<Results<Ok<ServiceDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
         int id,
         int barberShopId,
         ServiceDtoRequest dto,
@@ -173,11 +173,13 @@ public static class ServiceEndpoint
         if (!infos.BelongsToBarberShop)
             return errors.ServiceBelongsToAnotherBarberShop();
             
-        if (!await serviceService.UpdateAsync(dto, id, cancellationToken))
+        var service = await serviceService.UpdateAsync(dto, id, cancellationToken);
+
+        if (service is null)
             return errors.Update();
 
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(service);
     }
     
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteServiceAsync(

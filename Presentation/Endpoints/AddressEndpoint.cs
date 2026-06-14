@@ -118,7 +118,7 @@ public static class AddressEndpoint
         return TypedResults.Ok(address);
     }
     
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateAddressAsync(
+    public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateAddressAsync(
         int id,
         int barberShopId,
         AddressDtoRequest dto,
@@ -143,11 +143,13 @@ public static class AddressEndpoint
         if (!infos.BelongsToBarberShop)
             return errors.AddressBelongsToAnotherBarberShop();
             
-        if (!await service.UpdateAsync(dto, id, cancellationToken))
+        var address = await service.UpdateAsync(dto, id, cancellationToken);
+
+        if (address is null)
             return errors.Update();
         
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(address);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteAddressAsync(

@@ -155,20 +155,28 @@ public static class MessageEndpoint
         return TypedResults.Ok(messages);
     }
 
-    public static async Task<Results<NoContent, BadRequest<Error>, Conflict<Error>>> DeleteMessageAsync(
+    public static async Task<Results<NoContent, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> DeleteMessageAsync(
         int appointmentId,
         int id,
         MessageService service,
         MessageErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         
-        if (!await service.MessageBelongsToAppointmentAsync(id, appointmentId))
-            return errors.MessageNotBelongsToAppointment();
-        
-        if (!await service.MessageBelongsToSenderAsync(id))
+        var infos = await service.GetEntityInfosAsync(id, appointmentId, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToCurrentUser)
             return errors.MessageNotBelongsToSender();
+
+        if (!infos.BelongsToAppointment)
+            return errors.MessageNotBelongsToAppointment();
             
         logger.DeletingStart(id);
         

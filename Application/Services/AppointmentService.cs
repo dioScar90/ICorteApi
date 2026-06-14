@@ -166,7 +166,7 @@ public sealed class AppointmentService(
             appointment.AddServices(servicesToAdd);
     }
 
-    public async Task<bool> UpdateAsync(
+    public async Task<AppointmentDtoResponse?> UpdateAsync(
         AppointmentDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -175,17 +175,21 @@ public sealed class AppointmentService(
         var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
-            return false;
+            return null;
             
         await UpdateAppointmentServicesAsync(appointment, dto, cancellationToken);
         
         logger.LogDebug("Updating Appointment with Id={Id}", id);
 
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return appointment.CreateDto();
     }
 
-    public async Task<bool> UpdatePaymentTypeAsync(
+    public async Task<AppointmentDtoResponse?> UpdatePaymentTypeAsync(
         AppointmentPaymentTypeDtoUpdateRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -194,13 +198,16 @@ public sealed class AppointmentService(
         var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
-            return false;
+            return null;
             
         logger.LogDebug("Updating PaymentType of Appointment with Id={Id}", id);
         
         appointment.UpdateEntity(dto);
-        
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return appointment.CreateDto();
     }
     
     public async Task<bool> DeleteAsync(

@@ -19,10 +19,41 @@ public sealed class MessageService(
 
         return message.CreateDto();
     }
+
+    public record EntityInfos(
+        bool Exists = false,
+        bool BelongsToCurrentUser = false,
+        bool BelongsToAppointment = true
+    );
     
-    public async Task<bool> CanSendMessageAsync(int appointmentId, int? _userId = null)
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id, int appointmentId,
+        CancellationToken cancellationToken = default)
     {
-        var userId = _userId ?? await userService.GetMyUserIdAsync()!;
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
+            .AsNoTracking()
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(m => new EntityInfos(
+                !m.IsDeleted,
+                currentUserId != null && m.SenderId == currentUserId,
+                m.AppointmentId == appointmentId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return infos ?? new();
+    }
+    
+    public async Task<bool> CanSendMessageAsync(int appointmentId)
+    {
+        var userId = await userService.GetMyUserIdAsync();
+
+        if (userId is null)
+            return false;
         
         return await context.Appointments.AnyAsync(
             a => a.Id == appointmentId && (
@@ -36,24 +67,6 @@ public sealed class MessageService(
                 )
             )
         );
-    }
-    
-    public async Task<bool> MessageBelongsToAppointmentAsync(int id, int appointmentId)
-    {
-        return await dbSet
-            .AsNoTracking()
-            .Where(x => x.Id == id)
-            .AnyAsync(x => x.AppointmentId == appointmentId);
-    }
-    
-    public async Task<bool> MessageBelongsToSenderAsync(int id, int? senderId = null)
-    {
-        senderId ??= await userService.GetMyUserIdAsync();
-        
-        return await dbSet
-            .AsNoTracking()
-            .Where(x => x.Id == id)
-            .AnyAsync(x => x.SenderId == senderId);
     }
     
     public record Includes(bool Appointment = false);

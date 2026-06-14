@@ -93,7 +93,7 @@ public sealed class ReportService(
         );
     }
     
-    public async Task<bool> UpdateAsync(
+    public async Task<ReportDtoResponse?> UpdateAsync(
         ReportDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
@@ -102,10 +102,14 @@ public sealed class ReportService(
         var report = await dbSet.FindAsync([id], cancellationToken);
 
         if (report is null)
-            return false;
+            return null;
 
         report.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return report.CreateDto();
     }
 
     public async Task<bool> DeleteAsync(

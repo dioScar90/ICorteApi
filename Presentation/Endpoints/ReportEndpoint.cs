@@ -149,7 +149,7 @@ public static class ReportEndpoint
         return TypedResults.Ok(reports);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
+    public static async Task<Results<Ok<ReportDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
         int id,
         int barberShopId,
         ReportDtoRequest dto,
@@ -175,11 +175,13 @@ public static class ReportEndpoint
         if (!infos.BelongsToBarberShop)
             return errors.ReportBelongsToAnotherBarberShop();
             
-        if (!await service.UpdateAsync(dto, id, cancellationToken))
+        var report = await service.UpdateAsync(dto, id, cancellationToken);
+
+        if (report is null)
             return errors.Update();
             
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(report);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteReportAsync(

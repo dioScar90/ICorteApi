@@ -159,7 +159,7 @@ public static class AppointmentEndpoint
         return TypedResults.Ok(appointments);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, UnprocessableEntity<Error>, BadRequest<Error>, Conflict<Error>>> UpdateAppointmentAsync(
+    public static async Task<Results<Ok<AppointmentDtoResponse>, NotFound<Error>, UnprocessableEntity<Error>, BadRequest<Error>, Conflict<Error>>> UpdateAppointmentAsync(
         int id,
         AppointmentDtoRequest dto,
         AppointmentService service,
@@ -184,14 +184,16 @@ public static class AppointmentEndpoint
         if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services, cancellationToken))
             return errors.NotBarberShopIdsUniqueFromServices();
             
-        if (!await service.UpdateAsync(dto, id, cancellationToken))
-            return errors.Update();
+        var appointment = await service.UpdateAsync(dto, id, cancellationToken);
 
+        if (appointment is null)
+            return errors.Update();
+            
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(appointment);
     }
     
-    public static async Task<Results<NoContent, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> UpdatePaymentTypeAsync(
+    public static async Task<Results<Ok<AppointmentDtoResponse>, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> UpdatePaymentTypeAsync(
         int id,
         AppointmentPaymentTypeDtoUpdateRequest dto,
         AppointmentService service,
@@ -212,11 +214,13 @@ public static class AppointmentEndpoint
         if (!infos.BelongsToCurrentUser)
             return errors.AppointmentBelongsToAnotherClient();
 
-        if (!await service.UpdatePaymentTypeAsync(dto, id, cancellationToken))
+        var appointment = await service.UpdatePaymentTypeAsync(dto, id, cancellationToken);
+
+        if (appointment is null)
             return errors.Update();
 
         logger.UpdatedPayment(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(appointment);
     }
     
     public static async Task<Results<NoContent, NotFound<Error>, BadRequest<Error>, Conflict<Error>>> DeleteAppointmentAsync(
