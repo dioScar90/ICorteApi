@@ -174,12 +174,15 @@ public static class RecurringScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(dayOfWeek, barberShopId, dto);
 
-        var infos = await service.GetInfosAsync(dayOfWeek, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(dayOfWeek, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
+            return errors.RecurringScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
             return errors.RecurringScheduleBelongsToAnotherBarberShop();
             
         if (!await service.UpdateAsync(dto, dayOfWeek, barberShopId, cancellationToken))
@@ -203,12 +206,15 @@ public static class RecurringScheduleEndpoint
 
         logger.DeletingStart(dayOfWeek, barberShopId);
 
-        var infos = await service.GetInfosAsync(dayOfWeek, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(dayOfWeek, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
+            return errors.RecurringScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
             return errors.RecurringScheduleBelongsToAnotherBarberShop();
             
         if (!await service.DeleteAsync(dayOfWeek, barberShopId, cancellationToken))

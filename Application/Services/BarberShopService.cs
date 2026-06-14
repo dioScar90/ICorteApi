@@ -24,7 +24,7 @@ public sealed class BarberShopService(
         return barberShop.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
+    public async Task<EntityInfos> GetEntityInfosAsync(
         int id,
         CancellationToken cancellationToken = default)
     {

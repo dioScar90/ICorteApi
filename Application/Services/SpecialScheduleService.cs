@@ -23,7 +23,7 @@ public sealed class SpecialScheduleService(
         return schedule.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
+    public async Task<EntityInfos> GetEntityInfosAsync(
         DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
@@ -37,7 +37,8 @@ public sealed class SpecialScheduleService(
             .Where(x => x.Date == date && x.BarberShopId == barberShopId)
             .Select(s => new EntityInfos(
                 true,
-                currentUserId != null && s.BarberShopId == currentUserId
+                currentUserId != null && s.BarberShopId == currentUserId,
+                s.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
             
@@ -91,7 +92,7 @@ public sealed class SpecialScheduleService(
         );
     }
 
-    public async Task<bool> UpdateAsync(
+    public async Task<SpecialScheduleDtoResponse?> UpdateAsync(
         SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
@@ -100,10 +101,14 @@ public sealed class SpecialScheduleService(
         var schedule = await dbSet.FindAsync([date, barberShopId], cancellationToken);
 
         if (schedule is null)
-            return false;
+            return null;
             
         schedule.UpdateEntity(dto);
-        return await SaveChangesAsync(cancellationToken);
+        
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+            
+        return schedule.CreateDto();
     }
 
     public async Task<bool> DeleteAsync(

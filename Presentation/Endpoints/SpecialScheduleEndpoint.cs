@@ -157,8 +157,8 @@ public static class SpecialScheduleEndpoint
         var schedules = await service.GetAllAsync(page, pageSize, barberShopId, cancellationToken);
         return TypedResults.Ok(schedules);
     }
-
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
+    
+    public static async Task<Results<Ok<SpecialScheduleDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
         SpecialScheduleDtoRequest dto,
@@ -173,20 +173,25 @@ public static class SpecialScheduleEndpoint
 
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(date, barberShopId, dto);
-
-        var infos = await service.GetInfosAsync(date, barberShopId, cancellationToken);
+        
+        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
 
-        if (!await service.UpdateAsync(dto, date, barberShopId, cancellationToken))
+        if (!infos.BelongsToBarberShop)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
+
+        var schedule = await service.UpdateAsync(dto, date, barberShopId, cancellationToken);
+
+        if (schedule is null)
             return errors.Update();
             
         logger.Updated(date, barberShopId);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(schedule);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteSpecialScheduleAsync(
@@ -203,12 +208,15 @@ public static class SpecialScheduleEndpoint
         
         logger.DeletingStart(date, barberShopId);
         
-        var infos = await service.GetInfosAsync(date, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
             
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
             
         if (!await service.DeleteAsync(date, barberShopId, cancellationToken))

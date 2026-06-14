@@ -34,7 +34,7 @@ public sealed class AppointmentService(
         return appointment.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
+    public async Task<EntityInfos> GetEntityInfosAsync(
         int id,
         CancellationToken cancellationToken = default)
     {

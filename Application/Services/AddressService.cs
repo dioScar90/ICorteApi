@@ -25,8 +25,8 @@ public sealed class AddressService(
         return address.CreateDto();
     }
 
-    public async Task<EntityInfos> GetInfosAsync(
-        int id,
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -39,7 +39,8 @@ public sealed class AddressService(
             .Where(x => x.Id == id)
             .Select(a => new EntityInfos(
                 !a.IsDeleted,
-                currentUserId != null && a.BarberShopId == currentUserId
+                currentUserId != null && a.BarberShopId == currentUserId,
+                a.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
 

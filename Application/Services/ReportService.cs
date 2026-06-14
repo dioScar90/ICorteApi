@@ -28,8 +28,8 @@ public sealed class ReportService(
         return report.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
-        int id,
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +42,8 @@ public sealed class ReportService(
             .Where(x => x.Id == id)
             .Select(r => new EntityInfos(
                 !r.IsDeleted,
-                currentUserId != null && r.ClientId == currentUserId
+                currentUserId != null && r.ClientId == currentUserId,
+                r.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
             

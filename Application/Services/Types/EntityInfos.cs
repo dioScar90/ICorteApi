@@ -2,5 +2,6 @@ namespace ICorteApi.Application.Services;
 
 public record EntityInfos(
     bool Exists = false,
-    bool BelongsToMe = false
+    bool BelongsToCurrentUser = false,
+    bool BelongsToBarberShop = true
 );

@@ -23,7 +23,7 @@ public sealed class RecurringScheduleService(
         return schedule.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
+    public async Task<EntityInfos> GetEntityInfosAsync(
         DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)
     {
@@ -37,7 +37,8 @@ public sealed class RecurringScheduleService(
             .Where(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId)
             .Select(r => new EntityInfos(
                 true,
-                currentUserId != null && r.BarberShopId == currentUserId
+                currentUserId != null && r.BarberShopId == currentUserId,
+                r.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
             

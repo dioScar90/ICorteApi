@@ -173,12 +173,12 @@ public static class AppointmentEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
 
-        var infos = await service.GetInfosAsync(id, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.AppointmentBelongsToAnotherClient();
         
         if (!await serviceService.IsServicesFromUniqueBarberShop(dto.Services, cancellationToken))
@@ -204,12 +204,12 @@ public static class AppointmentEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingPaymentStart(id, dto);
 
-        var infos = await service.GetInfosAsync(id, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.AppointmentBelongsToAnotherClient();
 
         if (!await service.UpdatePaymentTypeAsync(dto, id, cancellationToken))
@@ -231,12 +231,12 @@ public static class AppointmentEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
 
-        var infos = await service.GetInfosAsync(id, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.AppointmentBelongsToAnotherClient();
 
         if (!await service.DeleteAsync(id, cancellationToken))

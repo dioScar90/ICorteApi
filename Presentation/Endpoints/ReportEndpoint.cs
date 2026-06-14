@@ -105,8 +105,9 @@ public static class ReportEndpoint
         return TypedResults.Created(GetBaseEndpoint(report), report);
     }
 
-    public static async Task<Results<Ok<ReportDtoResponse>, NotFound<Error>>> GetReportAsync(
+    public static async Task<Results<Ok<ReportDtoResponse>, Conflict<Error>, NotFound<Error>>> GetReportAsync(
         int id,
+        int barberShopId,
         ReportService service,
         ReportErrors errors,
         ILoggerFactory loggerFactory,
@@ -122,6 +123,9 @@ public static class ReportEndpoint
 
         if (report is null)
             return errors.NotFound();
+        
+        if (report.BarberShopId != barberShopId)
+            return errors.ReportBelongsToAnotherBarberShop();
 
         return TypedResults.Ok(report);
     }
@@ -147,6 +151,7 @@ public static class ReportEndpoint
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
         int id,
+        int barberShopId,
         ReportDtoRequest dto,
         ReportService service,
         ReportErrors errors,
@@ -159,13 +164,16 @@ public static class ReportEndpoint
 
         logger.UpdatingStart(id, dto);
 
-        var infos = await service.GetInfosAsync(id, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.ReportBelongsToAnotherClient();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.ReportBelongsToAnotherBarberShop();
             
         if (!await service.UpdateAsync(dto, id, cancellationToken))
             return errors.Update();
@@ -176,6 +184,7 @@ public static class ReportEndpoint
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteReportAsync(
         int id,
+        int barberShopId,
         ReportService service,
         ReportErrors errors,
         ILoggerFactory loggerFactory,
@@ -187,13 +196,16 @@ public static class ReportEndpoint
 
         logger.DeletingStart(id);
 
-        var infos = await service.GetInfosAsync(id, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
             return errors.ReportBelongsToAnotherClient();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.ReportBelongsToAnotherBarberShop();
             
         if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();

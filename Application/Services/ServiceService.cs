@@ -23,8 +23,8 @@ public sealed class ServiceService(
         return service.CreateDto();
     }
     
-    public async Task<EntityInfos> GetInfosAsync(
-        int id,
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -37,7 +37,8 @@ public sealed class ServiceService(
             .Where(x => x.Id == id)
             .Select(s => new EntityInfos(
                 !s.IsDeleted,
-                currentUserId != null && s.BarberShopId == currentUserId
+                currentUserId != null && s.BarberShopId == currentUserId,
+                s.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
             

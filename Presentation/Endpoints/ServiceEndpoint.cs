@@ -19,7 +19,7 @@ public static class ServiceEndpoint
             .WithSummary("Create Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{serviceId}", GetServiceAsync)
+        group.MapGet("{id}", GetServiceAsync)
             .WithSummary("Get Service")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -27,11 +27,11 @@ public static class ServiceEndpoint
             .WithSummary("Get All Services")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{serviceId}", UpdateServiceAsync)
+        group.MapPut("{id}", UpdateServiceAsync)
             .WithSummary("Update Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{serviceId}", DeleteServiceAsync)
+        group.MapDelete("{id}", DeleteServiceAsync)
             .WithSummary("Delete Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
@@ -107,6 +107,7 @@ public static class ServiceEndpoint
 
     public static async Task<Results<Ok<ServiceDtoResponse>, NotFound<Error>, Conflict<Error>>> GetServiceAsync(
         int id,
+        int barberShopId,
         ServiceService serviceService,
         ServiceErrors errors,
         ILoggerFactory loggerFactory,
@@ -121,6 +122,9 @@ public static class ServiceEndpoint
         
         if (service is null)
             return errors.NotFound();
+        
+        if (service.BarberShopId != barberShopId)
+            return errors.ServiceBelongsToAnotherBarberShop();
             
         return TypedResults.Ok(service);
     }
@@ -145,6 +149,7 @@ public static class ServiceEndpoint
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
         int id,
+        int barberShopId,
         ServiceDtoRequest dto,
         ServiceService serviceService,
         ServiceErrors errors,
@@ -157,12 +162,15 @@ public static class ServiceEndpoint
 
         logger.UpdatingStart(id, dto);
 
-        var infos = await serviceService.GetInfosAsync(id, cancellationToken);
+        var infos = await serviceService.GetEntityInfosAsync(id, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
+            return errors.ServiceBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
             return errors.ServiceBelongsToAnotherBarberShop();
             
         if (!await serviceService.UpdateAsync(dto, id, cancellationToken))
@@ -175,6 +183,7 @@ public static class ServiceEndpoint
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
         int id,
+        int barberShopId,
         ServiceService serviceService,
         ServiceErrors errors,
         ILoggerFactory loggerFactory,
@@ -185,12 +194,15 @@ public static class ServiceEndpoint
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.DeletingStart(id);
 
-        var infos = await serviceService.GetInfosAsync(id, cancellationToken);
+        var infos = await serviceService.GetEntityInfosAsync(id, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
 
-        if (!infos.BelongsToMe)
+        if (!infos.BelongsToCurrentUser)
+            return errors.ServiceBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
             return errors.ServiceBelongsToAnotherBarberShop();
             
         async Task<DateOnly[]> GetCorrelatedDates()
