@@ -6,28 +6,13 @@ public class BarberScheduleService(AppDbContext context)
 {
     private static int GetCorrectTakeNumber(int? take) => take is int and > 0 ? (int)take : 10;
     
-    private async Task<TimeSpan> CalculateTotalServiceDuration(int barberShopId, int[] serviceIds)
-    {
-        var services = await context.Services
-            .AsNoTracking()
-            .Where(x => x.BarberShopId == barberShopId && serviceIds.Contains(x.Id))
-            .Select(x => new ServiceDuration(x.Id, x.Duration))
-            .ToArrayAsync();
-            
-        return services.Aggregate(TimeSpan.Zero, (acc, curr) => acc.Add(curr.Duration));
-    }
+    private record AvailableSchedule(TimeOnly OpenTime, TimeOnly CloseTime);
     
-    private async Task<BasicAppointment> GetNewAppointmentWithServiceDuration(int appointmentId, TimeOnly startTime)
+    private record BasicAppointment(TimeOnly StartTime, long ServicesDurationInTicks)
     {
-        var services = await context.Services
-            .AsNoTracking()
-            .Where(x => x.Appointments.Any(a => a.Id == appointmentId))
-            .Select(x => new ServiceDuration(x.Id, x.Duration))
-            .ToArrayAsync();
-
-        return new(appointmentId, startTime, services);
-    }
-
+        public TimeSpan ServicesDuration => TimeSpan.FromTicks(ServicesDurationInTicks);
+    };
+    
     private static TimeOnly[] CalculateAvailableSlots(TimeOnly openTime, TimeOnly closeTime, BasicAppointment[] appointments, TimeSpan serviceDuration)
     {
         List<TimeOnly> availableSlots = [];
@@ -44,7 +29,7 @@ public class BarberScheduleService(AppDbContext context)
             }
             
             // Atualiza currentTime para o fim deste appointment (início + duração total do appointment)
-            currentTime = appointment.Services.Aggregate(appointment.StartTime, (acc, curr) => acc.Add(curr.Duration));
+            currentTime = appointment.StartTime.Add(appointment.ServicesDuration);
         }
         
         // Verifica se há tempo disponível após o último appointment até o horário de fechamento
@@ -64,25 +49,6 @@ public class BarberScheduleService(AppDbContext context)
 
         return (firstDateThisWeek, lastDateThisWeek);
     }
-
-    private async Task<BasicAppointment[]> GetAppointmentsByDateAsync(int barberShopId, DateOnly date)
-    {
-        return await context.Appointments
-            .AsNoTracking()
-            .Include(a => a.Services)
-            .Where(a => a.BarberShopId == barberShopId && a.Date == date)
-            .Select(a => new BasicAppointment(
-                a.Id,
-                a.StartTime,
-                a.Services
-                    .Select(s => new ServiceDuration(
-                        s.Id,
-                        s.Duration
-                    ))
-                    .ToArray()
-            ))
-            .ToArrayAsync();
-    }
     
     public async Task<TimeOnly[]> GetAvailableSlotsAsync(int barberShopId, DateOnly date, int[] serviceIds)
     {
@@ -91,15 +57,8 @@ public class BarberScheduleService(AppDbContext context)
         
         var (firstDateThisWeek, _) = GetFirstAndLastDatesOfWeek(date);
         
-        var schedule = await context.RecurringSchedules
+        var availableSchedule = await context.RecurringSchedules
             .AsNoTracking()
-            // .GroupJoin(context.SpecialSchedules, // Left Join
-            //     rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
-            //     ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
-            //     (rs, ss) => new { rs, ss })
-            // .SelectMany(ssrs => ssrs.ss.DefaultIfEmpty(),
-            //     (ssrs, ss) => new { ssrs.rs, ss }
-            // )
             .LeftJoin(context.SpecialSchedules,
                 rs => new { rs.BarberShopId, rs.DayOfWeek, Date = firstDateThisWeek.AddDays((int)rs.DayOfWeek) },
                 ss => new { ss.BarberShopId, ss.DayOfWeek, ss.Date },
@@ -108,23 +67,34 @@ public class BarberScheduleService(AppDbContext context)
                 && x.rs.DayOfWeek == date.DayOfWeek
                 && (x.ss == null || !x.ss.IsClosed))
             .Select(x => new AvailableSchedule(
-                date,
-                x.ss == null ? x.rs.OpenTime : x.ss.OpenTime ?? x.rs.OpenTime,
-                x.ss == null ? x.rs.CloseTime : x.ss.CloseTime ?? x.rs.CloseTime
+                x.ss == null ? x.rs.OpenTime : (x.ss.OpenTime ?? x.rs.OpenTime),
+                x.ss == null ? x.rs.CloseTime : (x.ss.CloseTime ?? x.rs.CloseTime)
             ))
             .FirstOrDefaultAsync();
             
-        if (schedule is null)
+        if (availableSchedule is null)
             return [];
-
-        var totalDuration = await CalculateTotalServiceDuration(barberShopId, serviceIds);
-
+            
+        var totalDuration = TimeSpan.FromTicks(
+            await context.Services
+                .AsNoTracking()
+                .Where(x => x.BarberShopId == barberShopId && serviceIds.Contains(x.Id))
+                .SumAsync(x => x.Duration.Ticks)
+        );
+        
         if (totalDuration == TimeSpan.Zero)
             return [];
         
-        var appointments = await GetAppointmentsByDateAsync(barberShopId, date);
+        var appointments = await context.Appointments
+            .AsNoTracking()
+            .Where(a => a.BarberShopId == barberShopId && a.Date == date)
+            .Select(a => new BasicAppointment(
+                a.StartTime,
+                a.Services.Sum(s => s.Duration.Ticks)
+            ))
+            .ToArrayAsync();
 
-        return CalculateAvailableSlots(schedule.OpenTime, schedule.CloseTime, appointments, totalDuration);
+        return CalculateAvailableSlots(availableSchedule.OpenTime, availableSchedule.CloseTime, appointments, totalDuration);
     }
     
     public async Task<TopBarberShopDtoResponse[]> GetTopBarbersWithAvailabilityAsync(DateOnly randomDate, int? _take)
@@ -216,21 +186,4 @@ public class BarberScheduleService(AppDbContext context)
             services.Length
         );
     }
-
-    private record ServiceDuration(
-        int Id,
-        TimeSpan Duration
-    );
-    
-    private record BasicAppointment(
-        int Id,
-        TimeOnly StartTime,
-        ServiceDuration[] Services
-    );
-
-    private record AvailableSchedule(
-        DateOnly Date,
-        TimeOnly OpenTime,
-        TimeOnly CloseTime
-    );
 }
