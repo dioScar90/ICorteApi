@@ -65,8 +65,11 @@ public static class ProfileEndpoint
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
         ProfileErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         
         logger.CreatingStart(dto);
@@ -85,43 +88,58 @@ public static class ProfileEndpoint
         ProfileService service,
         ProfileErrors errors,
         UserService userService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingStart(id);
+
+        var infos = await service.GetEntityInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToCurrentUser)
+            return errors.ProfileNotBelongsToUser();
         
-        var profile = await service.GetByIdAsync(id);
+        var profile = await service.GetByIdAsync(id, cancellationToken);
 
         if (profile is null)
             return errors.NotFound();
             
-        if (profile.Id != await userService.GetMyUserIdAsync())
-            return errors.ProfileNotBelongsToUser();
-
         return TypedResults.Ok(profile);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateProfileAsync(
+    public static async Task<Results<Ok<ProfileDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateProfileAsync(
         int id,
         [FromBody] ProfileDtoRequest dto,
         ProfileService service,
         ProfileErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.UpdatingStart(id, dto);
 
-        if (!await service.ProfileExistsAsync(id))
+        var infos = await service.GetEntityInfosAsync(id, cancellationToken);
+
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await service.ProfileIsMineAsync(id))
+        if (!infos.BelongsToCurrentUser)
             return errors.ProfileNotBelongsToUser();
 
-        if (!await service.UpdateAsync(dto, id))
+        var profile = await service.UpdateAsync(dto, id, cancellationToken);
+
+        if (profile is null)
             return errors.Update();
             
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(profile);
     }
 }

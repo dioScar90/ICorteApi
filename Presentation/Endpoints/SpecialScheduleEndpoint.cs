@@ -98,14 +98,17 @@ public static class SpecialScheduleEndpoint
         SpecialScheduleDtoRequest dto,
         SpecialScheduleService service,
         SpecialScheduleErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         dto = dto with { BarberShopId = barberShopId };
         logger.CreatingStart(dto);
 
-        var schedule = await service.CreateAsync(dto);
+        var schedule = await service.CreateAsync(dto, cancellationToken);
 
         if (schedule is null)
             return errors.Create();
@@ -119,13 +122,16 @@ public static class SpecialScheduleEndpoint
         int barberShopId,
         SpecialScheduleService service,
         SpecialScheduleErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingStart(date, barberShopId);
 
-        var schedule = await service.GetByIdAsync(date, barberShopId);
+        var schedule = await service.GetByIdAsync(date, barberShopId, cancellationToken);
 
         if (schedule is null)
             return errors.NotFound();
@@ -139,40 +145,53 @@ public static class SpecialScheduleEndpoint
         int barberShopId,
         SpecialScheduleService service,
         SpecialScheduleErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingAllStart(barberShopId, page, pageSize);
 
-        var schedules = await service.GetAllAsync(page, pageSize, barberShopId);
+        var schedules = await service.GetAllAsync(page, pageSize, barberShopId, cancellationToken);
         return TypedResults.Ok(schedules);
     }
-
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
+    
+    public static async Task<Results<Ok<SpecialScheduleDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
         DateOnly date,
         int barberShopId,
         SpecialScheduleDtoRequest dto,
         SpecialScheduleService service,
         SpecialScheduleErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(date, barberShopId, dto);
-
-        if (!await service.SpecialScheduleExists(date, barberShopId))
+        
+        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId))
-            return errors.SpecialScheduleNotBelongsToBarberShop();
+        if (!infos.BelongsToCurrentUser)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
 
-        if (!await service.UpdateAsync(dto, date, barberShopId))
+        if (!infos.BelongsToBarberShop)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
+
+        var schedule = await service.UpdateAsync(dto, date, barberShopId, cancellationToken);
+
+        if (schedule is null)
             return errors.Update();
             
         logger.Updated(date, barberShopId);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(schedule);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteSpecialScheduleAsync(
@@ -180,19 +199,27 @@ public static class SpecialScheduleEndpoint
         int barberShopId,
         SpecialScheduleService service,
         SpecialScheduleErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-
+        
         logger.DeletingStart(date, barberShopId);
-
-        if (!await service.SpecialScheduleExists(date, barberShopId))
+        
+        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
+            
+        if (!infos.BelongsToCurrentUser)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
 
-        if (!await service.SpecialScheduleBelongsToBarberShop(date, barberShopId))
-            return errors.SpecialScheduleNotBelongsToBarberShop();
-
-        if (!await service.DeleteAsync(date, barberShopId))
+        if (!infos.BelongsToBarberShop)
+            return errors.SpecialScheduleBelongsToAnotherBarberShop();
+            
+        if (!await service.DeleteAsync(date, barberShopId, cancellationToken))
             return errors.Delete();
             
         logger.Deleted(date, barberShopId);

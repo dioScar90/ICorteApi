@@ -4,15 +4,15 @@ namespace ICorteApi.Domain.Errors;
 
 public sealed class ReportErrors : BaseErrors<Report>
 {
-    public Conflict<Error> ReportNotBelongsToClient()
+    public Conflict<Error> ReportBelongsToAnotherClient()
     {
-        string message = $"{_entity} não pertence ao cliente";
+        string message = $"{_entity} pertence a outro cliente";
         return Error.Conflict(message);
     }
     
-    public Conflict<Error> ReportNotBelongsToBarberShop(params Error[] errors)
+    public Conflict<Error> ReportBelongsToAnotherBarberShop(params Error[] errors)
     {
-        string message = $"{_entity} não pertence à barbearia informada";
+        string message = $"{_entity} pertence a outra barbearia";
         return Error.Conflict(message);
     }
 }

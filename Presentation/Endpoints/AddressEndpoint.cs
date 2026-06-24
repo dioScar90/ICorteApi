@@ -76,13 +76,16 @@ public static class AddressEndpoint
         AddressDtoRequest dto,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.CreatingStart(dto);
         
         dto = dto with { BarberShopId = barberShopId };
-        var address = await service.CreateAsync(dto);
+        var address = await service.CreateAsync(dto, cancellationToken);
 
         if (address is null)
             return errors.Create();
@@ -92,58 +95,89 @@ public static class AddressEndpoint
     }
     
     public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>>> GetAddressAsync(
-        int barberShopId,
         int id,
+        int barberShopId,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.GettingStart(id);
         
-        var address = await service.GetByIdAsync(id, barberShopId);
+        var address = await service.GetByIdAsync(id, cancellationToken);
         
         if (address is null)
             return errors.NotFound();
-
-        if (address!.BarberShopId != barberShopId)
-            return errors.AddressNotBelongsToBarberShop();
-
+        
+        if (address.BarberShopId != barberShopId)
+            return errors.AddressBelongsToAnotherBarberShop();
+            
         return TypedResults.Ok(address);
     }
     
-    public static async Task<Results<NoContent, BadRequest<Error>>> UpdateAddressAsync(
-        int barberShopId,
+    public static async Task<Results<Ok<AddressDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateAddressAsync(
         int id,
+        int barberShopId,
         AddressDtoRequest dto,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
         logger.UpdatingStart(id, dto);
 
-        dto = dto with { BarberShopId = barberShopId };
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
 
-        if (!await service.UpdateAsync(dto, id))
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToCurrentUser)
+            return errors.AddressBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.AddressBelongsToAnotherBarberShop();
+            
+        var address = await service.UpdateAsync(dto, id, cancellationToken);
+
+        if (address is null)
             return errors.Update();
         
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(address);
     }
 
-    public static async Task<Results<NoContent, BadRequest<Error>>> DeleteAddressAsync(
-        int barberShopId,
+    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteAddressAsync(
         int id,
+        int barberShopId,
         AddressService service,
         AddressErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
+
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
+
+        if (!infos.Exists)
+            return errors.NotFound();
+
+        if (!infos.BelongsToCurrentUser)
+            return errors.AddressBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.AddressBelongsToAnotherBarberShop();
         
-        if (!await service.DeleteAsync(id, barberShopId))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
         
         logger.Deleted(id);

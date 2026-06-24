@@ -11,8 +11,12 @@ public record ServiceDtoResponse(
     string Name,
     string? Description,
     decimal Price,
-    TimeSpan Duration
-) : IDtoResponse<Service>;
+    TimeSpan Duration,
+    AppointmentDtoResponse[]? Appointments = null
+) : IDtoResponse<Service>
+{
+    public AppointmentDtoResponse[] Appointments { get; init; } = Appointments ?? [];
+};
 
 public record ServiceByNameDtoResponse(
     int Id,

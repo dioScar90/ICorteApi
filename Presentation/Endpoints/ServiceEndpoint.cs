@@ -19,7 +19,7 @@ public static class ServiceEndpoint
             .WithSummary("Create Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{serviceId}", GetServiceAsync)
+        group.MapGet("{id}", GetServiceAsync)
             .WithSummary("Get Service")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -27,11 +27,11 @@ public static class ServiceEndpoint
             .WithSummary("Get All Services")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{serviceId}", UpdateServiceAsync)
+        group.MapPut("{id}", UpdateServiceAsync)
             .WithSummary("Update Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{serviceId}", DeleteServiceAsync)
+        group.MapDelete("{id}", DeleteServiceAsync)
             .WithSummary("Delete Service")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
@@ -86,14 +86,17 @@ public static class ServiceEndpoint
         ServiceDtoRequest dto,
         ServiceService serviceService,
         ServiceErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         dto = dto with { BarberShopId = barberShopId };
         logger.CreatingStart(dto);
 
-        var service = await serviceService.CreateAsync(dto);
+        var service = await serviceService.CreateAsync(dto, cancellationToken);
 
         if (service is null)
             return errors.Create();
@@ -103,22 +106,25 @@ public static class ServiceEndpoint
     }
 
     public static async Task<Results<Ok<ServiceDtoResponse>, NotFound<Error>, Conflict<Error>>> GetServiceAsync(
-        int serviceId,
+        int id,
         int barberShopId,
         ServiceService serviceService,
         ServiceErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
-        logger.GettingStart(serviceId);
+        logger.GettingStart(id);
         
-        var service = await serviceService.GetByIdAsync(serviceId, barberShopId);
+        var service = await serviceService.GetByIdAsync(id, false, cancellationToken);
         
         if (service is null)
             return errors.NotFound();
-            
-        if (service!.BarberShopId != barberShopId)
-            return errors.ServiceNotBelongsToBarberShop();
+        
+        if (service.BarberShopId != barberShopId)
+            return errors.ServiceBelongsToAnotherBarberShop();
             
         return TypedResults.Ok(service);
     }
@@ -128,68 +134,99 @@ public static class ServiceEndpoint
         [FromQuery] int? pageSize,
         int barberShopId,
         ServiceService serviceService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingAllStart(barberShopId, page, pageSize);
 
-        var services = await serviceService.GetAllAsync(page, pageSize, barberShopId);
+        var services = await serviceService.GetAllAsync(page, pageSize, barberShopId, cancellationToken);
         return TypedResults.Ok(services);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
-        int serviceId,
+    public static async Task<Results<Ok<ServiceDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateServiceAsync(
+        int id,
         int barberShopId,
         ServiceDtoRequest dto,
         ServiceService serviceService,
         ServiceErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
-        logger.UpdatingStart(serviceId, dto);
+        logger.UpdatingStart(id, dto);
 
-        if (!await serviceService.ServiceExists(serviceId))
+        var infos = await serviceService.GetEntityInfosAsync(id, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await serviceService.ServiceBelongsToBarberShop(serviceId))
-            return errors.ServiceNotBelongsToBarberShop();
+        if (!infos.BelongsToCurrentUser)
+            return errors.ServiceBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.ServiceBelongsToAnotherBarberShop();
             
-        if (!await serviceService.UpdateAsync(dto, serviceId, barberShopId))
+        var service = await serviceService.UpdateAsync(dto, id, cancellationToken);
+
+        if (service is null)
             return errors.Update();
 
-        logger.Updated(serviceId);
-        return TypedResults.NoContent();
+        logger.Updated(id);
+        return TypedResults.Ok(service);
     }
     
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteServiceAsync(
         [FromQuery] bool? forceDelete,
-        int serviceId,
+        int id,
         int barberShopId,
         ServiceService serviceService,
         ServiceErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
-        var logger = LoggerActions.FactoryCreate(loggerFactory);
-        logger.DeletingStart(serviceId);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await serviceService.ServiceExists(serviceId))
+        var logger = LoggerActions.FactoryCreate(loggerFactory);
+        logger.DeletingStart(id);
+
+        var infos = await serviceService.GetEntityInfosAsync(id, barberShopId, cancellationToken);
+        
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await serviceService.ServiceBelongsToBarberShop(serviceId))
-            return errors.ServiceNotBelongsToBarberShop();
+        if (!infos.BelongsToCurrentUser)
+            return errors.ServiceBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToBarberShop)
+            return errors.ServiceBelongsToAnotherBarberShop();
             
-        if (forceDelete is not true && await serviceService.CheckCorrelatedAppointmentsAsync(serviceId))
+        async Task<DateOnly[]> GetCorrelatedDates()
         {
-            var dates = await serviceService.GetDatesFromCorrelatedAppointmentsAsync(serviceId);
-            return errors.ThereAreStillAppointments(dates);
+            if (forceDelete is true)
+                return [];
+            
+            if (!await serviceService.CheckCorrelatedAppointmentsAsync(id, cancellationToken))
+                return [];
+
+            return await serviceService.GetDatesFromCorrelatedAppointmentsAsync(id, cancellationToken);
         }
         
-        if (!await serviceService.DeleteAsync(serviceId))
+        var dates = await GetCorrelatedDates();
+        
+        if (dates.Length > 0)
+            return errors.ThereAreStillAppointments(dates);
+        
+        if (!await serviceService.DeleteAsync(id, cancellationToken))
             return errors.Delete();
 
-        logger.Deleted(serviceId);
+        logger.Deleted(id);
         return TypedResults.NoContent();
     }
 }

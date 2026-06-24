@@ -97,8 +97,8 @@ public sealed class Appointment : BaseEntity<Appointment>
         Notes,
         PaymentType,
         TotalPrice,
-        GetServicesIntoDto(),
-        Status
+        Status,
+        GetServicesIntoDto()
     );
 }
 

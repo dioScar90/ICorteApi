@@ -100,6 +100,7 @@ public record ClientForAppointmentByBarberShop(
 
 public record AppointmentsByBarberShopDtoResponse(
     int Id,
+    int ClientId,
     ClientForAppointmentByBarberShop Client,
     int BarberShopId,
     DateOnly Date,

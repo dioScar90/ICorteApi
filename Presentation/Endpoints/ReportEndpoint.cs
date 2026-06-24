@@ -86,14 +86,17 @@ public static class ReportEndpoint
         ReportDtoRequest dto,
         ReportService service,
         ReportErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         dto = dto with { BarberShopId = barberShopId };
         logger.CreatingStart(dto);
 
-        var report = await service.CreateAsync(dto);
+        var report = await service.CreateAsync(dto, cancellationToken);
 
         if (report is null)
             return errors.Create();
@@ -102,21 +105,27 @@ public static class ReportEndpoint
         return TypedResults.Created(GetBaseEndpoint(report), report);
     }
 
-    public static async Task<Results<Ok<ReportDtoResponse>, NotFound<Error>>> GetReportAsync(
+    public static async Task<Results<Ok<ReportDtoResponse>, Conflict<Error>, NotFound<Error>>> GetReportAsync(
         int id,
         int barberShopId,
         ReportService service,
         ReportErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingStart(id);
 
-        var report = await service.GetByIdAsync(id, barberShopId);
+        var report = await service.GetByIdAsync(id, cancellationToken);
 
         if (report is null)
             return errors.NotFound();
+        
+        if (report.BarberShopId != barberShopId)
+            return errors.ReportBelongsToAnotherBarberShop();
 
         return TypedResults.Ok(report);
     }
@@ -127,42 +136,52 @@ public static class ReportEndpoint
         int barberShopId,
         ReportService service,
         ReportErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.GettingAllStart(barberShopId, page, pageSize);
 
-        var reports = await service.GetAllAsync(page, pageSize, barberShopId);
+        var reports = await service.GetAllAsync(page, pageSize, barberShopId, cancellationToken);
         return TypedResults.Ok(reports);
     }
 
-    public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
+    public static async Task<Results<Ok<ReportDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateReportAsync(
         int id,
         int barberShopId,
         ReportDtoRequest dto,
         ReportService service,
         ReportErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.UpdatingStart(id, dto);
 
-        if (!await service.ReportExists(id))
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
+
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await service.ReportBelongsToClient(id))
-            return errors.ReportNotBelongsToClient();
+        if (!infos.BelongsToCurrentUser)
+            return errors.ReportBelongsToAnotherClient();
 
-        if (!await service.ReportBelongsToBarberShop(id, barberShopId))
-            return errors.ReportNotBelongsToBarberShop();
+        if (!infos.BelongsToBarberShop)
+            return errors.ReportBelongsToAnotherBarberShop();
+            
+        var report = await service.UpdateAsync(dto, id, cancellationToken);
 
-        if (!await service.UpdateAsync(dto, id))
+        if (report is null)
             return errors.Update();
             
         logger.Updated(id);
-        return TypedResults.NoContent();
+        return TypedResults.Ok(report);
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteReportAsync(
@@ -170,22 +189,27 @@ public static class ReportEndpoint
         int barberShopId,
         ReportService service,
         ReportErrors errors,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = LoggerActions.FactoryCreate(loggerFactory);
 
         logger.DeletingStart(id);
 
-        if (!await service.ReportExists(id))
+        var infos = await service.GetEntityInfosAsync(id, barberShopId, cancellationToken);
+
+        if (!infos.Exists)
             return errors.NotFound();
 
-        if (!await service.ReportBelongsToClient(id))
-            return errors.ReportNotBelongsToClient();
+        if (!infos.BelongsToCurrentUser)
+            return errors.ReportBelongsToAnotherClient();
 
-        if (!await service.ReportBelongsToBarberShop(id, barberShopId))
-            return errors.ReportNotBelongsToBarberShop();
-
-        if (!await service.DeleteAsync(id))
+        if (!infos.BelongsToBarberShop)
+            return errors.ReportBelongsToAnotherBarberShop();
+            
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
             
         logger.Deleted(id);

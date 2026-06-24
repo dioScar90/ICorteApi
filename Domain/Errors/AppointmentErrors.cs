@@ -16,9 +16,9 @@ public sealed class AppointmentErrors : BaseErrors<Appointment>
         return Error.UnprocessableEntity(message);
     }
     
-    public Conflict<Error> AppointmentNotBelongsToClient()
+    public Conflict<Error> AppointmentBelongsToAnotherClient()
     {
-        string message = $"{_entity} não pertence ao perfil informado";
+        string message = $"{_entity} pertence a outro cliente";
         return Error.Conflict(message);
     }
 }

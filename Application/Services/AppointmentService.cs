@@ -4,75 +4,70 @@ namespace ICorteApi.Application.Services;
 
 public sealed class AppointmentService(
     AppDbContext context,
-    ILogger<AppointmentService> _logger,
-    UserService _userService,
-    ServiceService _serviceService)
+    ServiceService serviceService,
+    UserService userService,
+    ILogger<AppointmentService> logger)
     : BaseService<Appointment>(context)
 {
-    public async Task<AppointmentDtoResponse?> CreateAsync(AppointmentDtoRequest dto, int? clientId = null)
+    public async Task<AppointmentDtoResponse?> CreateAsync(
+        AppointmentDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
-        var services = await _serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)]);
-        clientId ??= await _userService.GetMyUserIdAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var clientId = await userService.GetMyUserIdAsync();
 
         if (clientId is null)
             return null;
             
+        var services = await serviceService.GetSpecificServicesByIdsAsync([.. dto.Services.Select(s => s.Id)], cancellationToken);
         dto = dto with { ClientId = clientId.Value };
+
         var appointment = new Appointment(dto, services);
         
-        _dbSet.Add(appointment);
+        dbSet.Add(appointment);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
 
-        _logger.LogInformation("Appointment persisted in database with Id={Id}", appointment.Id);
+        logger.LogInformation("Appointment persisted in database with Id={Id}", appointment.Id);
         return appointment.CreateDto();
     }
     
-    public record Includes(bool Collections = false);
-    
-    public async Task<bool> AppointmentBelongsToClientAsync(int appointmentId, int? clientId = null)
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Checking if Appointment with Id={Id} belongs to Client with Id={ClientId}", appointmentId, clientId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = await userService.GetMyUserIdAsync();
         
-        clientId ??= await _userService.GetMyUserIdAsync();
-        
-        return await _dbSet
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Id == appointmentId && x.ClientId == clientId);
+            .IgnoreQueryFilters()
+            .Where(x => x.Id == id)
+            .Select(a => new EntityInfos(
+                !a.IsDeleted,
+                currentUserId != null && a.ClientId == currentUserId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return infos ?? new();
     }
-
-    private async Task<Appointment?> FindEntityAsync(int id, Includes? includes = null)
+    
+    public async Task<AppointmentDtoResponse?> GetByIdAsync(
+        int id, bool withServices = false,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
-        
-        includes ??= new();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var query = _dbSet
+        logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
+        
+        var query = dbSet
+            .AsNoTracking()
             .Where(a => a.Id == id);
             
-        if (includes.Collections)
-        {
-            query = query
-                .AsSplitQuery()
-                .Include(a => a.Services);
-        }
-        
-        return await query
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<AppointmentDtoResponse?> GetByIdAsync(int id, Includes? includes = null)
-    {
-        _logger.LogDebug("Fetching Appointment with Id={Id} from database", id);
-        
-        includes ??= new();
-
-        var query = _dbSet
-            .AsNoTracking()
-            .Where(a => a.Id == id);
-
-        if (includes.Collections)
+        if (withServices)
         {
             query = query
                 .AsSplitQuery()
@@ -90,8 +85,9 @@ public sealed class AppointmentService(
                 a.Notes,
                 a.PaymentType,
                 a.TotalPrice,
+                a.Status,
                 a.Services
-                    .Where(_ => includes.Collections)
+                    .Where(_ => withServices)
                     .Select(s => new ServiceDtoResponse(
                         s.Id,
                         s.BarberShopId,
@@ -101,16 +97,18 @@ public sealed class AppointmentService(
                         s.Price,
                         s.Duration
                     ))
-                    .ToArray(),
-                a.Status
+                    .ToArray()
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<PaginationResponse<AppointmentDtoResponse>> GetAllAsync(
-        int? page, int? pageSize)
+        int? page, int? pageSize,
+        CancellationToken cancellationToken = default)
     {
-        var clientId = await _userService.GetMyUserIdAsync()!;
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var clientId = await userService.GetMyUserIdAsync()!;
 
         return await GetAllAsync<AppointmentDtoResponse>(
             new(
@@ -128,6 +126,7 @@ public sealed class AppointmentService(
                     a.Notes,
                     a.PaymentType,
                     a.TotalPrice,
+                    a.Status,
                     a.Services
                         .Select(s => new ServiceDtoResponse(
                             s.Id,
@@ -138,23 +137,27 @@ public sealed class AppointmentService(
                             s.Price,
                             s.Duration
                         ))
-                        .ToArray(),
-                    a.Status
+                        .ToArray()
                 ),
                 a => a.Services
-            )
+            ),
+            cancellationToken
         );
     }
     
-    private async Task UpdateAppointmentServicesAsync(Appointment appointment, AppointmentDtoRequest dto)
+    private async Task UpdateAppointmentServicesAsync(
+        Appointment appointment, AppointmentDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var currentServiceIds = appointment.Services.Select(s => s.Id).ToArray();
         int[] serviceIds = [.. dto.Services.Select(s => s.Id)];
         
         var serviceIdsToRemove = currentServiceIds.Except(serviceIds).ToArray();
         
         var serviceIdsToAdd = serviceIds.Except(currentServiceIds).ToArray();
-        var servicesToAdd = await _serviceService.GetSpecificServicesByIdsAsync(serviceIdsToAdd);
+        var servicesToAdd = await serviceService.GetSpecificServicesByIdsAsync(serviceIdsToAdd, cancellationToken);
 
         if (serviceIdsToRemove.Length > 0)
             appointment.RemoveServicesByIds(serviceIdsToRemove);
@@ -163,46 +166,64 @@ public sealed class AppointmentService(
             appointment.AddServices(servicesToAdd);
     }
 
-    public async Task<bool> UpdateAsync(AppointmentDtoRequest dto, int id)
+    public async Task<AppointmentDtoResponse?> UpdateAsync(
+        AppointmentDtoRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
-            return false;
+            return null;
+            
+        await UpdateAppointmentServicesAsync(appointment, dto, cancellationToken);
         
-        dto = dto with { ClientId = appointment.ClientId };
-        
-        await UpdateAppointmentServicesAsync(appointment, dto);
-        
-        _logger.LogDebug("Updating Appointment with Id={Id}", id);
+        logger.LogDebug("Updating Appointment with Id={Id}", id);
 
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync();
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return appointment.CreateDto();
     }
 
-    public async Task<bool> UpdatePaymentTypeAsync(AppointmentPaymentTypeDtoUpdateRequest dto, int id)
+    public async Task<AppointmentDtoResponse?> UpdatePaymentTypeAsync(
+        AppointmentPaymentTypeDtoUpdateRequest dto, int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
-            return false;
+            return null;
             
-        dto = dto with { ClientId = appointment.ClientId };
-
+        logger.LogDebug("Updating PaymentType of Appointment with Id={Id}", id);
+        
         appointment.UpdateEntity(dto);
-        return await SaveChangesAsync();
+
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+
+        return appointment.CreateDto();
     }
     
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
-        var appointment = await FindEntityAsync(id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var appointment = await dbSet.FindAsync([id], cancellationToken);
 
         if (appointment is null)
             return false;
         
-        _logger.LogDebug("Deleting Appointment with Id={Id}", id);
+        logger.LogDebug("Deleting Appointment with Id={Id}", id);
 
-        _dbSet.Remove(appointment);
-        return await SaveChangesAsync();
+        dbSet.Remove(appointment);
+        return await SaveChangesAsync(cancellationToken);
     }
 }

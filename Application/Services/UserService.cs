@@ -1,32 +1,31 @@
-using ICorteApi.Domain.Errors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ICorteApi.Application.Services;
 
 public sealed class UserService(
-        IHttpContextAccessor _httpCtx,
-        UserManager<User> _userManager,
-        SignInManager<User> _signInManager,
-        AppDbContext _context,
-        UserErrors _userErrors)
+        IHttpContextAccessor httpCtx,
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
+        AppDbContext context)
 {
-    private readonly DbSet<User> _userDbSet = _context.Set<User>();
+    private readonly DbSet<User> _userDbSet = context.Set<User>();
     
     private async Task<User?> GetMyUserEntityAsync()
     {
-        if (_httpCtx.HttpContext?.User is null)
+        if (httpCtx.HttpContext?.User is null)
             return null;
             
-        var user = await _userManager.GetUserAsync(_httpCtx.HttpContext.User);
+        var user = await userManager.GetUserAsync(httpCtx.HttpContext.User);
         
         return user;
     }
     
-    private async Task<UserDtoResponse?> GetMyUserDtoAsync() => (await GetMyUserEntityAsync())?.CreateDto();
+    private async Task<UserDtoResponse?> GetMyUserDtoAsync() =>
+        (await GetMyUserEntityAsync())?.CreateDto();
     
     private async Task RegenerateUserCookieAsync(User? user = null) =>
-        await _signInManager.RefreshSignInAsync(user ?? await GetMyUserEntityAsync());
+        await signInManager.RefreshSignInAsync(user ?? await GetMyUserEntityAsync());
         
     public async Task<int?> GetMyUserIdAsync()
     {
@@ -39,7 +38,7 @@ public sealed class UserService(
         if (await GetMyUserEntityAsync() is not User user)
             return [];
 
-        var userRoles = (await _userManager.GetRolesAsync(user))
+        var userRoles = (await userManager.GetRolesAsync(user))
             .Aggregate(
                 new HashSet<UserRole>(),
                 (roles, role) => !Enum.TryParse<UserRole>(role, out var userRole) ? [.. roles] : [.. roles, userRole],
@@ -64,36 +63,44 @@ public sealed class UserService(
         return roles;
     }
     
-    public async Task<IdentityResult?> CreateAsync(UserDtoRegisterRequest dto)
+    public async Task<IdentityResult?> CreateAsync(
+        UserDtoRegisterRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var newUser = new User(dto);
         
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            var result = await _userManager.CreateAsync(newUser, newUser.GetPasswordToBeHashed());
+            var result = await userManager.CreateAsync(newUser, newUser.GetPasswordToBeHashed());
 
             if (!result.Succeeded)
                 return result;
                 
-            result = await _userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
+            result = await userManager.AddToRolesAsync(newUser, [..GetUserRolesToBeSetted(newUser)]);
 
             if (!result.Succeeded)
                 return result;
             
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
             return result;
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
 
-    public async Task<UserDtoResponse?> GetMeAsync(bool? dispatchIncludes = false)
+    public async Task<UserDtoResponse?> GetMeAsync(
+        bool? dispatchIncludes = false,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (dispatchIncludes == true)
             return await GetMyUserDtoAsync();
 
@@ -134,7 +141,7 @@ public sealed class UserService(
                     Array.Empty<ReportDtoResponse>()
                 )
             ))
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user is null)
             return null;
@@ -147,14 +154,18 @@ public sealed class UserService(
         return user with { Roles = [..roles.Select(r => r.ToString())] };
     }
     
-    public async Task<IdentityResult?> AddUserRoleAsync(UserDtoAddRoleRequest dto)
+    public async Task<IdentityResult?> AddUserRoleAsync(
+        UserDtoAddRoleRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
             return null;
         
-        var result = await _userManager.AddToRoleAsync(user, dto.Role.ToString());
+        var result = await userManager.AddToRoleAsync(user, dto.Role.ToString());
         
         if (!result.Succeeded)
             return result;
@@ -163,14 +174,18 @@ public sealed class UserService(
         return result;
     }
     
-    public async Task<IdentityResult?> RemoveFromRoleAsync(UserDtoRemoveRoleRequest dto)
+    public async Task<IdentityResult?> RemoveFromRoleAsync(
+        UserDtoRemoveRoleRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
             return null;
         
-        var result = await _userManager.RemoveFromRoleAsync(user, dto.Role.ToString());
+        var result = await userManager.RemoveFromRoleAsync(user, dto.Role.ToString());
 
         if (!result.Succeeded)
             return result;
@@ -180,7 +195,7 @@ public sealed class UserService(
             
         user.UpdatedUserNow();
 
-        result = await _userManager.UpdateAsync(user);
+        result = await userManager.UpdateAsync(user);
 
         if (!result.Succeeded)
             return result;
@@ -189,55 +204,67 @@ public sealed class UserService(
         return result;
     }
     
-    public async Task<IdentityResult?> UpdateEmailAsync(UserDtoEmailUpdate dtoRequest)
+    public async Task<IdentityResult?> UpdateEmailAsync(
+        UserDtoEmailUpdate dtoRequest,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
             return null;
         
-        var result = await _userManager.SetEmailAsync(user, dtoRequest.Email);
+        var result = await userManager.SetEmailAsync(user, dtoRequest.Email);
         
         if (!result.Succeeded)
             return result;
             
         user.UpdatedUserNow();
 
-        return await _userManager.UpdateAsync(user);
+        return await userManager.UpdateAsync(user);
     }
 
-    public async Task<IdentityResult?> UpdatePasswordAsync(UserDtoPasswordUpdateRequest dtoRequest)
+    public async Task<IdentityResult?> UpdatePasswordAsync(
+        UserDtoPasswordUpdateRequest dtoRequest,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
             return null;
 
-        var result = await _userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
+        var result = await userManager.ChangePasswordAsync(user, dtoRequest.CurrentPassword, dtoRequest.NewPassword);
 
         if (!result.Succeeded)
             return result;
             
         user.UpdatedUserNow();
 
-        return await _userManager.UpdateAsync(user);
+        return await userManager.UpdateAsync(user);
     }
 
-    public async Task<IdentityResult?> UpdatePhoneNumberAsync(UserDtoPhoneNumberUpdate dtoRequest)
+    public async Task<IdentityResult?> UpdatePhoneNumberAsync(
+        UserDtoPhoneNumberUpdate dtoRequest,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
             return null;
 
-        var result = await _userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
+        var result = await userManager.SetPhoneNumberAsync(user, dtoRequest.PhoneNumber);
 
         if (!result.Succeeded)
             return result;
             
         user.UpdatedUserNow();
 
-        return await _userManager.UpdateAsync(user);
+        return await userManager.UpdateAsync(user);
     }
     
     public async Task<bool> IsUserFromGivenId(int? id)
@@ -250,8 +277,12 @@ public sealed class UserService(
         return realId == id;
     }
     
-    public async Task<IdentityResult?> DeleteAsync(int id)
+    public async Task<IdentityResult?> DeleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetMyUserEntityAsync();
 
         if (user is null)
@@ -260,35 +291,35 @@ public sealed class UserService(
         if (user!.Id != id)
             return null;
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            string[] roles = Enum.GetNames(typeof(UserRole));
+            string[] roles = Enum.GetNames<UserRole>();
 
-            var result = await _userManager.RemoveFromRolesAsync(user, roles);
+            var result = await userManager.RemoveFromRolesAsync(user, roles);
 
             if (!result.Succeeded)
                 return result;
 
             user.DeleteEntity();
 
-            result = await _userManager.UpdateAsync(user);
+            result = await userManager.UpdateAsync(user);
 
             if (!result.Succeeded)
                 return result;
                 
-            result = await _userManager.DeleteAsync(user);
+            result = await userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
                 return result;
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
             return result;
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }

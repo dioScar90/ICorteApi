@@ -42,20 +42,31 @@ public sealed class AdminService(
     
     private bool IsPostgres() => _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
 
-    public async Task<bool> UserExists(string email) => await _context
-        .Users
-        .AnyAsync(x => x.Email == email);
+    public async Task<bool> UserExists(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context
+            .Users
+            .AnyAsync(x => x.Email == email, cancellationToken);
+    }
         
     private async Task<User?> GetUserByEmail(string email) => await _userManager.FindByEmailAsync(email);
 
-    public async Task<IdentityResult?> ResetPasswordForSomeUser(string emailToBeReseted)
+    public async Task<IdentityResult?> ResetPasswordForSomeUser(
+        string emailToBeReseted,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await GetUserByEmail(emailToBeReseted);
 
         if (user is null)
             return null;
         
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         
         try
         {
@@ -63,49 +74,69 @@ public sealed class AdminService(
             var identityResult = await _userManager.ResetPasswordAsync(user!, token, "Senha@123");
 
             if (identityResult.Succeeded)
-                await transaction.CommitAsync();
+                await transaction.CommitAsync(cancellationToken);
                 
             return identityResult;
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
 
-    public async Task RemoveAllRows(string userEmail, bool? evenMasterAdmin = null)
+    public async Task RemoveAllRows(
+        string userEmail, bool evenMasterAdmin = false,
+        CancellationToken cancellationToken = default)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            await _context.Messages.IgnoreQueryFilters().ExecuteDeleteAsync();
-            await _context.Reports.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await _context.Messages
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
+            await _context.Reports
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
 
-            await _context.Appointments.IgnoreQueryFilters().ExecuteDeleteAsync();
-            await _context.Services.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await _context.Appointments
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
+            await _context.Services
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
             
-            await _context.SpecialSchedules.IgnoreQueryFilters().ExecuteDeleteAsync();
-            await _context.RecurringSchedules.IgnoreQueryFilters().ExecuteDeleteAsync();
-            await _context.Addresses.IgnoreQueryFilters().ExecuteDeleteAsync();
-            await _context.BarberShops.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await _context.SpecialSchedules
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
+            await _context.RecurringSchedules
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
+            await _context.Addresses
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
+            await _context.BarberShops
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
             
             await _context.Profiles
                 .IgnoreQueryFilters()
-                .Where(p => evenMasterAdmin == true || p.User.Email != userEmail)
-                .ExecuteDeleteAsync();
+                .Where(p => evenMasterAdmin || p.User.Email != userEmail)
+                .ExecuteDeleteAsync(cancellationToken);
 
             await _context.Users
                 .IgnoreQueryFilters()
-                .Where(u => evenMasterAdmin == true || u.Email != userEmail)
-                .ExecuteDeleteAsync();
+                .Where(u => evenMasterAdmin || u.Email != userEmail)
+                .ExecuteDeleteAsync(cancellationToken);
                 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
@@ -113,19 +144,37 @@ public sealed class AdminService(
     private static User[] GetAllUsersToMock() => DataSeeder.GetAllUsersToMock();
     private static HashSet<string> GetUserRolesToBeSetted(User user) => DataSeeder.GetUserRolesToBeSetted(user);
     
-    public async Task<bool> IsThereAnyUserHere(bool? evenMasterAdmin = null) =>
-        await _context.Users.AnyAsync(x => evenMasterAdmin == true || x.Email != "diogols@live.com");
-    
-    public async Task<bool> IsThereAnyAppointmentHere(PeriodToPopulateDto dto) =>
-        await _context.Appointments.AnyAsync(x => x.Date >= dto.DayToPopulate && x.Date <= dto.VeryLimitDate);
-    
-    public async Task PopulateAllInitialTables()
+    public async Task<bool> IsThereAnyUserHere(
+        bool evenMasterAdmin = false,
+        CancellationToken cancellationToken = default)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.Users
+            .AnyAsync(x => evenMasterAdmin || x.Email != "diogols@live.com", cancellationToken);
+    }
+    
+    public async Task<bool> IsThereAnyAppointmentHere(
+        PeriodToPopulateDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.Appointments
+            .AnyAsync(x => x.Date >= dto.DayToPopulate && x.Date <= dto.VeryLimitDate, cancellationToken);
+    }
+    
+    public async Task PopulateAllInitialTables(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         
         try
         {
-            await _context.Messages.IgnoreQueryFilters().ExecuteDeleteAsync();
+            await _context.Messages
+                .IgnoreQueryFilters()
+                .ExecuteDeleteAsync(cancellationToken);
             
             foreach (var user in GetAllUsersToMock())
             {
@@ -150,40 +199,42 @@ public sealed class AdminService(
                 await _userManager.AddToRolesAsync(user, [..GetUserRolesToBeSetted(user)]);
             }
             
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
     
-    private async Task<int[]> GetAllBarberIds()
+    private async Task<(int[] barberIds, int[] clientIds)> GetBarberShopAndClientIds(
+        CancellationToken cancellationToken = default)
     {
-        return await _context.BarberShops
-			.AsNoTracking()
-			.Select(x => x.Id)
-			.ToArrayAsync();
+        return (
+            await _context.BarberShops
+                .AsNoTracking()
+                .Select(x => x.Id)
+                .ToArrayAsync(cancellationToken) ?? [],
+                
+            await _context.Users
+                .AsNoTracking()
+                .Where(x => x.BarberShop == null && x.Email != "diogols@live.com")
+                .Select(x => x.Id)
+                .ToArrayAsync(cancellationToken) ?? []
+        );
     }
     
-    private async Task<int[]> GetAllClientIds()
+    public async Task PopulateWithAppointments(
+        PeriodToPopulateDto dto,
+        CancellationToken cancellationToken = default)
     {
-        return await _context.Users
-			.AsNoTracking()
-			.Where(x => x.Email != "diogols@live.com" && x.BarberShop == null)
-			.Select(x => x.Id)
-			.ToArrayAsync();
-    }
-    
-    public async Task PopulateWithAppointments(PeriodToPopulateDto dto)
-    {
-        var barberIds = await GetAllBarberIds();
-        var clientIds = await GetAllClientIds();
+        cancellationToken.ThrowIfCancellationRequested();
         
         var random = new Random();
+        var (barberIds, clientIds) = await GetBarberShopAndClientIds(cancellationToken);
         
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         
         try
         {
@@ -196,7 +247,10 @@ public sealed class AdminService(
                 {
                     int barberIdToAdd = barberIds[random.Next(barberIds.Length)];
 
-                    var services = await _context.Services.Where(x => x.BarberShopId == barberIdToAdd).ToArrayAsync();
+                    var services = await _context.Services
+                        .Where(x => x.BarberShopId == barberIdToAdd)
+                        .ToArrayAsync(cancellationToken);
+
                     var serviceIds = services.Select(x => x.Id).ToArray();
                     
                     var slots = await _barberScheduleRep.GetAvailableSlotsAsync(barberIdToAdd, dto.DayToPopulate, serviceIds);
@@ -223,7 +277,7 @@ public sealed class AdminService(
                             [..services.Select(s => new ServiceForUpdateAppointmentDtoRequest(s.Id))]
                         ), services);
                         
-                    await _context.Appointments.AddAsync(newAppoint);
+                    await _context.Appointments.AddAsync(newAppoint, cancellationToken);
                     await _context.SaveChangesAsync();
                     
                     lastOneAdded[barberIdToAdd] = startTime;
@@ -232,43 +286,56 @@ public sealed class AdminService(
                 dto = dto with { DayToPopulate = dto.DayToPopulate.AddDays(1) };
             }
             
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
     
-    public async Task DeleteServiceAndRemoveFromAllAppointments(int serviceId)
+    public async Task DeleteServiceAndRemoveFromAllAppointments(
+        int serviceId,
+        CancellationToken cancellationToken = default)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         
         try
         {
-            await _context.Database.ExecuteSqlAsync($"DELETE FROM service_appointment WHERE service_id = {serviceId}");
-            await _context.Database.ExecuteSqlAsync($"DELETE FROM services WHERE id = {serviceId}");
+            await _context.Database
+                .ExecuteSqlAsync($"DELETE FROM service_appointment WHERE service_id = {serviceId}", cancellationToken);
+
+            await _context.Services
+                .Where(x => x.Id == serviceId)
+                .ExecuteDeleteAsync(cancellationToken);
             
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }
     
-    public async Task<FoundUserByAdmin[]> SearchForUsersByName(string? name)
+    public async Task<FoundUserByAdmin[]> SearchForUsersByName(
+        string? name,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (name is null)
             return [];
         
-        bool isPostgre = IsPostgres();
+        bool isPostgres = IsPostgres();
 
-        var query = _context.Users.AsNoTracking();
+        var query = _context.Users
+            .AsNoTracking();
             
-        if (IsPostgres())
+        if (isPostgres)
         {
             query = query.Where(u => EF.Functions.ILike(u.Profile.FirstName, "%" + name + "%")
                 || EF.Functions.ILike(u.Profile.LastName, "%" + name + "%")
@@ -291,11 +358,15 @@ public sealed class AdminService(
                 u.PhoneNumber!,
                 u.BarberShop != null
             ))
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
     }
     
-    public async Task<FoundUserByAdmin[]> GetLastUsers(int? take = null)
+    public async Task<FoundUserByAdmin[]> GetLastUsers(
+        int? take = null,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         take ??= 15;
         int count = Math.Clamp((int)take!, 1, 50);
         
@@ -311,6 +382,6 @@ public sealed class AdminService(
                 u.PhoneNumber!,
                 u.BarberShop != null
             ))
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
     }
 }

@@ -3,38 +3,55 @@ using Microsoft.EntityFrameworkCore;
 namespace ICorteApi.Application.Services;
 
 public sealed class SpecialScheduleService(
-    AppDbContext context)
+    AppDbContext context,
+    UserService userService)
     : BaseService<SpecialSchedule>(context)
 {
-    public async Task<SpecialScheduleDtoResponse?> CreateAsync(SpecialScheduleDtoRequest dto)
+    public async Task<SpecialScheduleDtoResponse?> CreateAsync(
+        SpecialScheduleDtoRequest dto,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var schedule = new SpecialSchedule(dto);
 
-        _dbSet.Add(schedule);
+        dbSet.Add(schedule);
         
-        if (!await SaveChangesAsync())
+        if (!await SaveChangesAsync(cancellationToken))
             return null;
 
         return schedule.CreateDto();
     }
-
-    public async Task<bool> SpecialScheduleExists(DateOnly date, int barberShopId)
+    
+    public async Task<EntityInfos> GetEntityInfosAsync(
+        DateOnly date, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        var currentUserId = await userService.GetMyUserIdAsync();
+        
+        var infos = await dbSet
             .AsNoTracking()
-            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
+            .IgnoreQueryFilters()
+            .Where(x => x.Date == date && x.BarberShopId == barberShopId)
+            .Select(s => new EntityInfos(
+                true,
+                currentUserId != null && s.BarberShopId == currentUserId,
+                s.BarberShopId == barberShopId
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+            
+        return infos ?? new();
     }
     
-    public async Task<bool> SpecialScheduleBelongsToBarberShop(DateOnly date, int barberShopId)
+    public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(
+        DateOnly date, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
-        return await _dbSet
-            .AsNoTracking()
-            .AnyAsync(x => x.Date == date && x.BarberShopId == barberShopId);
-    }
+        cancellationToken.ThrowIfCancellationRequested();
 
-    public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(DateOnly date, int barberShopId)
-    {
-        return await _dbSet
+        return await dbSet
             .AsNoTracking()
             .Where(s => s.Date == date && s.BarberShopId == barberShopId)
             .Select(s => new SpecialScheduleDtoResponse(
@@ -46,12 +63,15 @@ public sealed class SpecialScheduleService(
                 s.CloseTime,
                 s.IsClosed
             ))
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
     
     public async Task<PaginationResponse<SpecialScheduleDtoResponse>> GetAllAsync(
-        int? page, int? pageSize, int barberShopId)
+        int? page, int? pageSize, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         return await GetAllAsync<SpecialScheduleDtoResponse>(
             new(
                 page,
@@ -67,29 +87,42 @@ public sealed class SpecialScheduleService(
                     s.CloseTime,
                     s.IsClosed
                 )
-            )
+            ),
+            cancellationToken
         );
     }
 
-    public async Task<bool> UpdateAsync(SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId)
+    public async Task<SpecialScheduleDtoResponse?> UpdateAsync(
+        SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
-        var schedule = await _dbSet.FindAsync(date, barberShopId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var schedule = await dbSet.FindAsync([date, barberShopId], cancellationToken);
 
         if (schedule is null)
-            return false;
+            return null;
             
         schedule.UpdateEntity(dto);
-        return await SaveChangesAsync();
+        
+        if (!await SaveChangesAsync(cancellationToken))
+            return null;
+            
+        return schedule.CreateDto();
     }
 
-    public async Task<bool> DeleteAsync(DateOnly date, int barberShopId)
+    public async Task<bool> DeleteAsync(
+        DateOnly date, int barberShopId,
+        CancellationToken cancellationToken = default)
     {
-        var schedule = await _dbSet.FindAsync(date, barberShopId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var schedule = await dbSet.FindAsync([date, barberShopId], cancellationToken);
 
         if (schedule is null)
             return false;
             
-        _dbSet.Remove(schedule);
-        return await SaveChangesAsync();
+        dbSet.Remove(schedule);
+        return await SaveChangesAsync(cancellationToken);
     }
 }
