@@ -2,97 +2,230 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project overview
+## Project Overview
 
-**ICorteApi** is a barber shop appointment scheduling backend built with ASP.NET Core Minimal APIs on .NET 10. It serves a React SPA frontend (`icorte-app`). The project is deployed on Railway (PostgreSQL) and uses SQLite locally by default.
+ICorteApi is the backend for a barbershop scheduling web app (TCC/Final Paper). It is a single-project ASP.NET Core 10 application using Minimal APIs. The frontend is a separate React repo at https://github.com/dioScar90/icorte-app.
+
+---
 
 ## Commands
 
 ```bash
-# Run the app (defaults to SQLite in development)
+# Run the application (defaults to SQLite in development)
 dotnet run
 
 # Build
 dotnet build
 
-# EF Core migrations
-dotnet ef migrations add <NomeDaMigracao>
+# Add a new EF Core migration
+dotnet ef migrations add <MigrationName>
+
+# Apply pending migrations manually (also runs automatically on startup)
 dotnet ef database update
 
-# Switch database locally — set `databaseToConnect` in appsettings.json:
-# "sqlite" (default) | "SQL_SERVER" | "POSTGRES"
+# Install/update EF CLI tool (global)
+dotnet tool install --global dotnet-ef
+# or
+dotnet tool update --global dotnet-ef
 ```
 
-There are no test projects.
+To switch the local database, set `ConnectionStrings:databaseToConnect` in `appsettings.json`:
+- Omit the key (or set to any other value) → **SQLite** (`sqlite.db`)
+- `"SQL_SERVER"` → SQL Server (reads `developmentConnection` string)
+- `"POSTGRES"` → PostgreSQL (reads `developmentConnection` string)
+
+---
 
 ## Architecture
 
-Single-project solution (`ICorteApi.csproj`) organized into four logical layers by folder:
+Single-project monolith with logical folder-based layer separation:
 
+| Folder | Responsibility |
+|---|---|
+| `Domain/` | Entities, error classes, utils — no external dependencies |
+| `Application/` | Services (business logic), DTOs, custom validation attributes |
+| `Infraestructure/` | `AppDbContext`, EF Core entity type configuration maps |
+| `Presentation/` | Minimal API endpoints, exception types, DI extension methods |
+| `Settings/` | Startup wiring: DB connection, endpoint registration, seeding, migrations |
+
+Global usings are declared in `GlobalUsings.cs` for the five most common namespaces.
+
+---
+
+## Key Patterns
+
+### Minimal API Endpoints
+
+Each entity has a static class in `Presentation/Endpoints/` following this exact structure:
+
+```csharp
+public static class AppointmentEndpoint
+{
+    public static IEndpointRouteBuilder MapAppointmentEndpoint(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("appointment").WithTags("Appointment");
+        group.MapPost("", CreateAppointmentAsync)
+            .WithSummary("Create Appointment")
+            .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
+        // ...
+        return app;
+    }
+
+    // Inner record for structured logging (factory pattern)
+    internal record LoggerActions { ... }
+
+    // Handler methods are public static async Task<Results<...>> (union return types)
+    public static async Task<Results<Created<AppointmentDtoResponse>, BadRequest<Error>>> CreateAppointmentAsync(
+        AppointmentDtoRequest dto,          // body — bound automatically
+        AppointmentService service,          // injected from DI
+        AppointmentErrors errors,            // injected from DI
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken = default)
+    { ... }
+}
 ```
-Domain/          — Entities, errors, interfaces, utils (no framework dependencies)
-Application/     — Services, DTOs, validators (depends on Domain + EF Core)
-Infraestructure/ — AppDbContext, EF Fluent API maps (note: typo is intentional in the codebase)
-Presentation/    — Minimal API endpoints, exception types, DI extension methods
-Settings/        — Startup helpers (DB connection, seeding, migrations, CORS, session)
-```
 
-**GlobalUsings.cs** wires the most-used namespaces project-wide so explicit `using` statements are rarely needed.
-
-## Key patterns
-
-### Minimal APIs (no controllers)
-Every route group lives in `Presentation/Endpoints/<Entity>Endpoint.cs`. Each file exports a static class with a `Map<Entity>Endpoint(this IEndpointRouteBuilder)` extension method. All endpoints are registered in `Settings/ConfigureEndpoints.cs`.
-
-Endpoint handlers receive services and error classes via parameter-based DI (not constructor injection). Return types use `TypedResults.*` and `Results<T1, T2, ...>` for compile-time checked HTTP responses.
-
-### Error handling
-`Domain/Errors/<Entity>Errors.cs` classes (injected as Scoped) wrap `TypedResults.BadRequest<Error>` and `TypedResults.NotFound<Error>` with Portuguese-language messages. Error messages use grammatical gender (masculine/feminine) derived from entity type name via `BaseErrors<TEntity>`. Throw `Presentation/Exceptions/<Type>Exception.cs` for cross-cutting concerns — `GlobalExceptionHandler` maps them to ProblemDetails responses.
-
-### Soft delete
-All entities inherit `BaseEntity<T>` (or `BaseUserEntity` for `User`). Delete operations set `IsDeleted = true` — never physical deletes. `AppDbContext.HandleSoftDelete()` intercepts `EntityState.Deleted` entries and redirects them to `Modified`. EF query filters on `BaseMap<T>` automatically exclude soft-deleted rows. Use `.IgnoreQueryFilters()` for admin operations. Cascade rules are enforced in `AppDbContext`: deleting a User soft-deletes its BarberShop; deleting a BarberShop cascades to Address, Services, and Schedules.
-
-### Services
-`BaseService<TEntity>` provides `GetAllAsync` with pagination via `PaginationProperties<TEntity, TDtoResponse>`. Concrete services inherit from it and receive `AppDbContext` via primary constructor. All services are registered as **Scoped**.
+- Always use `TypedResults.*` (not `Results.*`) for responses.
+- Return union types: `Results<Ok<T>, NotFound<Error>, BadRequest<Error>, ...>`.
+- Services and error classes arrive as parameters (Minimal API parameter DI).
+- Register every new endpoint group in `Settings/ConfigureEndpoints.cs`.
+- Add `cancellationToken.ThrowIfCancellationRequested()` at the top of each handler.
 
 ### Authorization
-Five policies are derived from the `PolicyUserRole` enum in `Domain/Entities/UserRoles.cs`:
+
+Five policies defined in the `PolicyUserRole` enum (`Domain/Entities/UserRoles.cs`):
 
 | Policy | Allowed roles |
 |---|---|
-| `FreeIfAuthenticated` | All authenticated (default policy) |
+| `FreeIfAuthenticated` | Guest, Client, BarberShop, Admin |
 | `ClientOrHigh` | Client, BarberShop, Admin |
 | `ClientOnly` | Client, Admin |
 | `BarberShopOrHigh` | BarberShop, Admin |
 | `AdminOnly` | Admin |
 
-Use `.RequireAuthorization("PolicyName")` on endpoint groups/routes.
+Usage: `.RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh))`
 
-### Authentication
-Cookie-based via `SignInManager<User>`. Session tokens are rotated on each app startup (`SessionTokenManager`), which invalidates all existing sessions — useful in production to force re-login after deploys. Cookie config: `HttpOnly`, `SlidingExpiration` (60 min), `SameSite=Lax` in dev / `SameSite=None; Secure` in prod.
+Auth is **cookie-based** (not JWT, despite the package being present). The session token is regenerated on every app restart, which invalidates all existing cookies intentionally.
 
-### Database / EF Core
-`Infraestructure/Maps/` contains one `IEntityTypeConfiguration<T>` per entity. `BaseMap<TEntity>` applies snake_case column naming, decimal precision (9,4), enum-to-string conversion, and the global soft-delete query filter. `AppDbContext` extends `IdentityDbContext<User, ApplicationRole, int>`.
+### Services
 
-In development, the DB is selected via `appsettings.json`:
-```json
-"ConnectionStrings": {
-  "databaseToConnect": "sqlite"
+Concrete services are `sealed` classes extending `BaseService<TEntity>`:
+
+```csharp
+public sealed class AppointmentService(
+    AppDbContext context,
+    ServiceService serviceService,
+    UserService userService,
+    ILogger<AppointmentService> logger)
+    : BaseService<Appointment>(context)
+{ ... }
+```
+
+- `BaseService<T>` exposes `dbSet` and `SaveChangesAsync()` / `BeginTransactionAsync()`.
+- `GetAllAsync<TDtoResponse>(PaginationProperties<T, TDtoResponse>)` handles pagination, filtering, ordering and projection generically.
+- Return `null` on failure; the endpoint checks for null and calls the relevant error method.
+- All services are registered as **Scoped** in `ServiceCollectionExtensions`.
+
+### DTOs
+
+DTOs are immutable `record` types:
+
+```csharp
+public record AppointmentDtoResponse(...) : IDtoResponse<Appointment>;
+public record AppointmentDtoRequest(...) : IDtoRequest<Appointment>;
+```
+
+Validation uses **DataAnnotations** on request DTO constructor parameters. Custom attributes live in `Application/Validators/` (e.g., `[Password]`, `[Email]`, `[GreaterThanOrEqualToday]`). FluentValidation was planned but not implemented — keep using DataAnnotations.
+
+### Error Classes
+
+Each entity has a `sealed` error class extending `BaseErrors<TEntity>` in `Domain/Errors/`:
+
+```csharp
+public sealed class AppointmentErrors : BaseErrors<Appointment>
+{
+    public UnprocessableEntity<Error> EmptyServices() =>
+        Error.UnprocessableEntity("Selecione pelo menos um serviço");
 }
 ```
 
-In production (Railway), the app reads `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`, and `API_HTTP_PORT` from environment variables.
+- `BaseErrors<T>` provides pre-built: `NotFound()`, `Create()`, `Update()`, `Delete()`, `BadRequest()`.
+- Error messages are in **Portuguese**.
+- Return values are typed `TypedResults` wrappers directly usable as handler return values.
+- Register every new error class as **Scoped** in `ServiceCollectionExtensions`.
 
-## Startup sequence
+### EF Core Maps
 
-`Program.cs` → DB connection → Serilog → Identity → Services/Errors/Validators → CORS → Authorization → Cookie → ExceptionHandlers → Swagger (dev only) → EF migrations → Role seeding → Data seeding → Endpoints → SessionToken rotation.
+Maps extend `BaseMap<TEntity>` (`Infraestructure/Maps/Base/BaseMap.cs`) which automatically:
+- Converts table names to `snake_case`
+- Converts all primitive column names to `snake_case`
+- Sets `decimal` precision to `(9, 4)`
+- Stores enums as `string` (except `DayOfWeek`, which stays as int)
+- Applies `HasQueryFilter(x => !x.IsDeleted)` to any entity implementing `IBaseEntity<T>`
 
-> **WARNING:** `DataSeeder.ClearAllRowsBeforeSeedAsync()` is commented out in `Program.cs` — uncomment only intentionally and recomment immediately after. It drops all data.
+Override `Configure()` in subclass maps only for relationships, indexes, or special constraints.
 
-## DI registration
+### Soft Delete
 
-Extension methods use the C# 13 `extension(IServiceCollection services)` block syntax (new in .NET 10) in `Presentation/Extensions/_Configuration/ServiceCollectionExtensions.cs`. When adding a new service or error class, register it in `AddServices()` / `AddErrors()` in that file.
+**Never hard-delete entities that implement `IBaseEntity`.** Calling `dbSet.Remove(entity)` on them is intercepted by `AppDbContext.HandleSoftDelete()`, which converts `EntityState.Deleted` → `EntityState.Modified` and calls `entity.DeleteEntity()`.
 
-## Language
+Cascading soft-delete rules (defined in `AppDbContext`):
+- `User` deleted → soft-deletes their `BarberShop`
+- `BarberShop` deleted → soft-deletes `Address`; hard-deletes `Services`, `SpecialSchedules`, `RecurringSchedules`
+- `Service` deleted → removes from related `Appointments` (many-to-many join rows)
+- `Appointment` deleted → removes all its service join rows
 
-All user-facing messages, error strings, and most code comments are in **Brazilian Portuguese**.
+For join tables (composite key entities without `IBaseEntity`), hard delete is fine.
+
+### Logging
+
+Each endpoint class contains an `internal record LoggerActions` with a factory:
+
+```csharp
+internal static LoggerActions FactoryCreate(ILoggerFactory loggerFactory) => new()
+{
+    Entity = nameof(Appointment),
+    Logger = loggerFactory.CreateLogger(nameof(AppointmentEndpoint))
+};
+```
+
+Use structured logging placeholders: `{Entity}`, `{Id}`, `{@Dto}`.
+
+### C# 14 Extension Member Syntax
+
+`ServiceCollectionExtensions.cs` and `ConfigureHostExtensions.cs` use the **C# 14 preview** `extension()` block syntax:
+
+```csharp
+public static class ServiceCollectionExtensions
+{
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddServices() { ... }
+    }
+}
+```
+
+This is not a bug — the project targets .NET 10 with C# 14 preview features. Do not refactor these into traditional extension methods.
+
+---
+
+## Adding a New Entity (Full Vertical Slice)
+
+1. **Domain entity** — `Domain/Entities/MyEntity.cs`, extend `BaseEntity<MyEntity>` (or `BaseUserEntity` if it's user-shaped)
+2. **DbSet** — add `DbSet<MyEntity> MyEntities` to `AppDbContext`
+3. **EF map** — `Infraestructure/Maps/MyEntityMap.cs`, extend `BaseMap<MyEntity>`
+4. **DTOs** — `Application/Dtos/MyEntityDto.cs`, `record MyEntityDtoResponse : IDtoResponse<MyEntity>` and `record MyEntityDtoRequest : IDtoRequest<MyEntity>`
+5. **Service** — `Application/Services/MyEntityService.cs`, `sealed class` extending `BaseService<MyEntity>`; register as Scoped in `ServiceCollectionExtensions.AddServices()`
+6. **Error class** — `Domain/Errors/MyEntityErrors.cs`, `sealed class` extending `BaseErrors<MyEntity>`; register as Scoped in `ServiceCollectionExtensions.AddErrors()`
+7. **Endpoint** — `Presentation/Endpoints/MyEntityEndpoint.cs`, static class with `MapMyEntityEndpoint()` method
+8. **Register endpoint** — add `.MapMyEntityEndpoint()` chain in `Settings/ConfigureEndpoints.cs`
+9. **Migration** — `dotnet ef migrations add AddMyEntity`
+
+---
+
+## Database / Deployment Notes
+
+- **Development default**: SQLite (`sqlite.db` at project root).
+- **Production**: Railway platform with PostgreSQL. Required env vars: `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`, `API_HTTP_PORT`.
+- Migrations and seeding run automatically on startup via `MigrationApplier`, `RoleSeeder`, and `DataSeeder`.
+- **WARNING**: The line `await DataSeeder.ClearAllRowsBeforeSeedAsync(serviceProvider)` in `Program.cs` is commented out deliberately. Never uncomment it in production — it wipes all data.
