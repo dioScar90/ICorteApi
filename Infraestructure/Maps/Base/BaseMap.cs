@@ -35,7 +35,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
         }
 
         if (TEntityImplementsIPrimaryKeyEntity())
-            builder.HasQueryFilter(x => !((IBaseEntity<TEntity>)x).IsDeleted); // same as 'x => !x.IsDeleted'
+            builder.HasQueryFilter(x => ((IBaseEntity<TEntity>)x).DeletedAt != null); // same as 'x => x.DeletedAt != null'
     }
 
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
@@ -47,7 +47,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
     {
         // This line is necessary for allow nullable types.
         Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
+        
         return underlyingType.IsPrimitive
             || underlyingType.IsEnum
             || underlyingType == typeof(string)

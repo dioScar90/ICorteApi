@@ -1,6 +1,6 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
+public sealed class SpecialSchedule : BaseEntity<SpecialSchedule>
 {
     public DateOnly Date { get; init; }
     public DayOfWeek DayOfWeek { get; set; }
@@ -8,6 +8,7 @@ public sealed class SpecialSchedule : CompositeKeyEntity<SpecialSchedule>
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
     public bool IsClosed { get; set; }
+    public bool IsActive { get; set; }
 
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; set; }

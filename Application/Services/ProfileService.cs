@@ -48,7 +48,7 @@ public sealed class ProfileService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(p => new EntityInfos(
-                !p.IsDeleted,
+                p.DeletedAt == null,
                 currentUserId != null && p.Id == currentUserId
             ))
             .FirstOrDefaultAsync(cancellationToken);

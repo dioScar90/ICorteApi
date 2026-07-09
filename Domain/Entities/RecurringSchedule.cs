@@ -1,11 +1,12 @@
 namespace ICorteApi.Domain.Entities;
 
-public sealed class RecurringSchedule : CompositeKeyEntity<RecurringSchedule>
+public sealed class RecurringSchedule : BaseEntity<RecurringSchedule>
 {
     public DayOfWeek DayOfWeek { get; init; }
 
     public TimeOnly OpenTime { get; private set; }
     public TimeOnly CloseTime { get; private set; }
+    public bool IsActive { get; private set; }
 
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; set; }

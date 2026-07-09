@@ -19,7 +19,7 @@ public static class SpecialScheduleEndpoint
             .WithSummary("Create Special Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{date}", GetSpecialScheduleAsync)
+        group.MapGet("{date}/{id}", GetSpecialScheduleAsync)
             .WithSummary("Get Special Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -27,11 +27,11 @@ public static class SpecialScheduleEndpoint
             .WithSummary("Get All Special Schedules")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{date}", UpdateSpecialScheduleAsync)
+        group.MapPut("{date}/{id}", UpdateSpecialScheduleAsync)
             .WithSummary("Update Special Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapDelete("{date}", DeleteSpecialScheduleAsync)
+        group.MapDelete("{date}/{id}", DeleteSpecialScheduleAsync)
             .WithSummary("Delete Special Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
@@ -118,6 +118,7 @@ public static class SpecialScheduleEndpoint
     }
 
     public static async Task<Results<Ok<SpecialScheduleDtoResponse>, NotFound<Error>>> GetSpecialScheduleAsync(
+        int id,
         DateOnly date,
         int barberShopId,
         SpecialScheduleService service,
@@ -131,11 +132,14 @@ public static class SpecialScheduleEndpoint
 
         logger.GettingStart(date, barberShopId);
 
-        var schedule = await service.GetByIdAsync(date, barberShopId, cancellationToken);
+        var schedule = await service.GetByIdAsync(id, cancellationToken);
 
         if (schedule is null)
             return errors.NotFound();
-        
+
+        if (schedule.Date != date || schedule.BarberShopId != barberShopId)
+            return errors.NotFound();
+            
         return TypedResults.Ok(schedule);
     }
 
@@ -159,6 +163,7 @@ public static class SpecialScheduleEndpoint
     }
     
     public static async Task<Results<Ok<SpecialScheduleDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateSpecialScheduleAsync(
+        int id,
         DateOnly date,
         int barberShopId,
         SpecialScheduleDtoRequest dto,
@@ -174,7 +179,7 @@ public static class SpecialScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(date, barberShopId, dto);
         
-        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, date, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
@@ -185,7 +190,10 @@ public static class SpecialScheduleEndpoint
         if (!infos.BelongsToBarberShop)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
 
-        var schedule = await service.UpdateAsync(dto, date, barberShopId, cancellationToken);
+        if (!infos.BelongsToDay)
+            return errors.SpecialScheduleBelongsToAnotherDay();
+
+        var schedule = await service.UpdateAsync(dto, id, cancellationToken);
 
         if (schedule is null)
             return errors.Update();
@@ -195,6 +203,7 @@ public static class SpecialScheduleEndpoint
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteSpecialScheduleAsync(
+        int id,
         DateOnly date,
         int barberShopId,
         SpecialScheduleService service,
@@ -208,7 +217,7 @@ public static class SpecialScheduleEndpoint
         
         logger.DeletingStart(date, barberShopId);
         
-        var infos = await service.GetEntityInfosAsync(date, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, date, barberShopId, cancellationToken);
         
         if (!infos.Exists)
             return errors.NotFound();
@@ -218,8 +227,11 @@ public static class SpecialScheduleEndpoint
 
         if (!infos.BelongsToBarberShop)
             return errors.SpecialScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToDay)
+            return errors.SpecialScheduleBelongsToAnotherDay();
             
-        if (!await service.DeleteAsync(date, barberShopId, cancellationToken))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
             
         logger.Deleted(date, barberShopId);

@@ -6,17 +6,16 @@ public abstract class BaseUserEntity : IdentityUser<int>, IBaseUserEntity
 {
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
-    public bool IsDeleted { get; protected set; } = false;
+    public DateTime? DeletedAt { get; protected set; }
 
     public void UpdatedUserNow() => UpdatedAt = DateTime.UtcNow;
 
     public void DeleteEntity()
     {
-        if (IsDeleted)
-            throw new Exception("Já está excluído");
-
-        UpdatedAt = DateTime.UtcNow;
-        IsDeleted = true;
+        if (DeletedAt is not null)
+            throw new Exception("Already deleted");
+            
+        DeletedAt = UpdatedAt = DateTime.UtcNow;
     }
 }
 
@@ -27,15 +26,14 @@ public abstract class BaseEntity<TEntity>
     public int Id { get; init; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
-    public bool IsDeleted { get; protected set; } = false;
+    public DateTime? DeletedAt { get; protected set; }
 
     public void DeleteEntity()
     {
-        if (IsDeleted)
-            throw new Exception("Já está excluído");
+        if (DeletedAt is not null)
+            throw new Exception("Already deleted");
 
-        UpdatedAt = DateTime.UtcNow;
-        IsDeleted = true;
+        DeletedAt = UpdatedAt = DateTime.UtcNow;
     }
 
     protected static string? GetValidStringOrNull(string? value) => string.IsNullOrWhiteSpace(value)
@@ -45,13 +43,4 @@ public abstract class BaseEntity<TEntity>
     protected const int MIN_RATING = 1;
     protected const int MAX_RATING = 5;
     protected static int GetValidRatingOrNull(int value) => value is >= MIN_RATING and <= MAX_RATING ? value : Math.Clamp(value, MIN_RATING, MAX_RATING);
-}
-
-public abstract class CompositeKeyEntity<TEntity>
-    : ICompositeKeyEntity<TEntity>
-        where TEntity : class, IBaseTableEntity
-{
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; protected set; }
-    public bool IsActive { get; protected set; } = true;
 }

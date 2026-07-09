@@ -24,7 +24,7 @@ public sealed class SpecialScheduleService(
     }
     
     public async Task<EntityInfos> GetEntityInfosAsync(
-        DateOnly date, int barberShopId,
+        int id, DateOnly date, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -34,10 +34,11 @@ public sealed class SpecialScheduleService(
         var infos = await dbSet
             .AsNoTracking()
             .IgnoreQueryFilters()
-            .Where(x => x.Date == date && x.BarberShopId == barberShopId)
+            .Where(x => x.Id == id)
             .Select(s => new EntityInfos(
                 true,
                 currentUserId != null && s.BarberShopId == currentUserId,
+                s.Date == date,
                 s.BarberShopId == barberShopId
             ))
             .FirstOrDefaultAsync(cancellationToken);
@@ -46,14 +47,14 @@ public sealed class SpecialScheduleService(
     }
     
     public async Task<SpecialScheduleDtoResponse?> GetByIdAsync(
-        DateOnly date, int barberShopId,
+        int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         return await dbSet
             .AsNoTracking()
-            .Where(s => s.Date == date && s.BarberShopId == barberShopId)
+            .Where(s => s.Id == id)
             .Select(s => new SpecialScheduleDtoResponse(
                 s.Date,
                 s.BarberShopId,
@@ -93,12 +94,12 @@ public sealed class SpecialScheduleService(
     }
 
     public async Task<SpecialScheduleDtoResponse?> UpdateAsync(
-        SpecialScheduleDtoRequest dto, DateOnly date, int barberShopId,
+        SpecialScheduleDtoRequest dto, int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var schedule = await dbSet.FindAsync([date, barberShopId], cancellationToken);
+        var schedule = await dbSet.FindAsync(id, cancellationToken);
 
         if (schedule is null)
             return null;
@@ -112,12 +113,12 @@ public sealed class SpecialScheduleService(
     }
 
     public async Task<bool> DeleteAsync(
-        DateOnly date, int barberShopId,
+        int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var schedule = await dbSet.FindAsync([date, barberShopId], cancellationToken);
+        var schedule = await dbSet.FindAsync(id, cancellationToken);
 
         if (schedule is null)
             return false;

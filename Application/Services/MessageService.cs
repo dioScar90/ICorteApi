@@ -39,7 +39,7 @@ public sealed class MessageService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(m => new EntityInfos(
-                !m.IsDeleted,
+                m.DeletedAt == null,
                 currentUserId != null && m.SenderId == currentUserId,
                 m.AppointmentId == appointmentId
             ))
@@ -153,8 +153,8 @@ public sealed class MessageService(
             .Where(m => m.AppointmentId == appointmentId
                 && (lastMessageId == null || m.Id > lastMessageId)
                 && (m.Appointment.ClientId == senderId || m.Appointment.BarberShopId == senderId)
-                && !m.Appointment.IsDeleted
-                && !m.IsDeleted
+                && m.Appointment.DeletedAt != null
+                && m.DeletedAt != null
             )
             .Select(m => new MessageDtoResponse(
                 m.Id,
@@ -204,9 +204,9 @@ public sealed class MessageService(
     private async Task<ChatWithMessagesDtoResponse[]> GetClientChatHistoryAsync(int clientId)
     {
         return await context.Appointments
-            .Where(a => a.ClientId == clientId && !a.IsDeleted)
+            .Where(a => a.ClientId == clientId && a.DeletedAt != null)
             .Select(a => a.Messages
-                .Where(m => !m.IsDeleted)
+                .Where(m => m.DeletedAt != null)
                 .OrderByDescending(m => m.SentAt)
                 .Select(m => new ChatWithMessagesDtoResponse(
                     m.AppointmentId,

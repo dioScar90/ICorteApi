@@ -19,7 +19,7 @@ public static class RecurringScheduleEndpoint
             .WithSummary("Create Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
-        group.MapGet("{dayOfWeek}", GetRecurringScheduleAsync)
+        group.MapGet("{dayOfWeek}/{id}", GetRecurringScheduleAsync)
             .WithSummary("Get Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
@@ -27,11 +27,11 @@ public static class RecurringScheduleEndpoint
             .WithSummary("Get All Recurring Schedules")
             .RequireAuthorization(nameof(PolicyUserRole.ClientOrHigh));
 
-        group.MapPut("{dayOfWeek}", UpdateRecurringScheduleAsync)
+        group.MapPut("{dayOfWeek}/{id}", UpdateRecurringScheduleAsync)
             .WithSummary("Update Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
             
-        group.MapDelete("{dayOfWeek}", DeleteRecurringScheduleAsync)
+        group.MapDelete("{dayOfWeek}/{id}", DeleteRecurringScheduleAsync)
             .WithSummary("Delete Recurring Schedule")
             .RequireAuthorization(nameof(PolicyUserRole.BarberShopOrHigh));
 
@@ -118,6 +118,7 @@ public static class RecurringScheduleEndpoint
     }
 
     public static async Task<Results<Ok<RecurringScheduleDtoResponse>, NotFound<Error>>> GetRecurringScheduleAsync(
+        int id,
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
@@ -159,6 +160,7 @@ public static class RecurringScheduleEndpoint
     }
     
     public static async Task<Results<Ok<RecurringScheduleDtoResponse>, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> UpdateRecurringScheduleAsync(
+        int id,
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleDtoRequest dto,
@@ -174,7 +176,7 @@ public static class RecurringScheduleEndpoint
         dto = dto with { BarberShopId = barberShopId };
         logger.UpdatingStart(dayOfWeek, barberShopId, dto);
 
-        var infos = await service.GetEntityInfosAsync(dayOfWeek, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, dayOfWeek, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
@@ -184,8 +186,11 @@ public static class RecurringScheduleEndpoint
 
         if (!infos.BelongsToBarberShop)
             return errors.RecurringScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToDay)
+            return errors.RecurringScheduleBelongsToAnotherDayOfWeek();
             
-        var schedule = await service.UpdateAsync(dto, dayOfWeek, barberShopId, cancellationToken);
+        var schedule = await service.UpdateAsync(dto, id, cancellationToken);
 
         if (schedule is null)
             return errors.Update();
@@ -195,6 +200,7 @@ public static class RecurringScheduleEndpoint
     }
 
     public static async Task<Results<NoContent, NotFound<Error>, Conflict<Error>, BadRequest<Error>>> DeleteRecurringScheduleAsync(
+        int id,
         int barberShopId,
         DayOfWeek dayOfWeek,
         RecurringScheduleService service,
@@ -208,7 +214,7 @@ public static class RecurringScheduleEndpoint
 
         logger.DeletingStart(dayOfWeek, barberShopId);
 
-        var infos = await service.GetEntityInfosAsync(dayOfWeek, barberShopId, cancellationToken);
+        var infos = await service.GetEntityInfosAsync(id, dayOfWeek, barberShopId, cancellationToken);
 
         if (!infos.Exists)
             return errors.NotFound();
@@ -218,8 +224,11 @@ public static class RecurringScheduleEndpoint
 
         if (!infos.BelongsToBarberShop)
             return errors.RecurringScheduleBelongsToAnotherBarberShop();
+
+        if (!infos.BelongsToDay)
+            return errors.RecurringScheduleBelongsToAnotherDayOfWeek();
             
-        if (!await service.DeleteAsync(dayOfWeek, barberShopId, cancellationToken))
+        if (!await service.DeleteAsync(id, cancellationToken))
             return errors.Delete();
 
         logger.Deleted(dayOfWeek, barberShopId);

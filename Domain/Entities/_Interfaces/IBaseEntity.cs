@@ -16,18 +16,9 @@ public interface IBaseEntity
     int Id { get; }
     DateTime CreatedAt { get; }
     DateTime? UpdatedAt { get; }
-    bool IsDeleted { get; }
+    DateTime? DeletedAt { get; }
 
     void DeleteEntity();
-}
-
-public interface ICompositeKeyEntity<TEntity>
-    : IBaseTableEntity<TEntity>
-        where TEntity : class, IBaseTableEntity
-{
-    DateTime CreatedAt { get; }
-    DateTime? UpdatedAt { get; }
-    bool IsActive { get; }
 }
 
 public interface IBaseTableEntity<TEntity>
@@ -36,9 +27,4 @@ public interface IBaseTableEntity<TEntity>
 {
 }
 
-public interface IBaseTableEntity
-{
-    // void UpdateEntity<TDtoRequest, TEntity>(TDtoRequest dto)
-    //     where TEntity : class, IBaseTableEntity
-    //     where TDtoRequest : class, IDtoRequest<TEntity>;
-}
+public interface IBaseTableEntity {}

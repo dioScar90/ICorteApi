@@ -47,7 +47,7 @@ public sealed class AppointmentService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(a => new EntityInfos(
-                !a.IsDeleted,
+                a.DeletedAt == null,
                 currentUserId != null && a.ClientId == currentUserId
             ))
             .FirstOrDefaultAsync(cancellationToken);

@@ -37,7 +37,7 @@ public sealed class BarberShopService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(b => new EntityInfos(
-                !b.IsDeleted,
+                b.DeletedAt == null,
                 currentUserId != null && b.OwnerId == currentUserId
             ))
             .FirstOrDefaultAsync(cancellationToken);

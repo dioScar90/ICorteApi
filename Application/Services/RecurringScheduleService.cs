@@ -24,7 +24,7 @@ public sealed class RecurringScheduleService(
     }
     
     public async Task<EntityInfos> GetEntityInfosAsync(
-        DayOfWeek dayOfWeek, int barberShopId,
+        int id, DayOfWeek dayOfWeek, int barberShopId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -34,11 +34,12 @@ public sealed class RecurringScheduleService(
         var infos = await dbSet
             .AsNoTracking()
             .IgnoreQueryFilters()
-            .Where(x => x.DayOfWeek == dayOfWeek && x.BarberShopId == barberShopId)
+            .Where(x => x.Id == id)
             .Select(r => new EntityInfos(
                 true,
                 currentUserId != null && r.BarberShopId == currentUserId,
-                r.BarberShopId == barberShopId
+                r.BarberShopId == barberShopId,
+                r.DayOfWeek == dayOfWeek
             ))
             .FirstOrDefaultAsync(cancellationToken);
             
@@ -89,12 +90,13 @@ public sealed class RecurringScheduleService(
     }
     
     public async Task<RecurringScheduleDtoResponse?> UpdateAsync(
-        RecurringScheduleDtoRequest dto, DayOfWeek dayOfWeek, int barberShopId,
+        RecurringScheduleDtoRequest dto,
+        int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var schedule = await dbSet.FindAsync([dayOfWeek, barberShopId], cancellationToken);
+        var schedule = await dbSet.FindAsync(id, cancellationToken);
 
         if (schedule is null)
             return null;
@@ -108,12 +110,12 @@ public sealed class RecurringScheduleService(
     }
     
     public async Task<bool> DeleteAsync(
-        DayOfWeek dayOfWeek, int barberShopId,
+        int id,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var schedule = await dbSet.FindAsync([dayOfWeek, barberShopId], cancellationToken);
+        var schedule = await dbSet.FindAsync(id, cancellationToken);
 
         if (schedule is null)
             return false;

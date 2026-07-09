@@ -36,7 +36,7 @@ public sealed class ServiceService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(s => new EntityInfos(
-                !s.IsDeleted,
+                s.DeletedAt == null,
                 currentUserId != null && s.BarberShopId == currentUserId,
                 s.BarberShopId == barberShopId
             ))

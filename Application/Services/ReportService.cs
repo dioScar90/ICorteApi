@@ -41,7 +41,7 @@ public sealed class ReportService(
             .IgnoreQueryFilters()
             .Where(x => x.Id == id)
             .Select(r => new EntityInfos(
-                !r.IsDeleted,
+                r.DeletedAt == null,
                 currentUserId != null && r.ClientId == currentUserId,
                 r.BarberShopId == barberShopId
             ))
