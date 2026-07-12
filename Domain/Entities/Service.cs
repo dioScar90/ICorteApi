@@ -15,8 +15,8 @@ public sealed class Service : BaseEntity<Service>
 
     public int BarberShopId { get; init; }
     public BarberShop BarberShop { get; init; }
-
-    public ICollection<Appointment> Appointments { get; init; } = [];
+    
+    public ICollection<ServiceAppointment> ServiceAppointments { get; init; } = [];
 
     private Service() { }
     

@@ -40,7 +40,7 @@ public sealed class AdminService(
         return passphrase == passphraseHardDelete;
     }
     
-    private bool IsPostgres() => _context.Database.ProviderName!.Contains("Postgre", StringComparison.InvariantCultureIgnoreCase);
+    private bool IsPostgres() => _context.Database.IsNpgsql();
 
     public async Task<bool> UserExists(
         string email,
@@ -306,6 +306,10 @@ public sealed class AdminService(
         try
         {
             await _context.Database
+                .ExecuteSqlAsync($"DELETE FROM service_appointment WHERE service_id = {serviceId}", cancellationToken);
+
+            await _context.Services
+                .Where(s => s.Appointments. == serviceId)
                 .ExecuteSqlAsync($"DELETE FROM service_appointment WHERE service_id = {serviceId}", cancellationToken);
 
             await _context.Services

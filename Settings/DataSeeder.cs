@@ -50,6 +50,19 @@ public static class DataSeeder
             throw;
         }
     }
+
+    private static async Task<HashSet<string>> GetAlreadyExistingEmails(User[] users, IServiceScope scope)
+    {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        HashSet<string> receivedEmails = [.. users.Select(user => user.Email!)];
+        
+        return await context.Users
+            .IgnoreQueryFilters()
+            .Where(u => u.Email != null && u.DeletedAt == null && receivedEmails.Contains(u.Email))
+            .Select(u => u.Email!)
+            .ToHashSetAsync();
+    }
     
     public static async Task SeedData(IServiceProvider serviceProvider)
     {
@@ -57,11 +70,12 @@ public static class DataSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         
         var usersToMock = GetAllUsersToMock();
+        var alreadyExistingEmails = await GetAlreadyExistingEmails(usersToMock, scope);
         
         foreach (var user in usersToMock)
         {
-            // Finding if user already exists.
-            if ((await userManager.FindByEmailAsync(user.Email!)) is not null)
+            // Searching if user already exists.
+            if (alreadyExistingEmails.Contains(user.Email!)) // ((await userManager.FindByEmailAsync(user.Email!)) is not null)
                 continue;
                 
             // Trying to create a not already existed user.

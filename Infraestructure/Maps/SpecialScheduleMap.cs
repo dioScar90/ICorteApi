@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
@@ -12,8 +11,9 @@ public class SpecialScheduleMap : BaseMap<SpecialSchedule>
         builder
             .HasIndex(rs => new { rs.Date, rs.BarberShopId })
             .IsDescending(true, false)
-            .HasFilter($"[{nameof(SpecialSchedule.DeletedAt).ToSnakeCase()}] IS NULL");
-
+            .IsUnique()
+            .HasFilterForNullValue(builder, nameof(SpecialSchedule.DeletedAt));
+            
         builder.HasOne(ss => ss.BarberShop)
             .WithMany(b => b.SpecialSchedules)
             .HasForeignKey(ss => ss.BarberShopId)

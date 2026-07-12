@@ -1,9 +1,75 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
 
-public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
+public static class EntityTypeBuilderExtensions
+{
+    extension(string value)
+    {
+        public string SqlNormalize() => value.ToSnakeCase();
+    }
+
+    extension<TEntity>(EntityTypeBuilder<TEntity> builder) where TEntity : class, IBaseTableEntity
+    {
+        /// <summary>
+        /// This must be invoked after Configure()
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public string GetColumnName(string propertyName)
+        {
+            var property = builder.Metadata.FindProperty(propertyName);
+
+            if (property is null)
+                throw new InvalidOperationException($"Property '{propertyName}' not found on {typeof(TEntity).Name}.");
+            
+            var table = StoreObjectIdentifier.Table(
+                builder.Metadata.GetTableName()!,
+                builder.Metadata.GetSchema());
+                
+            var columnName = property.GetColumnName(table);
+            
+            if (string.IsNullOrWhiteSpace(columnName))
+                throw new InvalidOperationException($"Property '{propertyName}' not found on Entity {typeof(TEntity).Name}.");
+                
+            return columnName;
+        }
+        
+        private string GetIsNullForHasFilter(string columnName)
+        {
+            columnName = columnName.SqlNormalize();
+            
+            columnName = ModelBuildingContext.Provider switch
+            {
+                DatabaseProvider.SqlServer  => $"[{columnName}]",
+                DatabaseProvider.PostgreSQL => $@"""{columnName}""",
+                DatabaseProvider.SQLite     => $@"""{columnName}""",
+                DatabaseProvider.InMemory   => columnName,
+                _ => columnName // Safe fallback
+            };
+            
+            return $"{columnName} IS NULL";
+        }
+    }
+    
+    extension<TEntity>(IndexBuilder<TEntity> idxBuilder) where TEntity : class, IBaseTableEntity
+    {
+        public IndexBuilder<TEntity> HasFilterForNullValue(EntityTypeBuilder<TEntity> builder, string columnName)
+        {
+            string sqlFilter = builder.GetIsNullForHasFilter(columnName);
+            
+            return idxBuilder
+                // toda essa merda só para resultar em '[deleted_at] IS NULL' etc.
+                .HasFilter(sqlFilter);
+        }
+    }
+}
+
+public abstract class BaseMap<TEntity>
+    : IEntityTypeConfiguration<TEntity> where TEntity : class, IBaseTableEntity
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
@@ -11,7 +77,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
 
         if (!string.IsNullOrEmpty(currentTableName))
         {
-            builder.ToTable(currentTableName.ToSnakeCase());
+            builder.ToTable(currentTableName.SqlNormalize());
         }
 
         foreach (var prop in typeof(TEntity).GetProperties())
@@ -25,7 +91,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
                 continue;
             }
 
-            builder.Property(prop.Name).HasColumnName(prop.Name.ToSnakeCase());
+            builder.Property(prop.Name).HasColumnName(prop.Name.SqlNormalize());
 
             if (prop.PropertyType == typeof(decimal))
                 builder.Property(prop.Name).HasPrecision(9, 4);
@@ -37,7 +103,7 @@ public abstract class BaseMap<TEntity> : IEntityTypeConfiguration<TEntity> where
         if (TEntityImplementsIPrimaryKeyEntity())
             builder.HasQueryFilter(x => ((IBaseEntity<TEntity>)x).DeletedAt != null); // same as 'x => x.DeletedAt != null'
     }
-
+    
     private static bool TEntityImplementsIPrimaryKeyEntity() =>
         typeof(IBaseEntity<TEntity>).IsAssignableFrom(typeof(TEntity));
         

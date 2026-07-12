@@ -49,22 +49,7 @@ public static class ServiceCollectionExtensions
         public IServiceCollection AddValidators()
         {
             services.AddValidators();
-
-            // services.AddValidatorsFromAssemblyContaining<AddressValidator>();
-            // services.AddValidatorsFromAssemblyContaining<AppointmentValidator>();
-            // services.AddValidatorsFromAssemblyContaining<BarberShopValidator>();
-            // services.AddValidatorsFromAssemblyContaining<MessageValidator>();
-            // services.AddValidatorsFromAssemblyContaining<ProfileValidator>();
-            // services.AddValidatorsFromAssemblyContaining<RecurringScheduleValidator>();
-            // services.AddValidatorsFromAssemblyContaining<ReportValidator>();
-            // services.AddValidatorsFromAssemblyContaining<ServiceValidator>();
-            // services.AddValidatorsFromAssemblyContaining<SpecialScheduleValidator>();
-            // services.AddValidatorsFromAssemblyContaining<UserValidator>();
-            // services.AddValidatorsFromAssemblyContaining<UserDtoLoginRequestValidator>();
-            // services.AddValidatorsFromAssemblyContaining<UserDtoEmailUpdateValidator>();
-            // services.AddValidatorsFromAssemblyContaining<UserDtoPasswordUpdateValidator>();
-            // services.AddValidatorsFromAssemblyContaining<UserDtoPhoneNumberUpdateValidator>();
-
+            
             return services;
         }
         

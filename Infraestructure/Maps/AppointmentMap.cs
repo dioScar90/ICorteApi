@@ -17,22 +17,27 @@ public class AppointmentMap : BaseMap<Appointment>
             .WithMany(b => b.Appointments)
             .HasForeignKey(a => a.BarberShopId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(a => a.ServiceAppointments)
+            .WithOne(sa => sa.Appointment)
+            .HasForeignKey(sa => sa.AppointmentId)
+            .OnDelete(DeleteBehavior.Cascade);
             
-        builder.HasMany(a => a.Services)
-            .WithMany(s => s.Appointments)
-            .UsingEntity(
-                "service_appointment",
+        // builder.HasMany(a => a.Services)
+        //     .WithMany(s => s.Appointments)
+        //     .UsingEntity(
+        //         "service_appointment",
 
-                l => l.HasOne(typeof(Service))
-                    .WithMany()
-                    .HasForeignKey("service_id")
-                    .HasPrincipalKey(nameof(Service.Id))
-                    .OnDelete(DeleteBehavior.Restrict),
+        //         l => l.HasOne(typeof(Service))
+        //             .WithMany()
+        //             .HasForeignKey("service_id")
+        //             .HasPrincipalKey(nameof(Service.Id))
+        //             .OnDelete(DeleteBehavior.Restrict),
 
-                r => r.HasOne(typeof(Appointment))
-                    .WithMany()
-                    .HasForeignKey("appointment_id")
-                    .HasPrincipalKey(nameof(Appointment.Id))
-                    .OnDelete(DeleteBehavior.Cascade));
+        //         r => r.HasOne(typeof(Appointment))
+        //             .WithMany()
+        //             .HasForeignKey("appointment_id")
+        //             .HasPrincipalKey(nameof(Appointment.Id))
+        //             .OnDelete(DeleteBehavior.Cascade));
     }
 }

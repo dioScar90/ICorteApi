@@ -3,6 +3,29 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ICorteApi.Infraestructure.Context;
 
+public enum DatabaseProvider
+{
+    SqlServer,
+    PostgreSQL,
+    SQLite,
+    InMemory
+};
+
+public static class ModelBuildingContext
+{
+    private static readonly AsyncLocal<DatabaseProvider?> _provider = new();
+
+    public static DatabaseProvider Provider =>
+        _provider.Value ?? throw new InvalidOperationException(
+            "Provider not allowed to be used outside OnModelCreating.");
+
+    internal static void Set(DatabaseProvider provider)
+        => _provider.Value = provider;
+
+    internal static void Clear()
+        => _provider.Value = null;
+}
+
 public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<User, ApplicationRole, int>(options)
 {
@@ -11,15 +34,40 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<ServiceAppointment> ServiceAppointments { get; set; }
     public DbSet<RecurringSchedule> RecurringSchedules { get; set; }
     public DbSet<SpecialSchedule> SpecialSchedules { get; set; }
     public DbSet<Report> Reports { get; set; }
     public DbSet<Message> Messages { get; set; }
+    
+    private DatabaseProvider GetDatabaseProvider()
+    {
+        if (Database.IsSqlServer())
+            return DatabaseProvider.SqlServer;
 
+        if (Database.IsNpgsql())
+            return DatabaseProvider.PostgreSQL;
+
+        if (Database.IsSqlite())
+            return DatabaseProvider.SQLite;
+
+        return DatabaseProvider.InMemory;
+    }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        
+        ModelBuildingContext.Set(GetDatabaseProvider());
+        
+        try
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        }
+        finally
+        {
+            ModelBuildingContext.Clear();
+        }
     }
 
     public override int SaveChanges()

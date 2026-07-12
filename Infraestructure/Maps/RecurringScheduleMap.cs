@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ICorteApi.Infraestructure.Maps;
@@ -12,8 +11,9 @@ public class RecurringScheduleMap : BaseMap<RecurringSchedule>
         builder
             .HasIndex(rs => new { rs.DayOfWeek, rs.BarberShopId })
             .IsDescending(true, false)
-            .HasFilter($"[{nameof(RecurringSchedule.DeletedAt).ToSnakeCase()}] IS NULL");
-
+            .IsUnique()
+            .HasFilterForNullValue(builder, nameof(RecurringSchedule.DeletedAt));
+            
         builder
             .HasOne(rs => rs.BarberShop)
             .WithMany(b => b.RecurringSchedules)
