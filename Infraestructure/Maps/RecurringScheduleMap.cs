@@ -12,7 +12,7 @@ public class RecurringScheduleMap : BaseMap<RecurringSchedule>
             .HasIndex(rs => new { rs.DayOfWeek, rs.BarberShopId })
             .IsDescending(true, false)
             .IsUnique()
-            .HasFilterForNullValue(builder, nameof(RecurringSchedule.DeletedAt));
+            .HasFilterForDeletedAt(builder);
             
         builder
             .HasOne(rs => rs.BarberShop)

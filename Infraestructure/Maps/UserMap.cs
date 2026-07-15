@@ -11,6 +11,6 @@ public class UserMap : BaseMap<User>
         builder
             .HasIndex(u => new { u.Email, u.UserName })
             .IsUnique()
-            .HasFilterForNullValue(builder, nameof(User.DeletedAt));
+            .HasFilterForDeletedAt(builder);
     }
 }

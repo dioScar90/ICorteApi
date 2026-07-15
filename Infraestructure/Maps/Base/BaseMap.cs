@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -57,8 +58,9 @@ public static class EntityTypeBuilderExtensions
     
     extension<TEntity>(IndexBuilder<TEntity> idxBuilder) where TEntity : class, IBaseTableEntity
     {
-        public IndexBuilder<TEntity> HasFilterForNullValue(EntityTypeBuilder<TEntity> builder, string columnName)
+        public IndexBuilder<TEntity> HasFilterForDeletedAt(EntityTypeBuilder<TEntity> builder)
         {
+            string columnName = nameof(IBaseEntity<>.DeletedAt);
             string sqlFilter = builder.GetIsNullForHasFilter(columnName);
             
             return idxBuilder
@@ -79,27 +81,49 @@ public abstract class BaseMap<TEntity>
         {
             builder.ToTable(currentTableName.SqlNormalize());
         }
+        
+        if (typeof(BaseEntity<TEntity>).IsAssignableFrom(typeof(TEntity)))
+        {
+            builder.Property(nameof(BaseEntity<>.Id)).HasColumnName(nameof(BaseEntity<>.Id).SqlNormalize());
+        }
+        
+        void mapThisProp(string name, Type propertyType)
+        {
+            builder.Property(name).HasColumnName(name.SqlNormalize());
 
+            if (propertyType == typeof(decimal))
+                builder.Property(name).HasPrecision(9, 4);
+
+            if (propertyType.IsEnum && !IsUnableToBecomeString(propertyType))
+                builder.Property(name).HasConversion<string>();
+        }
+        
+        var propsToTheEnd = typeof(IBaseEntity<TEntity>).GetProperties()
+            .Where(p => p.Name != nameof(IBaseEntity.Id))
+            .ToImmutableDictionary(p => p.Name, p => p.PropertyType);
+        
         foreach (var prop in typeof(TEntity).GetProperties())
         {
+            if (propsToTheEnd.ContainsKey(prop.Name))
+                continue;
+                
             if (!IsPrimitiveType(prop.PropertyType))
                 continue;
-
+                
             if (IsCompositeKeyName(prop.Name))
             {
                 builder.Ignore(prop.Name);
                 continue;
             }
-
-            builder.Property(prop.Name).HasColumnName(prop.Name.SqlNormalize());
-
-            if (prop.PropertyType == typeof(decimal))
-                builder.Property(prop.Name).HasPrecision(9, 4);
-
-            if (prop.PropertyType.IsEnum && !IsUnableToBecomeString(prop.PropertyType))
-                builder.Property(prop.Name).HasConversion<string>();
+            
+            mapThisProp(prop.Name, prop.PropertyType);
         }
-
+        
+        foreach (var (propName, propPropertyType) in propsToTheEnd)
+        {
+            mapThisProp(propName, propPropertyType);
+        }
+        
         if (TEntityImplementsIPrimaryKeyEntity())
             builder.HasQueryFilter(x => ((IBaseEntity<TEntity>)x).DeletedAt != null); // same as 'x => x.DeletedAt != null'
     }

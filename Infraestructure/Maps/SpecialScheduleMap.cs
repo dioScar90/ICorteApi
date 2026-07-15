@@ -12,7 +12,7 @@ public class SpecialScheduleMap : BaseMap<SpecialSchedule>
             .HasIndex(rs => new { rs.Date, rs.BarberShopId })
             .IsDescending(true, false)
             .IsUnique()
-            .HasFilterForNullValue(builder, nameof(SpecialSchedule.DeletedAt));
+            .HasFilterForDeletedAt(builder);
             
         builder.HasOne(ss => ss.BarberShop)
             .WithMany(b => b.SpecialSchedules)
